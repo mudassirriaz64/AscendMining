@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Uploads (if storing locally)
+uploads/
+temp/
+
+# Logs
+logs/
+*.log
+
+# Coverage
+coverage/
+
+# Build
+dist/
+
+# IDE
+.vscode/
+.idea/
+
+# Misc
+.DS_Store
