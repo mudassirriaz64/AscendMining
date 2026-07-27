@@ -19,10 +19,11 @@ const registerSchema = z.object({
     .min(8, 'Password must be at least 8 characters with a letter and a number.')
     .regex(/[a-zA-Z]/, 'Password must be at least 8 characters with a letter and a number.')
     .regex(/[0-9]/, 'Password must be at least 8 characters with a letter and a number.'),
-  confirmPassword: z.string(),
+  confirmPassword: z.string().optional(),
+  country: z.string().optional(),
   phone: z.string().optional(),
   referralCode: z.string().optional(),
-}).refine((data) => data.password === data.confirmPassword, {
+}).refine((data) => !data.confirmPassword || data.password === data.confirmPassword, {
   message: 'Passwords do not match.',
   path: ['confirmPassword'],
 });
@@ -60,9 +61,15 @@ const refreshTokenSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token is required.'),
 });
 
+const adminLoginSchema = z.object({
+  email: z.string().min(1, 'Email is required').email('Enter a valid email address.'),
+  password: z.string().min(1, 'Password is required.'),
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
+  adminLoginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
   refreshTokenSchema,

@@ -5,8 +5,33 @@ const refreshTokenRepository = require('../repositories/refreshToken.repository'
 const { generateAccessToken, generateRefreshToken } = require('../utils/tokenUtils');
 const AppError = require('../utils/AppError');
 const { PASSWORD_RESET_EXPIRY_MINUTES } = require('../config/constants');
+const Admin = require('../models/Admin');
 
-const register = async ({ fullName, username, email, password, phone, referralCode }) => {
+const isProduction = process.env.NODE_ENV === 'production';
+
+const setTokenCookies = (res, accessToken, refreshToken) => {
+  res.cookie('accessToken', accessToken, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'strict',
+    maxAge: 15 * 60 * 1000,
+    path: '/',
+  });
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'strict',
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+    path: '/',
+  });
+};
+
+const clearTokenCookies = (res) => {
+  res.clearCookie('accessToken', { path: '/' });
+  res.clearCookie('refreshToken', { path: '/' });
+};
+
+const register = async ({ fullName, username, email, password, country, phone, referralCode }) => {
   const emailExists = await userRepository.existsByEmail(email);
   if (emailExists) {
     throw new AppError('EMAIL_EXISTS', 'This email is already registered.', 409);
@@ -30,6 +55,7 @@ const register = async ({ fullName, username, email, password, phone, referralCo
     username,
     email: email.toLowerCase(),
     passwordHash: password,
+    country: country || null,
     phone: phone || null,
     referralCode: uuidv4().slice(0, 8).toUpperCase(),
     referredBy,
@@ -46,7 +72,7 @@ const register = async ({ fullName, username, email, password, phone, referralCo
   };
 };
 
-const login = async ({ emailOrUsername, password }) => {
+const login = async (res, { emailOrUsername, password }) => {
   const isEmail = emailOrUsername.includes('@');
   const user = isEmail
     ? await userRepository.findByEmailWithPassword(emailOrUsername)
@@ -69,14 +95,39 @@ const login = async ({ emailOrUsername, password }) => {
   const { token: refreshTokenHash, rawToken } = generateRefreshToken();
   await refreshTokenRepository.create(refreshTokenHash, user._id);
 
-  return {
-    user,
-    accessToken,
-    refreshToken: rawToken,
-  };
+  setTokenCookies(res, accessToken, rawToken);
+
+  return { user };
 };
 
-const refreshAccessToken = async (rawRefreshToken) => {
+const adminLogin = async (res, { email, password }) => {
+  const admin = await Admin.findOne({ email: email.toLowerCase() }).select('+passwordHash');
+  if (!admin) {
+    throw new AppError('INVALID_CREDENTIALS', 'Invalid email or password.', 401);
+  }
+
+  if (admin.status === 'suspended') {
+    throw new AppError('ACCOUNT_SUSPENDED', 'Your account has been suspended. Contact support.', 403);
+  }
+
+  const isMatch = await admin.comparePassword(password);
+  if (!isMatch) {
+    throw new AppError('INVALID_CREDENTIALS', 'Invalid email or password.', 401);
+  }
+
+  admin.lastLoginAt = new Date();
+  await admin.save();
+
+  const accessToken = generateAccessToken({ _id: admin._id, role: 'admin' });
+  const { token: refreshTokenHash, rawToken } = generateRefreshToken();
+  await refreshTokenRepository.create(refreshTokenHash, admin._id);
+
+  setTokenCookies(res, accessToken, rawToken);
+
+  return { admin };
+};
+
+const refreshAccessToken = async (res, rawRefreshToken) => {
   const tokens = await require('../models/RefreshToken').find({ revoked: false });
 
   let matchedToken = null;
@@ -94,19 +145,46 @@ const refreshAccessToken = async (rawRefreshToken) => {
 
   await refreshTokenRepository.revoke(matchedToken.tokenHash);
 
+  let entity = null;
+  let role = null;
+
   const user = await userRepository.findById(matchedToken.userId);
-  if (!user) {
+  if (user) {
+    entity = user;
+    role = user.role;
+  } else {
+    const admin = await Admin.findById(matchedToken.userId);
+    if (admin) {
+      entity = admin;
+      role = 'admin';
+    }
+  }
+
+  if (!entity) {
     throw new AppError('USER_NOT_FOUND', 'User not found.', 401);
   }
 
-  const accessToken = generateAccessToken(user);
+  const accessToken = generateAccessToken({ _id: entity._id, role });
   const { token: newRefreshHash, rawToken: newRawToken } = generateRefreshToken();
-  await refreshTokenRepository.create(newRefreshHash, user._id);
+  await refreshTokenRepository.create(newRefreshHash, entity._id);
 
-  return {
-    accessToken,
-    refreshToken: newRawToken,
-  };
+  setTokenCookies(res, accessToken, newRawToken);
+
+  return { user: entity.toJSON() };
+};
+
+const getMe = async (userId) => {
+  const user = await userRepository.findById(userId);
+  if (user) return user;
+
+  const admin = await Admin.findById(userId);
+  if (admin) return admin;
+
+  throw new AppError('USER_NOT_FOUND', 'User not found.', 404);
+};
+
+const logout = async (res) => {
+  clearTokenCookies(res);
 };
 
 const forgotPassword = async (email) => {
@@ -149,10 +227,30 @@ const resetPassword = async ({ token, password }) => {
   return { message: 'Password has been reset successfully.' };
 };
 
+const checkAvailability = async ({ email, username }) => {
+  const result = {
+    emailAvailable: true,
+    usernameAvailable: true,
+  };
+
+  if (email) {
+    result.emailAvailable = !(await userRepository.existsByEmail(email));
+  }
+  if (username) {
+    result.usernameAvailable = !(await userRepository.existsByUsername(username));
+  }
+
+  return result;
+};
+
 module.exports = {
   register,
   login,
+  adminLogin,
   refreshAccessToken,
+  getMe,
+  logout,
   forgotPassword,
   resetPassword,
+  checkAvailability,
 };

@@ -38,6 +38,14 @@ const existsByUsername = async (username) => {
   return !!user;
 };
 
+const findByFilter = async (filter, { skip = 0, limit = 20, sort = { createdAt: -1 } } = {}) => {
+  return User.find(filter).sort(sort).skip(skip).limit(limit);
+};
+
+const countByFilter = async (filter) => {
+  return User.countDocuments(filter);
+};
+
 module.exports = {
   findByEmail,
   findByEmailWithPassword,
@@ -48,4 +56,6 @@ module.exports = {
   updateById,
   existsByEmail,
   existsByUsername,
+  findByFilter,
+  countByFilter,
 };

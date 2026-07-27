@@ -1,8 +1,11 @@
 const validate = (schema) => {
   return (req, res, next) => {
-    const result = schema.safeParse(req.body);
+    const isGetOrDelete = req.method === 'GET' || req.method === 'DELETE';
+    const dataToValidate = isGetOrDelete ? req.query : req.body;
+    const result = schema.safeParse(dataToValidate);
     if (!result.success) {
-      const errors = result.error.errors.map((err) => ({
+      const issues = result.error.issues || result.error.errors || [];
+      const errors = issues.map((err) => ({
         field: err.path.join('.'),
         message: err.message,
       }));
@@ -16,7 +19,11 @@ const validate = (schema) => {
         },
       });
     }
-    req.body = result.data;
+    if (isGetOrDelete) {
+      req.query = result.data;
+    } else {
+      req.body = result.data;
+    }
     next();
   };
 };

@@ -28,10 +28,9 @@ const refreshTokenSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-refreshTokenSchema.pre('save', async function (next) {
-  if (!this.isModified('tokenHash')) return next();
+refreshTokenSchema.pre('save', async function () {
+  if (!this.isModified('tokenHash')) return;
   this.tokenHash = await bcrypt.hash(this.tokenHash, 10);
-  next();
 });
 
 refreshTokenSchema.methods.compareToken = async function (candidateToken) {

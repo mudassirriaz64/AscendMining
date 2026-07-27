@@ -26,6 +26,11 @@ const userSchema = new mongoose.Schema(
       trim: true,
       match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email'],
     },
+    country: {
+      type: String,
+      default: null,
+      trim: true,
+    },
     phone: {
       type: String,
       default: null,
@@ -93,10 +98,9 @@ const userSchema = new mongoose.Schema(
 userSchema.index({ role: 1, status: 1 });
 userSchema.index({ referredBy: 1 });
 
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('passwordHash')) return next();
+userSchema.pre('save', async function () {
+  if (!this.isModified('passwordHash')) return;
   this.passwordHash = await bcrypt.hash(this.passwordHash, BCRYPT_ROUNDS);
-  next();
 });
 
 userSchema.methods.comparePassword = async function (candidatePassword) {
