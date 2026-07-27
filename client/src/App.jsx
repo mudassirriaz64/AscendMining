@@ -8,9 +8,17 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
 const AdminLoginPage = lazy(() => import('./pages/admin/AdminLoginPage'));
+const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
+const WithdrawNowPage = lazy(() => import('./pages/withdrawal/WithdrawNowPage'));
+const MyWithdrawalsPage = lazy(() => import('./pages/withdrawal/MyWithdrawalsPage'));
+const WalletAddressesPage = lazy(() => import('./pages/account/WalletAddressesPage'));
+const StartMiningPage = lazy(() => import('./pages/mining/StartMiningPage'));
+const MiningTracksPage = lazy(() => import('./pages/mining/MiningTracksPage'));
 const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
 const UserListPage = lazy(() => import('./pages/admin/users/UserListPage'));
 const UserDetailPage = lazy(() => import('./pages/admin/users/UserDetailPage'));
+const CoinListPage = lazy(() => import('./pages/admin/coins/CoinListPage'));
+const PackageListPage = lazy(() => import('./pages/admin/packages/PackageListPage'));
 
 const ProtectedRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
@@ -37,15 +45,6 @@ const AdminPublicRoute = ({ children }) => {
   return children;
 };
 
-const Dashboard = () => (
-  <div className="min-h-screen bg-bg-light-alt flex items-center justify-center">
-    <div className="text-center">
-      <h1 className="text-2xl font-heading font-semibold text-text-light-bg mb-2">Dashboard</h1>
-      <p className="text-text-secondary">Coming soon...</p>
-    </div>
-  </div>
-);
-
 const App = () => {
   const dispatch = useDispatch();
   const { hydrated } = useSelector((state) => state.auth);
@@ -67,50 +66,23 @@ const App = () => {
       <Toaster position="top-right" />
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
-          <Route
-            path="/login"
-            element={
-              <PublicRoute>
-                <LoginPage />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <PublicRoute>
-                <RegisterPage />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/admin/login"
-            element={
-              <AdminPublicRoute>
-                <AdminLoginPage />
-              </AdminPublicRoute>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+          <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+          <Route path="/admin/login" element={<AdminPublicRoute><AdminLoginPage /></AdminPublicRoute>} />
 
-          <Route
-            path="/admin"
-            element={
-              <AdminRoute>
-                <AdminLayout />
-              </AdminRoute>
-            }
-          >
+          <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+          <Route path="/withdraw" element={<ProtectedRoute><WithdrawNowPage /></ProtectedRoute>} />
+          <Route path="/withdraw/history" element={<ProtectedRoute><MyWithdrawalsPage /></ProtectedRoute>} />
+          <Route path="/wallets" element={<ProtectedRoute><WalletAddressesPage /></ProtectedRoute>} />
+          <Route path="/mining/plans" element={<ProtectedRoute><StartMiningPage /></ProtectedRoute>} />
+          <Route path="/mining/tracks" element={<ProtectedRoute><MiningTracksPage /></ProtectedRoute>} />
+
+          <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
             <Route index element={<Navigate to="/admin/users" replace />} />
             <Route path="users" element={<UserListPage />} />
             <Route path="users/:id" element={<UserDetailPage />} />
+            <Route path="coins" element={<CoinListPage />} />
+            <Route path="packages" element={<PackageListPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />

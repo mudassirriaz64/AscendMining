@@ -37,6 +37,10 @@ const walletTransactionSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    coinSymbol: {
+      type: String,
+      default: 'USD',
+    },
     reason: {
       type: String,
       default: null,

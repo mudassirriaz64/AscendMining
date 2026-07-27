@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import {
-  LayoutDashboard, Users, Package, ArrowDownToLine, ArrowUpFromLine,
+  LayoutDashboard, Users, Package, Coins, ArrowDownToLine, ArrowUpFromLine,
   UsersRound, FileText, MessageCircle, ShieldCheck, Bell, Search,
   Menu, X, LogOut, ChevronDown,
 } from 'lucide-react';
@@ -12,6 +12,7 @@ import Logo from '../components/common/Logo';
 const sidebarLinks = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/admin/users', icon: Users, label: 'Users' },
+  { to: '/admin/coins', icon: Coins, label: 'Coins' },
   { to: '/admin/packages', icon: Package, label: 'Packages' },
   { to: '/admin/deposits', icon: ArrowDownToLine, label: 'Deposits' },
   { to: '/admin/withdrawals', icon: ArrowUpFromLine, label: 'Withdrawals' },

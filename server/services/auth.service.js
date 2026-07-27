@@ -76,7 +76,7 @@ const login = async (res, { emailOrUsername, password }) => {
   const isEmail = emailOrUsername.includes('@');
   const user = isEmail
     ? await userRepository.findByEmailWithPassword(emailOrUsername)
-    : await userRepository.findByUsername(emailOrUsername);
+    : await userRepository.findByUsernameWithPassword(emailOrUsername);
 
   if (!user) {
     throw new AppError('INVALID_CREDENTIALS', 'Invalid email/username or password.', 401);
@@ -118,7 +118,7 @@ const adminLogin = async (res, { email, password }) => {
   admin.lastLoginAt = new Date();
   await admin.save();
 
-  const accessToken = generateAccessToken({ _id: admin._id, role: 'admin' });
+  const accessToken = generateAccessToken({ _id: admin._id, role: admin.role });
   const { token: refreshTokenHash, rawToken } = generateRefreshToken();
   await refreshTokenRepository.create(refreshTokenHash, admin._id);
 

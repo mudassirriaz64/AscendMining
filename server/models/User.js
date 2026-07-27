@@ -60,6 +60,21 @@ const userSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    miningBalances: {
+      type: Map,
+      of: Number,
+      default: {},
+    },
+    walletAddresses: {
+      type: Map,
+      of: String,
+      default: {},
+    },
+    referralBalance: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     referralCode: {
       type: String,
       required: true,
