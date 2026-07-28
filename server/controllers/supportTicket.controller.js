@@ -1,97 +1,53 @@
-const supportTicketService = require('../services/supportTicket.service');
+const service = require('../services/supportTicket.service');
 
-/**
- * POST /api/support/tickets
- * Investor: Create a new support ticket
- */
-const createTicket = async (req, res, next) => {
+const escalate = async (req, res, next) => {
   try {
-    const { subject, conversationId, escalationReason } = req.body;
-    const ticket = await supportTicketService.createTicket(req.user.id, {
-      subject,
-      conversationId,
-      escalationReason,
+    const ticket = await service.createSupportTicket({
+      userId: req.user.id,
+      conversationId: req.body.conversationId,
+      subject: req.body.subject,
+      escalationReason: 'no_agent_response_30min',
     });
-    return res.status(201).json({ success: true, data: { ticket } });
-  } catch (err) {
-    next(err);
-  }
+    res.status(201).json({ success: true, data: { ticket } });
+  } catch (error) { next(error); }
 };
 
-/**
- * GET /api/support/tickets
- * Investor: Get their own tickets
- */
 const getMyTickets = async (req, res, next) => {
   try {
-    const { page, limit, status } = req.query;
-    const result = await supportTicketService.getUserTickets(req.user.id, {
-      page: parseInt(page) || 1,
-      limit: parseInt(limit) || 20,
-      status,
+    const data = await service.getUserTickets(req.user.id, {
+      page: parseInt(req.query.page, 10) || 1,
+      limit: parseInt(req.query.limit, 10) || 20,
+      status: req.query.status,
     });
-    return res.status(200).json({ success: true, data: result });
-  } catch (err) {
-    next(err);
-  }
+    res.json({ success: true, data });
+  } catch (error) { next(error); }
 };
 
-/**
- * GET /api/admin/support/tickets
- * Admin: Get all tickets
- */
 const getAllTickets = async (req, res, next) => {
   try {
-    const { page, limit, status } = req.query;
-    const result = await supportTicketService.getAllTickets({
-      page: parseInt(page) || 1,
-      limit: parseInt(limit) || 30,
-      status,
+    const data = await service.getAllTickets({
+      page: parseInt(req.query.page, 10) || 1,
+      limit: parseInt(req.query.limit, 10) || 30,
+      status: req.query.status,
     });
-    return res.status(200).json({ success: true, data: result });
-  } catch (err) {
-    next(err);
-  }
+    res.json({ success: true, data });
+  } catch (error) { next(error); }
 };
 
-/**
- * PATCH /api/admin/support/tickets/:id
- * Admin: Update ticket status or assigned agent
- */
 const updateTicket = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const { status, assignedAgent } = req.body;
-    const ticket = await supportTicketService.updateTicket(id, { status, assignedAgent });
-    if (!ticket) {
-      return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Ticket not found.', status: 404 } });
-    }
-    return res.status(200).json({ success: true, data: { ticket } });
-  } catch (err) {
-    next(err);
-  }
+    const ticket = await service.updateTicket(req.params.id, req.body);
+    if (!ticket) return res.status(404).json({ success: false, error: { message: 'Ticket not found.' } });
+    return res.json({ success: true, data: { ticket } });
+  } catch (error) { next(error); }
 };
 
-/**
- * GET /api/admin/support/tickets/:id
- * Admin: Get a single ticket
- */
 const getTicketById = async (req, res, next) => {
   try {
-    const ticket = await supportTicketService.getTicketById(req.params.id);
-    if (!ticket) {
-      return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Ticket not found.', status: 404 } });
-    }
-    return res.status(200).json({ success: true, data: { ticket } });
-  } catch (err) {
-    next(err);
-  }
+    const ticket = await service.getTicketById(req.params.id);
+    if (!ticket) return res.status(404).json({ success: false, error: { message: 'Ticket not found.' } });
+    return res.json({ success: true, data: { ticket } });
+  } catch (error) { next(error); }
 };
 
-module.exports = {
-  createTicket,
-  getMyTickets,
-  getAllTickets,
-  updateTicket,
-  getTicketById,
-};
+module.exports = { escalate, getMyTickets, getAllTickets, updateTicket, getTicketById };

@@ -1,12 +1,9 @@
-const express = require('express');
-const router = express.Router();
-const authMiddleware = require('../../middlewares/auth.middleware');
-const supportTicketController = require('../../controllers/supportTicket.controller');
+const router = require('express').Router();
+const auth = require('../../middlewares/auth.middleware');
+const requireRole = require('../../middlewares/role.middleware');
+const controller = require('../../controllers/supportTicket.controller');
 
-// Investor: Create a new support ticket
-router.post('/', authMiddleware, supportTicketController.createTicket);
-
-// Investor: Get own tickets
-router.get('/', authMiddleware, supportTicketController.getMyTickets);
+router.post('/escalate', auth, requireRole('investor'), controller.escalate);
+router.get('/', auth, requireRole('investor'), controller.getMyTickets);
 
 module.exports = router;

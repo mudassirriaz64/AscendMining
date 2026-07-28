@@ -1,246 +1,243 @@
 const conversationRepo = require('../repositories/conversation.repository');
 const messageRepo = require('../repositories/conversationMessage.repository');
-const sessionRepo = require('../repositories/chatSession.repository');
+const sessionRepo = require('../repositories/conversationSession.repository');
 
-// ── Investor session-based methods ─────────────────────────────────────────
+const SLA_MS = 30 * 60 * 1000;
+const SESSION_INACTIVITY_MS = 30 * 60 * 1000;
 
-/**
- * Get or create the user's active session. Returns session + its messages.
- * If no active session exists, creates a new one.
- */
-const getOrCreateActiveSession = async (userId) => {
-  const conversation = await conversationRepo.findOrCreate(userId);
-  let session = await sessionRepo.findActiveByUserId(userId);
+const getOrCreateConversation = (userId) => conversationRepo.getOrCreateByUserId(userId);
+const getConversationByUserId = (userId) => conversationRepo.findByUserId(userId);
 
-  if (!session) {
-    session = await sessionRepo.create({
-      conversationId: conversation._id,
-      userId,
-    });
-  }
-
-  const messages = await messageRepo.findBySessionId(session._id);
-  // Mark admin messages as read
-  await messageRepo.markReadByConversation(conversation._id, 'investor');
-  await conversationRepo.updateById(conversation._id, { unreadByUser: false });
-
-  return { session, messages };
+const serializeConversation = (conversation) => {
+  const value = conversation?.toObject ? conversation.toObject() : conversation;
+  if (!value) return value;
+  return {
+    ...value,
+    escalationAvailable: Boolean(
+      value.awaitingAgentSince && Date.now() - new Date(value.awaitingAgentSince).getTime() >= SLA_MS
+    ),
+  };
 };
 
-/**
- * User starts a new chat session.
- */
-const startNewSession = async (userId) => {
-  const conversation = await conversationRepo.findOrCreate(userId);
-
-  // Close any existing active session
-  const existing = await sessionRepo.findActiveByUserId(userId);
-  if (existing) {
-    await sessionRepo.updateById(existing._id, {
-      isActive: false,
-      status: 'resolved',
-    });
-  }
-
-  const session = await sessionRepo.create({
-    conversationId: conversation._id,
-    userId,
+const createSession = async (conversationId, title) => {
+  const count = await sessionRepo.countActiveByConversationId(conversationId);
+  return sessionRepo.create({
+    conversationId,
+    title: title || `Session ${count + 1}`,
   });
-
-  return { session, messages: [] };
 };
 
-/**
- * Get user's session list for sidebar.
- */
-const getUserSessions = async (userId, { skip = 0, limit = 50 } = {}) => {
-  const sessions = await sessionRepo.findByUserId(userId, { skip, limit });
-  const total = await sessionRepo.countByUserId(userId);
-  return { sessions, total };
-};
+const getSessions = (conversationId) =>
+  sessionRepo.findActiveByConversationId(conversationId);
 
-/**
- * Get messages for a specific session.
- */
-const getSessionMessages = async (userId, sessionId) => {
+const getSessionsAll = (conversationId) =>
+  require('../models/ConversationSession')
+    .find({ conversationId })
+    .sort({ createdAt: -1 })
+    .lean();
+
+const closeSession = async (sessionId, userId, closeReason = 'user_close') => {
   const session = await sessionRepo.findById(sessionId);
-  if (!session) return null;
-  if (session.userId.toString() !== userId.toString()) return null;
+  if (!session) {
+    const err = new Error('Session not found.');
+    err.statusCode = 404;
+    throw err;
+  }
+  return sessionRepo.closeSession(sessionId, closeReason);
+};
 
-  const messages = await messageRepo.findBySessionId(sessionId);
+const deleteSession = async (sessionId, conversationId) => {
+  const session = await sessionRepo.findById(sessionId);
+  if (!session) {
+    const err = new Error('Session not found.');
+    err.statusCode = 404;
+    throw err;
+  }
+  if (session.conversationId.toString() !== conversationId.toString()) {
+    const err = new Error('Forbidden.');
+    err.statusCode = 403;
+    throw err;
+  }
+  await messageRepo.deleteBySessionId(sessionId);
+  return sessionRepo.closeSession(sessionId, 'admin');
+};
 
-  // Mark admin messages as read if this is the active session
-  if (session.isActive) {
-    const conversation = await conversationRepo.findByUserId(userId);
-    if (conversation) {
-      await messageRepo.markReadByConversation(conversation._id, 'investor');
-      await conversationRepo.updateById(conversation._id, { unreadByUser: false });
+const isSessionClosed = (session) => session && session.closedAt !== null;
+
+const sendMessage = async ({ conversationId, senderId, senderRole, body, sessionId }) => {
+  const trimmedBody = body?.trim();
+  if (!trimmedBody) {
+    const error = new Error('Message body is required.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const conversation = await conversationRepo.findById(conversationId);
+  if (!conversation) {
+    const error = new Error('Conversation not found.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  let activeSessionId = sessionId;
+  let sessionIsClosed = false;
+
+  if (activeSessionId) {
+    const session = await sessionRepo.findById(activeSessionId);
+    sessionIsClosed = isSessionClosed(session);
+  } else {
+    const latest = await sessionRepo.findLatestActiveSession(conversationId);
+    if (latest) {
+      activeSessionId = latest._id;
     }
   }
 
-  return { session, messages };
+  if (!activeSessionId || sessionIsClosed) {
+    const newSession = await createSession(conversationId);
+    activeSessionId = newSession._id;
+  }
+
+  const now = new Date();
+  const message = await messageRepo.create({
+    conversationId,
+    sessionId: activeSessionId,
+    senderId,
+    senderRole,
+    body: trimmedBody,
+  });
+  const isInvestor = senderRole === 'investor';
+  const startedWaitingConversation = isInvestor
+    ? await conversationRepo.markAwaitingIfNull(conversationId, now)
+    : null;
+  const startedWaiting = Boolean(startedWaitingConversation);
+  const update = {
+    lastMessageAt: now,
+    lastMessageBy: isInvestor ? 'user' : 'agent',
+    lastMessagePreview: trimmedBody.slice(0, 100),
+    unreadByAdmin: isInvestor,
+    unreadByUser: !isInvestor,
+  };
+  if (!isInvestor) update.awaitingAgentSince = null;
+
+  const updatedConversation = await conversationRepo.updateById(conversationId, update);
+  return { message, conversation: serializeConversation(updatedConversation), startedWaiting, sessionId: activeSessionId };
 };
 
-/**
- * Close/resolve a session.
- */
-const closeSession = async (userId, sessionId) => {
-  const session = await sessionRepo.findById(sessionId);
-  if (!session) return null;
-  if (session.userId.toString() !== userId.toString()) return null;
+const getMyConversation = async (userId, { page = 1, limit = 50, markRead = false } = {}) => {
+  const conversation = await getOrCreateConversation(userId);
+  const sessions = await sessionRepo.findActiveByConversationId(conversation._id);
 
-  const updated = await sessionRepo.updateById(sessionId, {
-    isActive: false,
-    status: 'resolved',
+  if (sessions.length === 0) {
+    const newSession = await createSession(conversation._id);
+    sessions.unshift({ ...newSession.toObject(), _id: newSession._id });
+  }
+
+  const activeSessionId = sessions[0]._id;
+  const messages = await messageRepo.findBySessionId(activeSessionId, {
+    skip: (page - 1) * limit,
+    limit,
   });
 
+  if (markRead) {
+    await Promise.all([
+      messageRepo.markReadByConversation(conversation._id, 'investor'),
+      conversationRepo.updateById(conversation._id, { unreadByUser: false }),
+    ]);
+  }
+  return {
+    conversation: serializeConversation({ ...conversation.toObject(), unreadByUser: markRead ? false : conversation.unreadByUser }),
+    sessions,
+    activeSessionId,
+    messages,
+    page,
+  };
+};
+
+const getMySessionMessages = async (userId, sessionId, { page = 1, limit = 100 } = {}) => {
+  const conversation = await getConversationByUserId(userId);
+  if (!conversation) return { messages: [], session: null };
+
+  const session = await sessionRepo.findById(sessionId);
+  if (!session || session.conversationId.toString() !== conversation._id.toString()) {
+    return { messages: [], session: null };
+  }
+
+  const messages = await messageRepo.findBySessionId(sessionId, {
+    skip: (page - 1) * limit,
+    limit,
+  });
+  return { messages, session };
+};
+
+const markConversationOpened = async (conversationId, byAgentId) => {
+  const conversation = await conversationRepo.findById(conversationId);
+  if (!conversation) return null;
+  const [updated] = await Promise.all([
+    conversationRepo.updateById(conversationId, {
+      awaitingAgentSince: null,
+      unreadByAdmin: false,
+      assignedAgent: byAgentId,
+    }),
+    messageRepo.markReadByConversation(conversationId, 'admin'),
+  ]);
   return updated;
 };
 
-/**
- * Send a message as the investor into a session.
- */
-const sendUserMessage = async (userId, body, sessionId) => {
-  const conversation = await conversationRepo.findOrCreate(userId);
-
-  // Determine which session to use
-  let session;
-  if (sessionId) {
-    session = await sessionRepo.findById(sessionId);
-    if (!session || session.userId.toString() !== userId.toString()) {
-      throw new Error('Invalid session.');
-    }
-  } else {
-    // Use active session or create one
-    session = await sessionRepo.findActiveByUserId(userId);
-    if (!session) {
-      session = await sessionRepo.create({
-        conversationId: conversation._id,
-        userId,
-      });
-    }
-  }
-
-  const message = await messageRepo.createMessage({
-    conversationId: conversation._id,
-    sessionId: session._id,
-    senderId: userId,
-    senderRole: 'investor',
-    body,
-  });
-
-  // Update session metadata
-  const preview = body.substring(0, 80);
-  await sessionRepo.updateById(session._id, {
-    lastMessageAt: new Date(),
-    lastMessagePreview: session.messageCount === 0 ? preview : session.lastMessagePreview,
-  });
-  await sessionRepo.incrementMessageCount(session._id);
-
-  // Update conversation metadata
-  const updateData = {
-    lastMessageAt: new Date(),
-    lastMessageBy: 'user',
-    lastMessagePreview: preview,
-    unreadByAdmin: true,
-  };
-
-  if (!conversation.awaitingAgentSince) {
-    updateData.awaitingAgentSince = new Date();
-  }
-
-  await conversationRepo.updateById(conversation._id, updateData);
-
-  return { message, conversationId: conversation._id, sessionId: session._id };
-};
-
-// ── Admin methods (flat thread per user) ───────────────────────────────────
-
-/**
- * Send a message as an agent/admin into a conversation.
- * Attaches it to the user's latest active session.
- */
-const sendAgentMessage = async (agentId, agentRole, conversationId, body) => {
-  // Find the user's active session, or fallback to latest session
-  const Conversation = require('../models/Conversation');
-  const convoDoc = await Conversation.findById(conversationId).select('userId');
-  if (!convoDoc) throw new Error('Conversation not found.');
-
-  let session = await sessionRepo.findActiveByUserId(convoDoc.userId);
-  if (!session) {
-    // Fallback: get latest session
-    const sessions = await sessionRepo.findByUserId(convoDoc.userId, { limit: 1 });
-    session = sessions[0];
-  }
-
-  const message = await messageRepo.createMessage({
-    conversationId,
-    sessionId: session ? session._id : null,
-    senderId: agentId,
-    senderRole: agentRole,
-    body,
-  });
-
-  // Update conversation metadata (clear SLA timer)
-  await conversationRepo.updateById(conversationId, {
-    lastMessageAt: new Date(),
-    lastMessageBy: 'agent',
-    lastMessagePreview: body.substring(0, 100),
-    unreadByUser: true,
-    unreadByAdmin: false,
-    awaitingAgentSince: null,
-  });
-
-  // Update session metadata
-  if (session) {
-    const preview = body.substring(0, 80);
-    await sessionRepo.updateById(session._id, {
-      lastMessageAt: new Date(),
-      lastMessagePreview: preview,
-    });
-    await sessionRepo.incrementMessageCount(session._id);
-  }
-
-  return message;
-};
-
-/**
- * Admin: get paginated list of all conversations
- */
 const getConversations = async ({ page = 1, limit = 30 } = {}) => {
   const skip = (page - 1) * limit;
   const [conversations, total] = await Promise.all([
-    conversationRepo.findAll({ skip, limit }),
+    conversationRepo.findAllUrgentFirst({ skip, limit }),
     conversationRepo.countAll(),
   ]);
-  return { conversations, total, page, totalPages: Math.ceil(total / limit) };
+  return { conversations: conversations.map(serializeConversation), total, page, totalPages: Math.ceil(total / limit) };
 };
 
-/**
- * Admin: get all messages for a specific conversation (flat thread with session dividers)
- */
-const getConversationMessages = async (conversationId, agentId, agentRole) => {
-  const messages = await messageRepo.findByConversationId(conversationId, { limit: 500 });
+const openConversation = async (conversationId, agentId, { page = 1, limit = 200 } = {}) => {
+  const conversation = await markConversationOpened(conversationId, agentId);
+  if (!conversation) return null;
 
-  // Get sessions for this conversation (for dividers)
-  const ChatSession = require('../models/ChatSession');
-  const sessions = await ChatSession.find({ conversationId }).sort({ startedAt: 1 });
+  const sessions = await getSessionsAll(conversationId);
+  const allMessages = await messageRepo.findByConversationId(conversationId, { skip: 0, limit: 500 });
+  return {
+    conversation: serializeConversation(conversation),
+    sessions,
+    messages: allMessages.reverse(),
+    page,
+  };
+};
 
-  // Mark investor messages as read when agent opens conversation
-  await messageRepo.markReadByConversation(conversationId, agentRole);
-  await conversationRepo.updateById(conversationId, { unreadByAdmin: false });
+const getWaitingConversations = async () => {
+  const conversations = await conversationRepo.findAwaiting();
+  return conversations.map(serializeConversation);
+};
 
-  return { messages, sessions };
+const adminDeleteSession = async (sessionId) => {
+  const session = await sessionRepo.findById(sessionId);
+  if (!session) {
+    const err = new Error('Session not found.');
+    err.statusCode = 404;
+    throw err;
+  }
+  await messageRepo.deleteBySessionId(sessionId);
+  return sessionRepo.closeSession(sessionId, 'admin');
 };
 
 module.exports = {
-  getOrCreateActiveSession,
-  startNewSession,
-  getUserSessions,
-  getSessionMessages,
+  SLA_MS,
+  SESSION_INACTIVITY_MS,
+  getOrCreateConversation,
+  getConversationByUserId,
+  sendMessage,
+  getMyConversation,
+  getMySessionMessages,
+  createSession,
+  getSessions,
+  getSessionsAll,
   closeSession,
-  sendUserMessage,
-  sendAgentMessage,
+  deleteSession,
+  markConversationOpened,
   getConversations,
-  getConversationMessages,
+  openConversation,
+  getWaitingConversations,
+  adminDeleteSession,
 };

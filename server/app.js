@@ -41,9 +41,9 @@ app.use('/api/withdrawals', withdrawalRoutes);
 app.use('/api/wallets', walletRoutes);
 app.use('/api/packages', packageRoutes);
 app.use('/api/payment-methods', paymentMethodRoutes);
-app.use('/api/support/chat', supportChatRoutes);
+app.use('/api/support/conversations', supportChatRoutes);
 app.use('/api/support/tickets', supportTicketRoutes);
-app.use('/api/admin/support/chat', adminSupportChatRoutes);
+app.use('/api/admin/support/conversations', adminSupportChatRoutes);
 app.use('/api/admin/support/tickets', adminSupportTicketRoutes);
 
 app.get('/api/health', (req, res) => {

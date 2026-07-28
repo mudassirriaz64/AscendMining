@@ -4,11 +4,11 @@ import { useSelector, useDispatch } from 'react-redux';
 import {
   LayoutDashboard, Users, Package, Coins, ArrowDownToLine, ArrowUpFromLine,
   UsersRound, FileText, MessageCircle, ShieldCheck, Bell, Search,
-  Menu, X, LogOut, ChevronDown,
+  Menu, X, LogOut, ChevronDown, Volume2, VolumeX,
 } from 'lucide-react';
 import { logoutUser } from '../store/slices/authSlice';
-import { fetchAdminUnreadCount, triggerAlarm } from '../store/slices/supportChatSlice';
 import { connectSocket } from '../services/socketService';
+import api from '../services/api';
 import Logo from '../components/common/Logo';
 
 const sidebarLinks = [
@@ -28,7 +28,8 @@ const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const { user } = useSelector((state) => state.auth);
-  const { unreadCount } = useSelector((state) => state.supportChat);
+  const [waitingIds, setWaitingIds] = useState(() => new Set());
+  const [muted, setMuted] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -37,35 +38,48 @@ const AdminLayout = () => {
     navigate('/admin/login');
   };
 
-  // Fetch unread count + listen for real-time updates
+  // Alarm state lives in the shared layout so it remains active away from Support.
   useEffect(() => {
-    dispatch(fetchAdminUnreadCount());
-
-    const getCookie = (name) => {
-      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-      return match ? decodeURIComponent(match[2]) : null;
-    };
-    const token = getCookie('accessToken');
-    if (!token) return;
-
-    const socket = connectSocket(token);
-
-    const onNewMessage = () => {
-      dispatch(fetchAdminUnreadCount());
-    };
-
-    const onAlarmTrigger = (alarm) => {
-      dispatch(triggerAlarm(alarm));
-    };
-
-    socket.on('new_message', onNewMessage);
+    api.get('/admin/support/conversations/waiting').then((response) => {
+      setWaitingIds(new Set(response.data.data.conversations.map((item) => item._id)));
+    }).catch(() => {});
+    const socket = connectSocket();
+    const onAlarmTrigger = ({ conversationId }) => setWaitingIds((current) => new Set(current).add(conversationId));
+    const onAlarmClear = ({ conversationId }) => setWaitingIds((current) => {
+      const next = new Set(current);
+      next.delete(conversationId);
+      return next;
+    });
     socket.on('alarm:trigger', onAlarmTrigger);
+    socket.on('alarm:clear', onAlarmClear);
 
     return () => {
-      socket.off('new_message', onNewMessage);
       socket.off('alarm:trigger', onAlarmTrigger);
+      socket.off('alarm:clear', onAlarmClear);
     };
-  }, [dispatch]);
+  }, []);
+
+  useEffect(() => {
+    if (muted || waitingIds.size === 0) return undefined;
+    const beep = () => {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const context = new AudioContext();
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.frequency.value = 660;
+        gain.gain.setValueAtTime(0.12, context.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.45);
+        oscillator.connect(gain).connect(context.destination);
+        oscillator.start();
+        oscillator.stop(context.currentTime + 0.45);
+        oscillator.onended = () => context.close();
+      } catch { /* Audio can be blocked until the first user gesture. */ }
+    };
+    beep();
+    const interval = window.setInterval(beep, 3000);
+    return () => window.clearInterval(interval);
+  }, [muted, waitingIds.size]);
 
   return (
     <div className="min-h-screen bg-bg-light-alt flex">
@@ -120,14 +134,22 @@ const AdminLayout = () => {
           </div>
 
           <div className="flex items-center gap-4">
+            {waitingIds.size > 0 ? (
+              <div className="flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700" role="status">
+                <Volume2 size={14} aria-hidden="true" /> {waitingIds.size} waiting
+                <button type="button" onClick={() => setMuted((value) => !value)} className="ml-1 rounded-full p-1 hover:bg-red-100" aria-label={muted ? 'Unmute support alarm' : 'Mute support alarm for this session'}>
+                  {muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                </button>
+              </div>
+            ) : null}
             <button
               onClick={() => navigate('/admin/support')}
               className="relative p-2 text-text-secondary hover:bg-bg-light-alt rounded-lg cursor-pointer"
             >
               <Bell size={20} />
-              {unreadCount > 0 && (
+              {waitingIds.size > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold px-1">
-                  {unreadCount > 99 ? '99+' : unreadCount}
+                  {waitingIds.size > 99 ? '99+' : waitingIds.size}
                 </span>
               )}
             </button>

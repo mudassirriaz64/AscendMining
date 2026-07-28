@@ -1,176 +1,129 @@
 const supportChatService = require('../services/supportChat.service');
 
-// ── Investor session-based endpoints ───────────────────────────────────────
+const pagination = (query, fallback = 50) => ({
+  page: Math.max(parseInt(query.page, 10) || 1, 1),
+  limit: Math.min(Math.max(parseInt(query.limit, 10) || fallback, 1), 100),
+});
 
-/**
- * GET /api/support/chat/sessions
- * Investor: Get list of all their chat sessions (sidebar)
- */
-const getMySessions = async (req, res, next) => {
+const getMyConversation = async (req, res, next) => {
   try {
-    const { page, limit } = req.query;
-    const result = await supportChatService.getUserSessions(req.user.id, {
-      skip: ((parseInt(page) || 1) - 1) * (parseInt(limit) || 50),
-      limit: parseInt(limit) || 50,
+    const data = await supportChatService.getMyConversation(req.user.id, {
+      ...pagination(req.query),
+      markRead: req.query.opened === 'true',
     });
-    return res.status(200).json({ success: true, data: result });
-  } catch (err) {
-    next(err);
-  }
+    res.json({ success: true, data });
+  } catch (error) { next(error); }
 };
 
-/**
- * POST /api/support/chat/sessions
- * Investor: Start a new chat session
- */
-const startSession = async (req, res, next) => {
+const getMySessionMessages = async (req, res, next) => {
   try {
-    const result = await supportChatService.startNewSession(req.user.id);
-    return res.status(201).json({ success: true, data: result });
-  } catch (err) {
-    next(err);
-  }
+    const data = await supportChatService.getMySessionMessages(req.user.id, req.params.sessionId, pagination(req.query, 100));
+    res.json({ success: true, data });
+  } catch (error) { next(error); }
 };
 
-/**
- * GET /api/support/chat/sessions/:sessionId/messages
- * Investor: Get messages for a specific session
- */
-const getSessionMessages = async (req, res, next) => {
+const createSession = async (req, res, next) => {
   try {
-    const { sessionId } = req.params;
-    const result = await supportChatService.getSessionMessages(req.user.id, sessionId);
-    if (!result) {
-      return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Session not found.', status: 404 } });
-    }
-    return res.status(200).json({ success: true, data: result });
-  } catch (err) {
-    next(err);
-  }
+    const conversation = await supportChatService.getOrCreateConversation(req.user.id);
+    const session = await supportChatService.createSession(conversation._id, req.body.title);
+    res.status(201).json({ success: true, data: { session } });
+  } catch (error) { next(error); }
 };
 
-/**
- * POST /api/support/chat/sessions/:sessionId/close
- * Investor: Close/resolve a session
- */
-const closeSession = async (req, res, next) => {
+const deleteSession = async (req, res, next) => {
   try {
-    const { sessionId } = req.params;
-    const session = await supportChatService.closeSession(req.user.id, sessionId);
-    if (!session) {
-      return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Session not found.', status: 404 } });
-    }
-    return res.status(200).json({ success: true, data: { session } });
-  } catch (err) {
-    next(err);
-  }
+    const conversation = await supportChatService.getConversationByUserId(req.user.id);
+    if (!conversation) return res.status(404).json({ success: false, error: { message: 'Conversation not found.' } });
+    await supportChatService.deleteSession(req.params.sessionId, conversation._id);
+    res.json({ success: true, data: { message: 'Session deleted.' } });
+  } catch (error) { next(error); }
 };
 
-/**
- * GET /api/support/chat
- * Investor: Get or create active session + messages (backwards compat / initial load)
- */
-const getActiveSession = async (req, res, next) => {
-  try {
-    const result = await supportChatService.getOrCreateActiveSession(req.user.id);
-    return res.status(200).json({ success: true, data: result });
-  } catch (err) {
-    next(err);
-  }
-};
-
-/**
- * POST /api/support/chat/message
- * Investor: Send a message (REST fallback)
- */
 const sendMessage = async (req, res, next) => {
   try {
-    const { body, sessionId } = req.body;
-    const result = await supportChatService.sendUserMessage(req.user.id, body, sessionId);
-    return res.status(201).json({ success: true, data: result });
-  } catch (err) {
-    next(err);
-  }
+    const isInvestor = req.user.role === 'investor';
+    let conversationId;
+    let sessionId = req.body.sessionId || null;
+
+    if (isInvestor) {
+      const conversation = await supportChatService.getOrCreateConversation(req.user.id);
+      conversationId = conversation._id;
+      if (!sessionId) {
+        const sessions = await supportChatService.getSessions(conversationId);
+        sessionId = sessions.length > 0 ? sessions[0]._id : null;
+      }
+    } else {
+      conversationId = req.body.conversationId;
+      sessionId = req.body.sessionId || null;
+    }
+
+    const result = await supportChatService.sendMessage({
+      conversationId,
+      senderId: req.user.id,
+      senderRole: req.user.role,
+      body: req.body.body,
+      sessionId,
+    });
+    req.app.get('supportNamespace')?.to(`conversation:${conversationId}`).emit('message:new', result);
+    if (result.startedWaiting) {
+      req.app.get('supportNamespace')?.to('admin-alerts').emit('alarm:trigger', {
+        conversationId: conversationId.toString(),
+        awaitingAgentSince: result.conversation.awaitingAgentSince,
+      });
+    } else if (!isInvestor) {
+      req.app.get('supportNamespace')?.to('admin-alerts').emit('alarm:clear', { conversationId });
+    }
+    res.status(201).json({ success: true, data: result });
+  } catch (error) { next(error); }
 };
 
-// ── Admin endpoints ────────────────────────────────────────────────────────
-
-/**
- * GET /api/admin/support/chat
- * Admin: Get paginated list of all conversations
- */
 const getConversations = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 30;
-    const result = await supportChatService.getConversations({ page, limit });
-    return res.status(200).json({ success: true, data: result });
-  } catch (err) {
-    next(err);
-  }
+    res.json({ success: true, data: await supportChatService.getConversations(pagination(req.query, 30)) });
+  } catch (error) { next(error); }
 };
 
-/**
- * GET /api/admin/support/chat/:conversationId/messages
- * Admin: Get messages for a specific conversation (flat thread with session dividers)
- */
-const getConversationMessages = async (req, res, next) => {
+const openConversation = async (req, res, next) => {
   try {
-    const { conversationId } = req.params;
-    const result = await supportChatService.getConversationMessages(
-      conversationId,
-      req.user.id,
-      req.user.role
-    );
-    return res.status(200).json({ success: true, data: result });
-  } catch (err) {
-    next(err);
-  }
+    const data = await supportChatService.openConversation(req.params.id, req.user.id, pagination(req.query, 100));
+    if (!data) return res.status(404).json({ success: false, error: { message: 'Conversation not found.' } });
+    req.app.get('supportNamespace')?.to('admin-alerts').emit('alarm:clear', { conversationId: req.params.id });
+    return res.json({ success: true, data });
+  } catch (error) { next(error); }
 };
 
-/**
- * POST /api/admin/support/chat/:conversationId/reply
- * Admin/Agent: Send reply in a conversation
- */
-const replyToConversation = async (req, res, next) => {
+const getWaiting = async (req, res, next) => {
   try {
-    const { conversationId } = req.params;
-    const { body } = req.body;
-    const message = await supportChatService.sendAgentMessage(
-      req.user.id,
-      req.user.role,
-      conversationId,
-      body
-    );
-    return res.status(201).json({ success: true, data: { message } });
-  } catch (err) {
-    next(err);
-  }
+    const conversations = await supportChatService.getWaitingConversations();
+    res.json({ success: true, data: { conversations, count: conversations.length } });
+  } catch (error) { next(error); }
 };
 
-/**
- * GET /api/admin/support/chat/unread-count
- * Admin: Get count of conversations with unread messages
- */
-const getUnreadCount = async (req, res, next) => {
+const adminDeleteSession = async (req, res, next) => {
   try {
-    const conversationRepo = require('../repositories/conversation.repository');
-    const count = await conversationRepo.countUnread();
-    return res.status(200).json({ success: true, data: { count } });
-  } catch (err) {
-    next(err);
-  }
+    await supportChatService.adminDeleteSession(req.params.sessionId);
+    res.json({ success: true, data: { message: 'Session deleted.' } });
+  } catch (error) { next(error); }
+};
+
+const closeSession = async (req, res, next) => {
+  try {
+    const conversation = await supportChatService.getConversationByUserId(req.user.id);
+    if (!conversation) return res.status(404).json({ success: false, error: { message: 'Conversation not found.' } });
+    const session = await supportChatService.closeSession(req.params.sessionId, req.user.id, req.body.reason || 'user_close');
+    res.json({ success: true, data: { session } });
+  } catch (error) { next(error); }
 };
 
 module.exports = {
-  getMySessions,
-  startSession,
-  getSessionMessages,
+  getMyConversation,
+  getMySessionMessages,
+  createSession,
+  deleteSession,
   closeSession,
-  getActiveSession,
   sendMessage,
   getConversations,
-  getConversationMessages,
-  replyToConversation,
-  getUnreadCount,
+  openConversation,
+  getWaiting,
+  adminDeleteSession,
 };

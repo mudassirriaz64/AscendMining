@@ -3,11 +3,12 @@ import api from '../../services/api';
 
 // ── Investor Thunks ────────────────────────────────────────────────────────
 
-export const fetchActiveSession = createAsyncThunk(
-  'supportChat/fetchActiveSession',
-  async (_, { rejectWithValue }) => {
+export const fetchMyConversation = createAsyncThunk(
+  'supportChat/fetchMyConversation',
+  async ({ markRead = false } = {}, { rejectWithValue }) => {
     try {
-      const res = await api.get('/support/chat');
+      const params = markRead ? '?opened=true' : '';
+      const res = await api.get(`/support/conversations/me${params}`);
       return res.data.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.error?.message || 'Failed to load chat.');
@@ -15,47 +16,47 @@ export const fetchActiveSession = createAsyncThunk(
   }
 );
 
-export const fetchMySessions = createAsyncThunk(
-  'supportChat/fetchMySessions',
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await api.get('/support/chat/sessions');
-      return res.data.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.error?.message || 'Failed to load sessions.');
-    }
-  }
-);
-
-export const startNewSession = createAsyncThunk(
-  'supportChat/startNewSession',
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await api.post('/support/chat/sessions');
-      return res.data.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.error?.message || 'Failed to start session.');
-    }
-  }
-);
-
 export const fetchSessionMessages = createAsyncThunk(
   'supportChat/fetchSessionMessages',
-  async (sessionId, { rejectWithValue }) => {
+  async ({ sessionId }, { rejectWithValue }) => {
     try {
-      const res = await api.get(`/support/chat/sessions/${sessionId}/messages`);
-      return res.data.data;
+      const res = await api.get(`/support/conversations/sessions/${sessionId}/messages`);
+      return { sessionId, messages: res.data.data.messages };
     } catch (err) {
       return rejectWithValue(err.response?.data?.error?.message || 'Failed to load messages.');
     }
   }
 );
 
+export const createSession = createAsyncThunk(
+  'supportChat/createSession',
+  async ({ title } = {}, { rejectWithValue }) => {
+    try {
+      const res = await api.post('/support/conversations/sessions', { title });
+      return res.data.data.session;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.error?.message || 'Failed to create session.');
+    }
+  }
+);
+
+export const deleteSession = createAsyncThunk(
+  'supportChat/deleteSession',
+  async ({ sessionId }, { rejectWithValue }) => {
+    try {
+      await api.delete(`/support/conversations/sessions/${sessionId}`);
+      return { sessionId };
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.error?.message || 'Failed to delete session.');
+    }
+  }
+);
+
 export const closeSession = createAsyncThunk(
   'supportChat/closeSession',
-  async (sessionId, { rejectWithValue }) => {
+  async ({ sessionId, reason = 'user_close' }, { rejectWithValue }) => {
     try {
-      const res = await api.post(`/support/chat/sessions/${sessionId}/close`);
+      const res = await api.patch(`/support/conversations/sessions/${sessionId}/close`, { reason });
       return res.data.data.session;
     } catch (err) {
       return rejectWithValue(err.response?.data?.error?.message || 'Failed to close session.');
@@ -67,10 +68,22 @@ export const sendMessageREST = createAsyncThunk(
   'supportChat/sendMessage',
   async ({ body, sessionId }, { rejectWithValue }) => {
     try {
-      const res = await api.post('/support/chat/message', { body, sessionId });
+      const res = await api.post('/support/conversations/message', { body, sessionId });
       return res.data.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.error?.message || 'Failed to send message.');
+    }
+  }
+);
+
+export const escalateConversation = createAsyncThunk(
+  'supportChat/escalateConversation',
+  async ({ conversationId, subject }, { rejectWithValue }) => {
+    try {
+      const res = await api.post('/support/tickets/escalate', { conversationId, subject });
+      return res.data.data.ticket;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.error?.message || 'Failed to create ticket.');
     }
   }
 );
@@ -91,25 +104,13 @@ export const fetchMyTickets = createAsyncThunk(
   }
 );
 
-export const createTicket = createAsyncThunk(
-  'supportChat/createTicket',
-  async ({ subject, conversationId, escalationReason }, { rejectWithValue }) => {
-    try {
-      const res = await api.post('/support/tickets', { subject, conversationId, escalationReason });
-      return res.data.data.ticket;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.error?.message || 'Failed to create ticket.');
-    }
-  }
-);
-
 // ── Admin Thunks ───────────────────────────────────────────────────────────
 
 export const fetchAdminConversations = createAsyncThunk(
   'supportChat/fetchAdminConversations',
   async ({ page = 1 } = {}, { rejectWithValue }) => {
     try {
-      const res = await api.get('/admin/support/chat', { params: { page } });
+      const res = await api.get('/admin/support/conversations', { params: { page } });
       return res.data.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.error?.message || 'Failed to load conversations.');
@@ -117,26 +118,38 @@ export const fetchAdminConversations = createAsyncThunk(
   }
 );
 
-export const fetchAdminConversationMessages = createAsyncThunk(
-  'supportChat/fetchAdminConversationMessages',
+export const openConversation = createAsyncThunk(
+  'supportChat/openConversation',
   async (conversationId, { rejectWithValue }) => {
     try {
-      const res = await api.get(`/admin/support/chat/${conversationId}/messages`);
-      return { conversationId, messages: res.data.data.messages, sessions: res.data.data.sessions };
+      const res = await api.get(`/admin/support/conversations/${conversationId}`);
+      return { conversationId, ...res.data.data };
     } catch (err) {
-      return rejectWithValue(err.response?.data?.error?.message || 'Failed to load messages.');
+      return rejectWithValue(err.response?.data?.error?.message || 'Failed to open conversation.');
     }
   }
 );
 
 export const adminReplyREST = createAsyncThunk(
   'supportChat/adminReply',
-  async ({ conversationId, body }, { rejectWithValue }) => {
+  async ({ conversationId, body, sessionId }, { rejectWithValue }) => {
     try {
-      const res = await api.post(`/admin/support/chat/${conversationId}/reply`, { body });
-      return { conversationId, message: res.data.data.message };
+      const res = await api.post('/support/conversations/message', { conversationId, body, sessionId });
+      return { conversationId, sessionId, message: res.data.data.message };
     } catch (err) {
       return rejectWithValue(err.response?.data?.error?.message || 'Failed to send reply.');
+    }
+  }
+);
+
+export const adminDeleteSession = createAsyncThunk(
+  'supportChat/adminDeleteSession',
+  async ({ sessionId }, { rejectWithValue }) => {
+    try {
+      await api.delete(`/admin/support/conversations/sessions/${sessionId}`);
+      return { sessionId };
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.error?.message || 'Failed to delete session.');
     }
   }
 );
@@ -171,7 +184,7 @@ export const fetchAdminUnreadCount = createAsyncThunk(
   'supportChat/fetchAdminUnreadCount',
   async (_, { rejectWithValue }) => {
     try {
-      const res = await api.get('/admin/support/chat/unread-count');
+      const res = await api.get('/admin/support/conversations/waiting');
       return res.data.data.count;
     } catch (err) {
       return rejectWithValue(err.response?.data?.error?.message || 'Failed to load unread count.');
@@ -184,67 +197,49 @@ export const fetchAdminUnreadCount = createAsyncThunk(
 const supportChatSlice = createSlice({
   name: 'supportChat',
   initialState: {
-    // Investor session-based
+    conversation: null,
     sessions: [],
-    activeSession: null,
     activeSessionId: null,
-    sessionMessages: [],
-    // Admin
+    messages: [],
+    escalationAvailable: false,
     conversations: [],
     conversationsMeta: { total: 0, page: 1, totalPages: 1 },
     activeConversationId: null,
     activeMessages: [],
-    activeSessions: [], // sessions for the active admin conversation (for dividers)
+    activeSessions: [],
     unreadCount: 0,
-    // SLA alarms
-    activeAlarms: [], // { conversationId, userId, user, awaitingSince, overdueMinutes }
-    // Tickets
+    activeAlarms: [],
     tickets: [],
     ticketsMeta: { total: 0, page: 1, totalPages: 1 },
     adminTickets: [],
     adminTicketsMeta: { total: 0, page: 1, totalPages: 1 },
-    // UI
     loading: false,
     error: null,
   },
   reducers: {
-    // Socket-driven: incoming message on the active investor session
-    appendSessionMessage(state, action) {
-      const msg = action.payload.message;
-      if (state.activeSessionId && msg.sessionId === state.activeSessionId) {
-        state.sessionMessages.push(msg);
+    appendMessage(state, action) {
+      const { message, conversation, sessionId } = action.payload;
+      if (state.activeSessionId && sessionId && state.activeSessionId === sessionId) {
+        if (!state.messages.some((m) => m._id === message._id)) {
+          state.messages.push(message);
+        }
+      } else if (!sessionId && state.conversation?._id === message.conversationId) {
+        if (!state.messages.some((m) => m._id === message._id)) {
+          state.messages.push(message);
+        }
+      }
+      if (conversation) {
+        state.conversation = conversation;
+        state.escalationAvailable = conversation.escalationAvailable;
       }
     },
-    // Socket-driven: new active session from server
-    setActiveSocketSession(state, action) {
-      state.activeSession = action.payload.session;
-      state.activeSessionId = action.payload.session._id;
-      state.sessionMessages = [];
-      // Add to sessions list if not already there
-      const exists = state.sessions.find((s) => s._id === action.payload.session._id);
-      if (!exists) {
-        state.sessions.unshift(action.payload.session);
-      }
-    },
-    // Socket-driven: session closed
-    markSessionClosed(state, action) {
-      const { sessionId } = action.payload;
-      const session = state.sessions.find((s) => s._id === sessionId);
-      if (session) {
-        session.isActive = false;
-        session.status = 'resolved';
-      }
-      if (state.activeSessionId === sessionId) {
-        state.activeSession = { ...state.activeSession, isActive: false, status: 'resolved' };
-      }
-    },
-    // Socket-driven: admin incoming message
     appendAdminMessage(state, action) {
-      const { conversationId, message } = action.payload;
+      const { conversationId, message, conversation } = action.payload;
       if (state.activeConversationId === conversationId) {
-        state.activeMessages.push(message);
+        if (!state.activeMessages.some((m) => m._id === message._id)) {
+          state.activeMessages.push(message);
+        }
       }
-      // Update lastMessagePreview in conversations list
       const convo = state.conversations.find((c) => c._id === conversationId);
       if (convo) {
         convo.lastMessagePreview = message.body?.substring(0, 80);
@@ -255,13 +250,14 @@ const supportChatSlice = createSlice({
     setActiveConversation(state, action) {
       state.activeConversationId = action.payload;
       state.activeMessages = [];
-      state.activeSessions = [];
     },
-    // SLA alarm reducers (dispatched from socket events)
+    setActiveSession(state, action) {
+      state.activeSessionId = action.payload;
+      state.messages = [];
+    },
     triggerAlarm(state, action) {
       const alarm = action.payload;
-      const exists = state.activeAlarms.find((a) => a.conversationId === alarm.conversationId);
-      if (!exists) {
+      if (!state.activeAlarms.find((a) => a.conversationId === alarm.conversationId)) {
         state.activeAlarms.push(alarm);
       }
     },
@@ -274,73 +270,74 @@ const supportChatSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // fetchActiveSession
     builder
-      .addCase(fetchActiveSession.pending, (state) => { state.loading = true; state.error = null; })
-      .addCase(fetchActiveSession.fulfilled, (state, action) => {
+      .addCase(fetchMyConversation.pending, (state) => { state.loading = true; state.error = null; })
+      .addCase(fetchMyConversation.fulfilled, (state, action) => {
         state.loading = false;
-        state.activeSession = action.payload.session;
-        state.activeSessionId = action.payload.session?._id || null;
-        state.sessionMessages = action.payload.messages || [];
+        state.conversation = action.payload.conversation;
+        state.sessions = action.payload.sessions || [];
+        state.activeSessionId = action.payload.activeSessionId || null;
+        state.messages = action.payload.messages || [];
+        state.escalationAvailable = action.payload.conversation?.escalationAvailable || false;
       })
-      .addCase(fetchActiveSession.rejected, (state, action) => {
+      .addCase(fetchMyConversation.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
 
-    // fetchMySessions
     builder
-      .addCase(fetchMySessions.pending, (state) => { state.loading = true; })
-      .addCase(fetchMySessions.fulfilled, (state, action) => {
-        state.loading = false;
-        state.sessions = action.payload.sessions;
-      })
-      .addCase(fetchMySessions.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      });
-
-    // startNewSession
-    builder
-      .addCase(startNewSession.fulfilled, (state, action) => {
-        state.activeSession = action.payload.session;
-        state.activeSessionId = action.payload.session._id;
-        state.sessionMessages = [];
-        state.sessions.unshift(action.payload.session);
-      });
-
-    // fetchSessionMessages
-    builder
-      .addCase(fetchSessionMessages.pending, (state) => { state.loading = true; })
       .addCase(fetchSessionMessages.fulfilled, (state, action) => {
-        state.loading = false;
-        state.activeSession = action.payload.session;
-        state.activeSessionId = action.payload.session._id;
-        state.sessionMessages = action.payload.messages;
-      })
-      .addCase(fetchSessionMessages.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
+        state.activeSessionId = action.payload.sessionId;
+        state.messages = action.payload.messages;
       });
 
-    // closeSession
     builder
-      .addCase(closeSession.fulfilled, (state, action) => {
-        const updated = action.payload;
-        const idx = state.sessions.findIndex((s) => s._id === updated._id);
-        if (idx !== -1) state.sessions[idx] = updated;
-        if (state.activeSessionId === updated._id) {
-          state.activeSession = updated;
+      .addCase(createSession.fulfilled, (state, action) => {
+        state.sessions.unshift(action.payload);
+        state.activeSessionId = action.payload._id;
+        state.messages = [];
+      });
+
+    builder
+      .addCase(deleteSession.fulfilled, (state, action) => {
+        state.sessions = state.sessions.filter((s) => s._id !== action.payload.sessionId);
+        if (state.activeSessionId === action.payload.sessionId) {
+          state.activeSessionId = state.sessions[0]?._id || null;
+          state.messages = [];
         }
       });
 
-    // sendMessageREST
     builder
-      .addCase(sendMessageREST.fulfilled, (state, action) => {
-        state.sessionMessages.push(action.payload.message);
+      .addCase(closeSession.fulfilled, (state, action) => {
+        const idx = state.sessions.findIndex((s) => s._id === action.payload._id);
+        if (idx !== -1) {
+          state.sessions[idx] = action.payload;
+        }
+        if (state.activeSessionId === action.payload._id) {
+          state.activeSessionId = state.sessions.find((s) => !s.closedAt)?._id || null;
+          if (state.activeSessionId !== action.payload._id) {
+            state.messages = [];
+          }
+        }
       });
 
-    // fetchMyTickets
+    builder
+      .addCase(sendMessageREST.fulfilled, (state, action) => {
+        const { message, conversation, sessionId } = action.payload;
+        if (!state.messages.some((m) => m._id === message._id)) {
+          state.messages.push(message);
+        }
+        if (conversation) {
+          state.conversation = conversation;
+          state.escalationAvailable = conversation.escalationAvailable;
+        }
+      });
+
+    builder
+      .addCase(escalateConversation.fulfilled, (state) => {
+        state.escalationAvailable = false;
+      });
+
     builder
       .addCase(fetchMyTickets.pending, (state) => { state.loading = true; })
       .addCase(fetchMyTickets.fulfilled, (state, action) => {
@@ -357,14 +354,6 @@ const supportChatSlice = createSlice({
         state.error = action.payload;
       });
 
-    // createTicket
-    builder
-      .addCase(createTicket.fulfilled, (state, action) => {
-        state.tickets.unshift(action.payload);
-        state.ticketsMeta.total += 1;
-      });
-
-    // fetchAdminConversations
     builder
       .addCase(fetchAdminConversations.pending, (state) => { state.loading = true; })
       .addCase(fetchAdminConversations.fulfilled, (state, action) => {
@@ -381,29 +370,42 @@ const supportChatSlice = createSlice({
         state.error = action.payload;
       });
 
-    // fetchAdminConversationMessages
     builder
-      .addCase(fetchAdminConversationMessages.pending, (state) => { state.loading = true; })
-      .addCase(fetchAdminConversationMessages.fulfilled, (state, action) => {
+      .addCase(openConversation.pending, (state) => { state.loading = true; })
+      .addCase(openConversation.fulfilled, (state, action) => {
         state.loading = false;
         state.activeConversationId = action.payload.conversationId;
-        state.activeMessages = action.payload.messages;
-        state.activeSessions = action.payload.sessions;
+        state.activeMessages = action.payload.messages || [];
+        state.activeSessions = action.payload.sessions || [];
+        state.activeAlarms = state.activeAlarms.filter(
+          (a) => a.conversationId !== action.payload.conversationId
+        );
+        const convo = state.conversations.find((c) => c._id === action.payload.conversationId);
+        if (convo) {
+          convo.awaitingAgentSince = null;
+          convo.unreadByAdmin = false;
+        }
       })
-      .addCase(fetchAdminConversationMessages.rejected, (state, action) => {
+      .addCase(openConversation.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
 
-    // adminReplyREST
     builder
       .addCase(adminReplyREST.fulfilled, (state, action) => {
         if (state.activeConversationId === action.payload.conversationId) {
-          state.activeMessages.push(action.payload.message);
+          if (!state.activeMessages.some((m) => m._id === action.payload.message._id)) {
+            state.activeMessages.push(action.payload.message);
+          }
         }
       });
 
-    // fetchAdminTickets
+    builder
+      .addCase(adminDeleteSession.fulfilled, (state, action) => {
+        state.activeSessions = state.activeSessions.filter((s) => s._id !== action.payload.sessionId);
+        state.activeMessages = state.activeMessages.filter((m) => m.sessionId !== action.payload.sessionId);
+      });
+
     builder
       .addCase(fetchAdminTickets.pending, (state) => { state.loading = true; })
       .addCase(fetchAdminTickets.fulfilled, (state, action) => {
@@ -420,14 +422,12 @@ const supportChatSlice = createSlice({
         state.error = action.payload;
       });
 
-    // updateAdminTicket
     builder
       .addCase(updateAdminTicket.fulfilled, (state, action) => {
         const idx = state.adminTickets.findIndex((t) => t._id === action.payload._id);
         if (idx !== -1) state.adminTickets[idx] = action.payload;
       });
 
-    // fetchAdminUnreadCount
     builder
       .addCase(fetchAdminUnreadCount.fulfilled, (state, action) => {
         state.unreadCount = action.payload;
@@ -436,11 +436,10 @@ const supportChatSlice = createSlice({
 });
 
 export const {
-  appendSessionMessage,
-  setActiveSocketSession,
-  markSessionClosed,
+  appendMessage,
   appendAdminMessage,
   setActiveConversation,
+  setActiveSession,
   triggerAlarm,
   clearAlarm,
   clearError,

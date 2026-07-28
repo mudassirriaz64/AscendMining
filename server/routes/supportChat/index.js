@@ -1,24 +1,15 @@
-const express = require('express');
-const router = express.Router();
-const authMiddleware = require('../../middlewares/auth.middleware');
-const supportChatController = require('../../controllers/supportChat.controller');
+const router = require('express').Router();
+const auth = require('../../middlewares/auth.middleware');
+const requireRole = require('../../middlewares/role.middleware');
+const controller = require('../../controllers/supportChat.controller');
 
-// Investor: Get active session + messages (initial load)
-router.get('/', authMiddleware, supportChatController.getActiveSession);
+router.get('/me', auth, requireRole('investor'), controller.getMyConversation);
+router.post('/message', auth, requireRole('investor', 'admin', 'support_agent'), controller.sendMessage);
 
-// Investor: Send message (REST fallback; real-time via Socket.IO)
-router.post('/message', authMiddleware, supportChatController.sendMessage);
-
-// Investor: Get list of all sessions (sidebar)
-router.get('/sessions', authMiddleware, supportChatController.getMySessions);
-
-// Investor: Start a new chat session
-router.post('/sessions', authMiddleware, supportChatController.startSession);
-
-// Investor: Get messages for a specific session
-router.get('/sessions/:sessionId/messages', authMiddleware, supportChatController.getSessionMessages);
-
-// Investor: Close/resolve a session
-router.post('/sessions/:sessionId/close', authMiddleware, supportChatController.closeSession);
+router.get('/sessions', auth, requireRole('investor'), controller.getMyConversation);
+router.post('/sessions', auth, requireRole('investor'), controller.createSession);
+router.delete('/sessions/:sessionId', auth, requireRole('investor'), controller.deleteSession);
+router.patch('/sessions/:sessionId/close', auth, requireRole('investor'), controller.closeSession);
+router.get('/sessions/:sessionId/messages', auth, requireRole('investor'), controller.getMySessionMessages);
 
 module.exports = router;

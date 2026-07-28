@@ -30,6 +30,13 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+const InvestorRoute = ({ children }) => {
+  const { user } = useSelector((state) => state.auth);
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role !== 'investor') return <Navigate to="/dashboard" replace />;
+  return children;
+};
+
 const AdminRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
   if (!user) return <Navigate to="/admin/login" replace />;
@@ -51,7 +58,7 @@ const AdminPublicRoute = ({ children }) => {
 
 const App = () => {
   const dispatch = useDispatch();
-  const { hydrated } = useSelector((state) => state.auth);
+  const { hydrated, user } = useSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(checkAuth());
@@ -69,7 +76,7 @@ const App = () => {
     <Router>
       <Toaster position="top-right" />
       <Suspense fallback={<LoadingSpinner />}>
-        <SupportChatWidget />
+        {user?.role === 'investor' ? <SupportChatWidget /> : null}
         <Routes>
           <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
           <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
@@ -81,8 +88,8 @@ const App = () => {
           <Route path="/wallets" element={<ProtectedRoute><WalletAddressesPage /></ProtectedRoute>} />
           <Route path="/mining/plans" element={<ProtectedRoute><StartMiningPage /></ProtectedRoute>} />
           <Route path="/mining/tracks" element={<ProtectedRoute><MiningTracksPage /></ProtectedRoute>} />
-          <Route path="/support/chat" element={<ProtectedRoute><SupportChatPage /></ProtectedRoute>} />
-          <Route path="/support/tickets" element={<ProtectedRoute><SupportTicketsPage /></ProtectedRoute>} />
+          <Route path="/support/chat" element={<InvestorRoute><SupportChatPage /></InvestorRoute>} />
+          <Route path="/support/tickets" element={<InvestorRoute><SupportTicketsPage /></InvestorRoute>} />
 
           <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
             <Route index element={<Navigate to="/admin/users" replace />} />

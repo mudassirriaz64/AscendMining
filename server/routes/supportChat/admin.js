@@ -1,19 +1,11 @@
-const express = require('express');
-const router = express.Router();
-const authMiddleware = require('../../middlewares/auth.middleware');
+const router = require('express').Router();
+const auth = require('../../middlewares/auth.middleware');
 const requireRole = require('../../middlewares/role.middleware');
-const supportChatController = require('../../controllers/supportChat.controller');
+const controller = require('../../controllers/supportChat.controller');
 
-// Admin: Get paginated list of all conversations
-router.get('/', authMiddleware, requireRole('admin', 'support_agent'), supportChatController.getConversations);
-
-// Admin: Get unread conversation count
-router.get('/unread-count', authMiddleware, requireRole('admin', 'support_agent'), supportChatController.getUnreadCount);
-
-// Admin: Get messages for a specific conversation
-router.get('/:conversationId/messages', authMiddleware, requireRole('admin', 'support_agent'), supportChatController.getConversationMessages);
-
-// Admin: Reply to a conversation
-router.post('/:conversationId/reply', authMiddleware, requireRole('admin', 'support_agent'), supportChatController.replyToConversation);
+router.get('/', auth, requireRole('admin', 'support_agent'), controller.getConversations);
+router.get('/waiting', auth, requireRole('admin', 'support_agent'), controller.getWaiting);
+router.get('/:id', auth, requireRole('admin', 'support_agent'), controller.openConversation);
+router.delete('/sessions/:sessionId', auth, requireRole('admin', 'support_agent'), controller.adminDeleteSession);
 
 module.exports = router;

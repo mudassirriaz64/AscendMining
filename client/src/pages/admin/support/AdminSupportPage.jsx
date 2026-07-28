@@ -1,181 +1,165 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  MessageCircle, Ticket, Send, Clock, CheckCircle2,
-  AlertCircle, X, AlertTriangle,
-} from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { MessageCircle, Send, Ticket, AlertTriangle, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import {
-  fetchAdminConversations,
-  fetchAdminConversationMessages,
-  adminReplyREST,
-  fetchAdminTickets,
-  fetchAdminUnreadCount,
-  updateAdminTicket,
-  setActiveConversation,
-  appendAdminMessage,
-  triggerAlarm,
-  clearAlarm,
-} from '../../../store/slices/supportChatSlice';
-import { connectSocket, getSocket } from '../../../services/socketService';
+import api from '../../../services/api';
+import { connectSocket } from '../../../services/socketService';
 
-const STATUS_CONFIG = {
-  open: { label: 'Open', color: 'text-amber-700 bg-amber-50 border-amber-200', icon: AlertCircle },
-  in_progress: { label: 'In Progress', color: 'text-blue-700 bg-blue-50 border-blue-200', icon: Clock },
-  resolved: { label: 'Resolved', color: 'text-emerald-700 bg-emerald-50 border-emerald-200', icon: CheckCircle2 },
-  closed: { label: 'Closed', color: 'text-slate-500 bg-slate-50 border-slate-200', icon: X },
-};
-
-// Simple alarm audio — a short beep
-const playAlarmAudio = () => {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(880, ctx.currentTime);
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.5);
-  } catch { /* audio not supported */ }
+const STATUS = {
+  open: ['Open', 'bg-amber-50 text-amber-800'],
+  in_progress: ['In progress', 'bg-blue-50 text-blue-800'],
+  resolved: ['Resolved', 'bg-emerald-50 text-emerald-800'],
+  closed: ['Closed', 'bg-slate-100 text-slate-700'],
 };
 
 const AdminSupportPage = () => {
-  const dispatch = useDispatch();
-  const {
-    conversations, activeConversationId, activeMessages, activeSessions,
-    adminTickets, adminTicketsMeta, activeAlarms,
-  } = useSelector((s) => s.supportChat);
-
-  const [activeTab, setActiveTab] = useState('chat');
-  const [replyInput, setReplyInput] = useState('');
+  const [view, setView] = useState('conversations');
+  const [conversations, setConversations] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
+  const [selected, setSelected] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [activeSessions, setActiveSessions] = useState([]);
+  const [reply, setReply] = useState('');
   const [sending, setSending] = useState(false);
-  const [ticketFilter, setTicketFilter] = useState('all');
+  const [tickets, setTickets] = useState([]);
+  const [alarmIds, setAlarmIds] = useState(() => new Set());
   const [alarmDismissed, setAlarmDismissed] = useState(false);
-  const messagesEndRef = useRef(null);
+  const endRef = useRef(null);
+  const selectedIdRef = useRef(null);
 
-  // ── Load data ─────────────────────────────────────────────────────────────
+  const loadConversations = useCallback(async () => {
+    const response = await api.get('/admin/support/conversations');
+    setConversations(response.data.data.conversations || []);
+  }, []);
+
+  const loadTickets = useCallback(async () => {
+    const response = await api.get('/admin/support/tickets');
+    setTickets(response.data.data.tickets || []);
+  }, []);
+
+  useEffect(() => { selectedIdRef.current = selectedId; }, [selectedId]);
+
   useEffect(() => {
-    dispatch(fetchAdminConversations());
-    dispatch(fetchAdminTickets({}));
-    dispatch(fetchAdminUnreadCount());
-  }, [dispatch]);
-
-  // ── Admin socket connection ───────────────────────────────────────────────
-  useEffect(() => {
-    const getCookie = (name) => {
-      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-      return match ? decodeURIComponent(match[2]) : null;
-    };
-    const token = getCookie('accessToken');
-    if (!token) return;
-
-    const socket = connectSocket(token);
-
-    socket.on('new_message', ({ conversationId, message }) => {
-      dispatch(appendAdminMessage({ conversationId, message }));
-      dispatch(fetchAdminUnreadCount());
-    });
-
-    socket.on('alarm:trigger', (alarm) => {
-      dispatch(triggerAlarm(alarm));
-      playAlarmAudio();
-      setAlarmDismissed(false);
-      toast.error(`SLA Alert: No response for ${alarm.user?.fullName || 'user'} for ${alarm.overdueMinutes}min!`, {
-        duration: 10000,
-        icon: '🚨',
-      });
-    });
-
-    socket.on('alarm:clear', (data) => {
-      dispatch(clearAlarm(data));
-    });
-
-    return () => {
-      socket.off('new_message');
-      socket.off('alarm:trigger');
-      socket.off('alarm:clear');
-    };
-  }, [dispatch]);
-
-  // ── Auto scroll in message view ───────────────────────────────────────────
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [activeMessages]);
-
-  // ── Select a conversation ─────────────────────────────────────────────────
-  const handleSelectConversation = useCallback((conversationId) => {
-    dispatch(setActiveConversation(conversationId));
-    dispatch(fetchAdminConversationMessages(conversationId));
-  }, [dispatch]);
-
-  // ── Send reply ────────────────────────────────────────────────────────────
-  const handleSendReply = async () => {
-    if (!replyInput.trim() || !activeConversationId || sending) return;
-    setSending(true);
-
-    const socket = getSocket();
-    const body = replyInput.trim();
-
-    if (socket?.connected) {
-      socket.emit('agent_reply', { conversationId: activeConversationId, body });
-      setReplyInput('');
-      setSending(false);
-    } else {
-      try {
-        await dispatch(adminReplyREST({ conversationId: activeConversationId, body })).unwrap();
-        setReplyInput('');
-      } catch (err) {
-        toast.error(err || 'Failed to send reply.');
-      } finally {
-        setSending(false);
+    Promise.all([loadConversations(), loadTickets()]).catch(() => toast.error('Support queue could not be loaded.'));
+    const socket = connectSocket();
+    const onMessage = ({ message, conversation, sessionId }) => {
+      if (conversation?._id === selectedIdRef.current) {
+        setMessages((current) => current.some((item) => item._id === message._id) ? current : [...current, message]);
       }
-    }
-  };
+      loadConversations().catch(() => {});
+    };
+    const onAlarmTrigger = ({ conversationId }) => {
+      setAlarmIds((current) => new Set(current).add(conversationId));
+      setAlarmDismissed(false);
+    };
+    const onAlarmClear = ({ conversationId }) => {
+      setAlarmIds((current) => {
+        const next = new Set(current);
+        next.delete(conversationId);
+        return next;
+      });
+    };
+    socket.on('message:new', onMessage);
+    socket.on('alarm:trigger', onAlarmTrigger);
+    socket.on('alarm:clear', onAlarmClear);
+    return () => {
+      socket.off('message:new', onMessage);
+      socket.off('alarm:trigger', onAlarmTrigger);
+      socket.off('alarm:clear', onAlarmClear);
+    };
+  }, [loadConversations, loadTickets]);
 
-  // ── Update ticket status ──────────────────────────────────────────────────
-  const handleTicketStatusChange = async (ticketId, status) => {
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  const openConversation = async (id) => {
     try {
-      await dispatch(updateAdminTicket({ id: ticketId, status })).unwrap();
-      toast.success('Ticket updated!');
-    } catch (err) {
-      toast.error(err || 'Failed to update ticket.');
-    }
+      const response = await api.get(`/admin/support/conversations/${id}`);
+      setSelectedId(id);
+      setSelected(response.data.data.conversation);
+      setMessages(response.data.data.messages || []);
+      setActiveSessions(response.data.data.sessions || []);
+      setConversations((current) => current.map((item) => item._id === id ? { ...item, awaitingAgentSince: null, unreadByAdmin: false } : item));
+      setAlarmIds((current) => {
+        const next = new Set(current);
+        next.delete(id);
+        return next;
+      });
+      connectSocket().emit('conversation:join', { conversationId: id });
+    } catch { toast.error('Conversation could not be opened.'); }
   };
 
-  const formatTime = (date) =>
-    date ? new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+  const sendReply = async () => {
+    const body = reply.trim();
+    if (!body || !selectedId || sending) return;
+    setSending(true);
+    const socket = connectSocket();
+    if (socket.connected) {
+      socket.emit('message:send', { conversationId: selectedId, body }, (result) => {
+        setSending(false);
+        if (result?.ok) setReply('');
+        else toast.error(result?.message || 'Reply could not be sent.');
+      });
+      return;
+    }
+    try {
+      const response = await api.post('/support/conversations/message', { conversationId: selectedId, body });
+      setMessages((current) => [...current, response.data.data.message]);
+      setReply('');
+    } catch { toast.error('Reply could not be sent.'); }
+    finally { setSending(false); }
+  };
+
+  const updateTicket = async (id, status) => {
+    try {
+      const response = await api.patch(`/admin/support/tickets/${id}`, { status });
+      setTickets((current) => current.map((item) => item._id === id ? response.data.data.ticket : item));
+    } catch { toast.error('Ticket could not be updated.'); }
+  };
+
+  const deleteSession = async (sessionId) => {
+    if (!window.confirm('Delete this session and all its messages?')) return;
+    try {
+      await api.delete(`/admin/support/conversations/sessions/${sessionId}`);
+      setActiveSessions((current) => current.filter((s) => s._id !== sessionId));
+      setMessages((current) => current.filter((m) => m.sessionId !== sessionId));
+      toast.success('Session deleted.');
+    } catch { toast.error('Failed to delete session.'); }
+  };
 
   const formatDate = (date) => {
     if (!date) return '';
     const d = new Date(date);
     const today = new Date();
     if (d.toDateString() === today.toDateString()) return 'Today';
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
     return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
   };
 
-  const activeConversation = conversations.find((c) => c._id === activeConversationId);
-  const filteredTickets = ticketFilter === 'all'
-    ? adminTickets
-    : adminTickets.filter((t) => t.status === ticketFilter);
+  const sessionMap = activeSessions.reduce((map, s) => { map[s._id] = s; return map; }, {});
 
-  // Check if the active conversation has an SLA alarm
-  const activeAlarm = activeAlarms.find((a) => a.conversationId === activeConversationId);
-  const hasAnyAlarm = activeAlarms.length > 0 && !alarmDismissed;
+  const messagesBySession = [];
+  let lastSessionId = null;
+  for (const msg of messages) {
+    const sid = msg.sessionId || '_unknown';
+    if (sid !== lastSessionId) {
+      messagesBySession.push({ type: 'divider', sessionId: sid, session: sessionMap[sid] || null, key: `div-${sid}-${msg._id}` });
+      lastSessionId = sid;
+    }
+    messagesBySession.push({ type: 'message', message: msg, key: msg._id });
+  }
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-text-light-bg">Support Center</h1>
-        <p className="text-sm text-text-secondary mt-1">Manage live chats and support tickets</p>
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div><h1 className="text-2xl font-semibold">Support</h1><p className="mt-1 text-sm text-text-secondary">Live investor conversations and escalated tickets.</p></div>
+        <div className="flex rounded-xl bg-white p-1 ring-1 ring-border-light" role="tablist">
+          <button type="button" role="tab" aria-selected={view === 'conversations'} onClick={() => setView('conversations')} className={`rounded-lg px-3 py-2 text-sm font-medium ${view === 'conversations' ? 'bg-bg-dark text-white' : 'text-text-secondary'}`}><MessageCircle className="mr-1.5 inline" size={15} />Conversations</button>
+          <button type="button" role="tab" aria-selected={view === 'tickets'} onClick={() => setView('tickets')} className={`rounded-lg px-3 py-2 text-sm font-medium ${view === 'tickets' ? 'bg-bg-dark text-white' : 'text-text-secondary'}`}><Ticket className="mr-1.5 inline" size={15} />Tickets</button>
+        </div>
       </div>
 
-      {/* SLA Alarm Banner */}
-      {hasAnyAlarm && (
+      {alarmIds.size > 0 && !alarmDismissed && (
         <div className="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-xl px-5 py-3 flex items-center justify-between animate-pulse">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center">
@@ -183,10 +167,10 @@ const AdminSupportPage = () => {
             </div>
             <div>
               <p className="text-sm font-bold text-red-800">
-                SLA Alert — {activeAlarms.length} conversation{activeAlarms.length > 1 ? 's' : ''} waiting 30+ min
+                SLA Alert — {alarmIds.size} conversation{alarmIds.size > 1 ? 's' : ''} waiting 30+ min
               </p>
               <p className="text-xs text-red-600 mt-0.5">
-                {activeAlarms.map((a) => a.user?.fullName || 'User').join(', ')} — respond now
+                Respond now to silence the alarm
               </p>
             </div>
           </div>
@@ -199,293 +183,85 @@ const AdminSupportPage = () => {
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex gap-1 bg-bg-light-alt rounded-xl p-1 w-fit border border-border-light">
-        {[
-          { id: 'chat', label: 'Live Chats', icon: MessageCircle, count: conversations.length },
-          { id: 'tickets', label: 'Tickets', icon: Ticket, count: adminTicketsMeta.total },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
-              activeTab === tab.id
-                ? 'bg-white text-text-light-bg shadow-sm border border-border-light'
-                : 'text-text-secondary hover:text-text-light-bg'
-            }`}
-          >
-            <tab.icon size={15} />
-            {tab.label}
-            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-              activeTab === tab.id ? 'bg-primary/10 text-primary' : 'bg-slate-200 text-slate-500'
-            }`}>
-              {tab.count}
-            </span>
-          </button>
-        ))}
-      </div>
+      {view === 'conversations' ? (
+        <div className="flex min-h-[620px] flex-col overflow-hidden rounded-xl bg-white ring-1 ring-border-light lg:flex-row">
+          <aside className="max-h-72 w-full overflow-y-auto border-b border-border-light lg:max-h-none lg:w-80 lg:border-b-0 lg:border-r">
+            <div className="border-b border-border-light px-4 py-3 text-xs font-semibold text-text-secondary">Urgent first · {conversations.length} conversations</div>
+            {conversations.map((conversation) => {
+              const user = conversation.user || conversation.userId;
+              const ringing = Boolean(conversation.awaitingAgentSince);
+              const overdue = conversation.escalationAvailable;
+              return (
+                <button type="button" key={conversation._id} onClick={() => openConversation(conversation._id)} className={`relative w-full border-b border-border-light px-4 py-3 text-left hover:bg-bg-light-alt focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary ${selectedId === conversation._id ? 'bg-bg-light-alt' : ''}`}>
+                  <div className="flex items-center gap-2"><span className={`h-2.5 w-2.5 shrink-0 rounded-full ${ringing ? 'animate-pulse bg-danger motion-reduce:animate-none' : conversation.unreadByAdmin ? 'bg-primary' : 'bg-slate-300'}`} /><p className="truncate text-sm font-semibold">{user?.fullName || user?.username || 'Investor'}</p>{overdue ? <span className="ml-auto rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700">30m+</span> : null}</div>
+                  <p className="mt-1 truncate pl-[18px] text-xs text-text-secondary">{conversation.lastMessagePreview || 'No messages'}</p>
+                  {ringing ? <span className="absolute inset-y-2 left-0 w-1 rounded-r bg-danger" aria-hidden="true" /> : null}
+                </button>
+              );
+            })}
+          </aside>
 
-      {/* ── CHAT TAB ─────────────────────────────────────────────────────── */}
-      {activeTab === 'chat' && (
-        <div className="flex gap-4" style={{ height: '68vh' }}>
-          {/* Conversations list */}
-          <div className="w-72 flex-shrink-0 bg-white rounded-2xl border border-border-light flex flex-col overflow-hidden shadow-sm">
-            <div className="px-4 py-3 border-b border-border-light">
-              <p className="text-sm font-semibold text-text-light-bg">All Conversations</p>
-              <p className="text-xs text-text-secondary mt-0.5">{conversations.length} threads</p>
-            </div>
-            <div className="flex-1 overflow-y-auto divide-y divide-border-light">
-              {conversations.length === 0 && (
-                <div className="p-6 text-center text-text-secondary text-sm">No conversations yet.</div>
-              )}
-              {conversations.map((convo) => {
-                const convoId = convo._id;
-                const hasAlarm = activeAlarms.some((a) => a.conversationId === convoId);
-                return (
-                  <button
-                    key={convoId}
-                    onClick={() => handleSelectConversation(convoId)}
-                    className={`w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-bg-light-alt transition-colors cursor-pointer ${
-                      activeConversationId === convoId ? 'bg-primary/5 border-l-2 border-primary' : ''
-                    }`}
-                  >
-                    <div className="relative">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5 ${
-                        hasAlarm
-                          ? 'bg-gradient-to-br from-red-500 to-red-600'
-                          : 'bg-gradient-to-br from-[#001f3f] to-[#083358]'
-                      }`}>
-                        {convo.userId?.fullName?.charAt(0) || 'U'}
-                      </div>
-                      {hasAlarm && (
-                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                          <AlertTriangle size={9} className="text-white" />
-                        </span>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold text-text-light-bg truncate">
-                          {convo.userId?.fullName || 'Unknown User'}
-                        </p>
-                        {convo.unreadByAdmin && !hasAlarm && (
-                          <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
-                        )}
-                        {hasAlarm && (
-                          <span className="text-[10px] text-red-600 font-bold flex-shrink-0">SLA</span>
-                        )}
-                      </div>
-                      <p className="text-xs text-text-secondary truncate mt-0.5">
-                        {convo.lastMessagePreview || 'No messages yet'}
-                      </p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">{formatDate(convo.lastMessageAt)}</p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Message thread */}
-          <div className="flex-1 bg-white rounded-2xl border border-border-light flex flex-col overflow-hidden shadow-sm">
-            {!activeConversationId ? (
-              <div className="flex-1 flex items-center justify-center flex-col gap-3 text-text-secondary">
-                <MessageCircle size={40} className="opacity-20" />
-                <p className="text-sm font-medium">Select a conversation to view messages</p>
-              </div>
-            ) : (
-              <>
-                {/* Thread header */}
-                <div className="px-5 py-3 border-b border-border-light flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#001f3f] to-[#083358] flex items-center justify-center text-white text-xs font-bold">
-                      {activeConversation?.userId?.fullName?.charAt(0) || 'U'}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-text-light-bg">
-                        {activeConversation?.userId?.fullName || 'User'}
-                      </p>
-                      <p className="text-xs text-text-secondary">
-                        @{activeConversation?.userId?.username || '—'}
-                      </p>
-                    </div>
+          <section className="flex min-h-[460px] flex-1 flex-col">
+            {selected ? <>
+              <header className="border-b border-border-light px-5 py-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-sm font-semibold">{(selected.user || selected.userId)?.fullName || 'Investor'}</h2>
+                    <p className="text-xs text-text-secondary">One conversation · {activeSessions.length} session{activeSessions.length !== 1 ? 's' : ''}</p>
                   </div>
-                  {activeAlarm && (
-                    <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-1.5">
-                      <AlertTriangle size={14} className="text-red-600" />
-                      <span className="text-xs font-bold text-red-700">
-                        SLA: {activeAlarm.overdueMinutes}min overdue
-                      </span>
-                    </div>
-                  )}
                 </div>
-
-                {/* Messages with session dividers */}
-                <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
-                  {activeMessages.length === 0 && (
-                    <div className="text-center text-sm text-text-secondary py-8">No messages in this conversation.</div>
-                  )}
-                  {(() => {
-                    const sessionMap = {};
-                    activeSessions.forEach((s) => { sessionMap[s._id] = s; });
-                    const shownDividers = new Set();
-                    let lastSessionId = null;
-
-                    return activeMessages.map((msg) => {
-                      const isAgent = msg.senderRole !== 'investor';
-                      const msgSessionId = msg.sessionId;
-                      const showDivider = msgSessionId && !shownDividers.has(msgSessionId) && msgSessionId !== lastSessionId;
-                      const session = msgSessionId ? sessionMap[msgSessionId] : null;
-                      if (showDivider && msgSessionId) {
-                        shownDividers.add(msgSessionId);
-                        lastSessionId = msgSessionId;
-                      } else if (msgSessionId) {
-                        lastSessionId = msgSessionId;
-                      }
-
-                      return (
-                        <div key={msg._id}>
-                          {showDivider && (
-                            <div className="flex items-center gap-3 my-4">
-                              <div className="flex-1 h-px bg-slate-200" />
-                              <span className="text-[10px] text-slate-400 font-medium px-2 bg-white">
-                                {session ? `Session started ${new Date(session.startedAt).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}` : 'Session'}
-                              </span>
-                              <div className="flex-1 h-px bg-slate-200" />
-                            </div>
-                          )}
-                          <div className={`flex ${isAgent ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[70%] flex flex-col ${isAgent ? 'items-end' : 'items-start'}`}>
-                              <div
-                                className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed break-words ${
-                                  isAgent
-                                    ? 'bg-gradient-to-br from-[#001f3f] to-[#083358] text-white rounded-br-sm'
-                                    : 'bg-slate-100 text-slate-800 rounded-bl-sm'
-                                }`}
-                              >
-                                {msg.body}
-                              </div>
-                              <span className="text-[10px] text-slate-400 mt-1 px-1">
-                                {msg.senderRole !== 'investor' ? 'You · ' : ''}{formatTime(msg.sentAt)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    });
-                  })()}
-                  <div ref={messagesEndRef} />
-                </div>
-
-                {/* Reply box */}
-                <div className="border-t border-border-light px-4 py-3 flex items-end gap-3 bg-bg-light-alt/30">
-                  <textarea
-                    value={replyInput}
-                    onChange={(e) => setReplyInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendReply(); } }}
-                    placeholder="Type a reply..."
-                    rows={1}
-                    className="flex-1 resize-none bg-white border border-border-light rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all placeholder-text-secondary max-h-28 overflow-y-auto"
-                    style={{ minHeight: '42px' }}
-                  />
-                  <button
-                    onClick={handleSendReply}
-                    disabled={!replyInput.trim() || sending}
-                    className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#001f3f] to-[#083358] text-white flex items-center justify-center hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
-                  >
-                    <Send size={16} />
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ── TICKETS TAB ──────────────────────────────────────────────────── */}
-      {activeTab === 'tickets' && (
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2 flex-wrap">
-            {['all', 'open', 'in_progress', 'resolved', 'closed'].map((f) => (
-              <button
-                key={f}
-                onClick={() => setTicketFilter(f)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer border ${
-                  ticketFilter === f
-                    ? 'bg-[#001f3f] text-white border-[#001f3f]'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
-                }`}
-              >
-                {f === 'all' ? 'All' : STATUS_CONFIG[f]?.label || f}
-              </button>
-            ))}
-          </div>
-
-          <div className="bg-white rounded-2xl border border-border-light shadow-sm overflow-hidden">
-            {filteredTickets.length === 0 ? (
-              <div className="py-16 text-center text-text-secondary">
-                <Ticket size={36} className="mx-auto mb-3 opacity-20" />
-                <p className="text-sm font-medium">No tickets found.</p>
-              </div>
-            ) : (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border-light bg-bg-light-alt">
-                    <th className="text-left px-5 py-3 text-text-secondary font-semibold">User</th>
-                    <th className="text-left px-5 py-3 text-text-secondary font-semibold">Subject</th>
-                    <th className="text-left px-5 py-3 text-text-secondary font-semibold">Status</th>
-                    <th className="text-left px-5 py-3 text-text-secondary font-semibold">Created</th>
-                    <th className="text-left px-5 py-3 text-text-secondary font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border-light">
-                  {filteredTickets.map((ticket) => {
-                    const cfg = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.open;
-                    const Icon = cfg.icon;
-                    const isSla = ticket.escalationReason === 'no_agent_response_30min';
+              </header>
+              <div className="flex-1 space-y-3 overflow-y-auto bg-bg-light-alt px-5 py-4">
+                {messagesBySession.map((item) => {
+                  if (item.type === 'divider') {
+                    const sessionDate = item.session?.createdAt ? formatDate(item.session.createdAt) : '';
+                    const isClosed = Boolean(item.session?.closedAt);
+                    const closedAtStr = isClosed ? new Date(item.session.closedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
                     return (
-                      <tr key={ticket._id} className={`hover:bg-bg-light-alt/50 transition-colors ${isSla ? 'bg-red-50/30' : ''}`}>
-                        <td className="px-5 py-3.5">
-                          <p className="font-semibold text-text-light-bg">{ticket.userId?.fullName || '—'}</p>
-                          <p className="text-xs text-text-secondary">@{ticket.userId?.username || '—'}</p>
-                        </td>
-                        <td className="px-5 py-3.5 text-text-light-bg max-w-xs">
-                          <p className="truncate">{ticket.subject}</p>
-                          {isSla && (
-                            <span className="inline-flex items-center gap-1 text-[10px] text-red-600 font-bold mt-0.5">
-                              <AlertTriangle size={9} /> SLA Auto-Escalation
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <span className={`flex items-center gap-1.5 w-fit px-3 py-1 rounded-full border text-xs font-semibold ${cfg.color}`}>
-                            <Icon size={11} />
-                            {cfg.label}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3.5 text-text-secondary">
-                          {new Date(ticket.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <select
-                            value={ticket.status}
-                            onChange={(e) => handleTicketStatusChange(ticket._id, e.target.value)}
-                            className="text-sm border border-border-light rounded-lg px-2.5 py-1 outline-none focus:border-primary bg-white text-text-light-bg cursor-pointer"
+                      <div key={item.key} className="flex items-center gap-3 my-3">
+                        <div className="flex-1 h-px bg-slate-200" />
+                        <div className="flex items-center gap-2 text-xs text-text-secondary">
+                          <span className="font-medium">{item.session?.title || 'Unknown session'}</span>
+                          {sessionDate && <span>({sessionDate})</span>}
+                          {isClosed && <span className="text-slate-400">— Closed {closedAtStr}</span>}
+                          <button
+                            type="button"
+                            onClick={() => deleteSession(item.sessionId)}
+                            className="text-slate-300 hover:text-red-500 transition-colors cursor-pointer p-0.5"
+                            title="Delete session"
                           >
-                            <option value="open">Open</option>
-                            <option value="in_progress">In Progress</option>
-                            <option value="resolved">Resolved</option>
-                            <option value="closed">Closed</option>
-                          </select>
-                        </td>
-                      </tr>
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                        <div className="flex-1 h-px bg-slate-200" />
+                      </div>
                     );
-                  })}
-                </tbody>
-              </table>
-            )}
-          </div>
+                  }
+                  const msg = item.message;
+                  const agent = msg.senderRole !== 'investor';
+                  const senderName = agent ? 'Support' : 'Investor';
+                  return (
+                    <div key={item.key} className={`flex flex-col ${agent ? 'items-end' : 'items-start'}`}>
+                      <span className="text-[10px] font-semibold mb-1 px-1 text-slate-500">
+                        {senderName}
+                      </span>
+                      <div className={`flex ${agent ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${agent ? 'rounded-br-sm bg-gradient-to-br from-[#001f3f] to-[#083358] text-white' : 'rounded-bl-sm bg-white text-slate-800 ring-1 ring-slate-200'}`}>
+                          <p className="whitespace-pre-wrap break-words">{msg.body}</p>
+                          <time className="mt-1 block text-[10px] text-white/60">{new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={endRef} />
+              </div>
+              <div className="flex items-end gap-2 border-t border-border-light p-3"><textarea value={reply} onChange={(event) => setReply(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendReply(); } }} rows={1} aria-label="Reply" placeholder="Reply to investor" className="min-h-10 flex-1 resize-none rounded-xl border border-border-light px-3 py-2 text-sm outline-none placeholder:text-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/25 cursor-pointer" /><button type="button" onClick={sendReply} disabled={!reply.trim() || sending} aria-label="Send reply" className="grid h-10 w-10 place-items-center rounded-xl bg-primary text-bg-dark disabled:opacity-50 cursor-pointer"><Send size={17} /></button></div>
+            </> : <div className="grid flex-1 place-items-center text-center"><div><MessageCircle className="mx-auto text-text-secondary" /><p className="mt-3 text-sm font-medium">Choose a conversation</p><p className="mt-1 text-xs text-text-secondary">Opening it clears that conversation's alarm for every agent.</p></div></div>}
+          </section>
         </div>
+      ) : (
+        <div className="overflow-x-auto rounded-xl bg-white ring-1 ring-border-light"><table className="w-full text-sm"><thead><tr className="border-b border-border-light text-left text-xs text-text-secondary"><th className="px-4 py-3">Investor</th><th className="px-4 py-3">Subject</th><th className="px-4 py-3">Created</th><th className="px-4 py-3">Status</th></tr></thead><tbody className="divide-y divide-border-light">{tickets.map((ticket) => <tr key={ticket._id}><td className="px-4 py-3 font-medium">{ticket.userId?.fullName || ticket.userId?.username || 'Investor'}</td><td className="px-4 py-3">{ticket.subject}</td><td className="px-4 py-3 text-text-secondary">{new Date(ticket.createdAt).toLocaleDateString()}</td><td className="px-4 py-3"><select value={ticket.status} onChange={(event) => updateTicket(ticket._id, event.target.value)} className={`rounded-lg border-0 px-2 py-1 text-xs font-semibold ${STATUS[ticket.status]?.[1]}`}><option value="open">Open</option><option value="in_progress">In progress</option><option value="resolved">Resolved</option><option value="closed">Closed</option></select></td></tr>)}</tbody></table></div>
       )}
     </div>
   );
