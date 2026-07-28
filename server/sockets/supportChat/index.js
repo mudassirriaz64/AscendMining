@@ -13,13 +13,16 @@ const supportChatService = require('../../services/supportChat.service');
  *   - Admin joins room:     `admin` (receives all broadcasts)
  *
  * Events emitted to client:
- *   - `new_message`  { message }
- *   - `error`        { message }
+ *   - `new_message`          { message, sessionId, conversationId }
+ *   - `session_started`      { session }
+ *   - `session_closed`       { sessionId }
+ *   - `error`                { message }
  *
  * Events received from client:
- *   - `send_message`    { body }                  → investor sends message
- *   - `agent_reply`     { conversationId, body }  → admin/agent sends reply
- *   - `mark_read`       { conversationId }         → mark messages read
+ *   - `send_message`    { body, sessionId? }          → investor sends message
+ *   - `agent_reply`     { conversationId, body }      → admin/agent sends reply
+ *   - `start_session`   {}                             → investor starts new session
+ *   - `close_session`   { sessionId }                  → investor closes session
  */
 const initSupportChatSocket = (io) => {
   const supportNS = io.of('/support');
@@ -58,27 +61,57 @@ const initSupportChatSocket = (io) => {
       // Investor joins their personal room
       socket.join(`user:${userId}`);
 
-      // Send conversation history on connect
+      // Send active session on connect
       try {
-        const { conversation, messages } = await supportChatService.getOrCreateConversation(userId);
-        socket.emit('conversation_loaded', { conversation, messages });
+        const { session, messages } = await supportChatService.getOrCreateActiveSession(userId);
+        socket.emit('active_session', { session, messages });
       } catch (err) {
-        socket.emit('error', { message: 'Failed to load conversation.' });
+        socket.emit('error', { message: 'Failed to load session.' });
       }
 
+      // Investor starts a new session
+      socket.on('start_session', async () => {
+        try {
+          const { session } = await supportChatService.startNewSession(userId);
+          socket.emit('session_started', { session });
+
+          // Notify admin room about new session
+          supportNS.to('admin').emit('session_started', { userId, session });
+        } catch (err) {
+          socket.emit('error', { message: 'Failed to start session.' });
+        }
+      });
+
       // Investor sends a message
-      socket.on('send_message', async ({ body }) => {
+      socket.on('send_message', async ({ body, sessionId }) => {
         if (!body || !body.trim()) return;
         try {
-          const { message, conversationId } = await supportChatService.sendUserMessage(userId, body.trim());
+          const { message, conversationId, sessionId: msgSessionId } = await supportChatService.sendUserMessage(
+            userId,
+            body.trim(),
+            sessionId
+          );
 
           // Reflect back to the investor
-          socket.emit('new_message', { message });
+          socket.emit('new_message', { message, sessionId: msgSessionId, conversationId });
 
           // Broadcast to admin room
-          supportNS.to('admin').emit('new_message', { conversationId, message });
+          supportNS.to('admin').emit('new_message', { conversationId, sessionId: msgSessionId, message });
         } catch (err) {
           socket.emit('error', { message: 'Failed to send message.' });
+        }
+      });
+
+      // Investor closes a session
+      socket.on('close_session', async ({ sessionId }) => {
+        try {
+          await supportChatService.closeSession(userId, sessionId);
+          socket.emit('session_closed', { sessionId });
+
+          // Notify admin
+          supportNS.to('admin').emit('session_closed', { userId, sessionId });
+        } catch (err) {
+          socket.emit('error', { message: 'Failed to close session.' });
         }
       });
 
@@ -98,7 +131,7 @@ const initSupportChatSocket = (io) => {
           // Notify the investor who owns this conversation
           const convoDoc = await Conversation.findById(conversationId).select('userId');
           if (convoDoc) {
-            supportNS.to(`user:${convoDoc.userId.toString()}`).emit('new_message', { message });
+            supportNS.to(`user:${convoDoc.userId.toString()}`).emit('new_message', { message, conversationId });
           }
         } catch (err) {
           socket.emit('error', { message: 'Failed to send reply.' });

@@ -1,8 +1,9 @@
 const ConversationMessage = require('../models/ConversationMessage');
 
-const createMessage = async ({ conversationId, senderId, senderRole, body, attachmentUrl }) => {
+const createMessage = async ({ conversationId, sessionId, senderId, senderRole, body, attachmentUrl }) => {
   return ConversationMessage.create({
     conversationId,
+    sessionId: sessionId || null,
     senderId,
     senderRole,
     body,
@@ -13,6 +14,13 @@ const createMessage = async ({ conversationId, senderId, senderRole, body, attac
 
 const findByConversationId = async (conversationId, { skip = 0, limit = 50 } = {}) => {
   return ConversationMessage.find({ conversationId })
+    .sort({ sentAt: 1 })
+    .skip(skip)
+    .limit(limit);
+};
+
+const findBySessionId = async (sessionId, { skip = 0, limit = 200 } = {}) => {
+  return ConversationMessage.find({ sessionId })
     .sort({ sentAt: 1 })
     .skip(skip)
     .limit(limit);
@@ -35,6 +43,7 @@ const countUnread = async (conversationId, readerRole) => {
 module.exports = {
   createMessage,
   findByConversationId,
+  findBySessionId,
   markReadByConversation,
   countUnread,
 };

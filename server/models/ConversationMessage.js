@@ -7,6 +7,11 @@ const conversationMessageSchema = new mongoose.Schema(
       ref: 'Conversation',
       required: true,
     },
+    sessionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ChatSession',
+      default: null,
+    },
     senderId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
@@ -38,5 +43,6 @@ const conversationMessageSchema = new mongoose.Schema(
 );
 
 conversationMessageSchema.index({ conversationId: 1, sentAt: 1 });
+conversationMessageSchema.index({ sessionId: 1, sentAt: 1 });
 
 module.exports = mongoose.model('ConversationMessage', conversationMessageSchema);

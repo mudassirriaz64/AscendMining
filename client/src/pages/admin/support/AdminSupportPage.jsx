@@ -1,11 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  MessageCircle, Ticket, Send, Users, Clock, CheckCircle2,
-  AlertCircle, ChevronRight, RefreshCw, X, Filter,
+  MessageCircle, Ticket, Send, Clock, CheckCircle2,
+  AlertCircle, X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { Outlet, useNavigate } from 'react-router-dom';
 import {
   fetchAdminConversations,
   fetchAdminConversationMessages,
@@ -27,11 +26,10 @@ const STATUS_CONFIG = {
 const AdminSupportPage = () => {
   const dispatch = useDispatch();
   const {
-    conversations, activeConversationId, activeMessages,
-    adminTickets, adminTicketsMeta, loading,
+    conversations, activeConversationId, activeMessages, activeSessions,
+    adminTickets, adminTicketsMeta,
   } = useSelector((s) => s.supportChat);
 
-  const { user } = useSelector((s) => s.auth);
   const [activeTab, setActiveTab] = useState('chat');
   const [replyInput, setReplyInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -226,32 +224,63 @@ const AdminSupportPage = () => {
                   </div>
                 </div>
 
-                {/* Messages */}
+                {/* Messages with session dividers */}
                 <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
                   {activeMessages.length === 0 && (
                     <div className="text-center text-sm text-text-secondary py-8">No messages in this conversation.</div>
                   )}
-                  {activeMessages.map((msg) => {
-                    const isAgent = msg.senderRole !== 'investor';
-                    return (
-                      <div key={msg._id} className={`flex ${isAgent ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[70%] flex flex-col ${isAgent ? 'items-end' : 'items-start'}`}>
-                          <div
-                            className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed break-words ${
-                              isAgent
-                                ? 'bg-gradient-to-br from-[#001f3f] to-[#083358] text-white rounded-br-sm'
-                                : 'bg-slate-100 text-slate-800 rounded-bl-sm'
-                            }`}
-                          >
-                            {msg.body}
+                  {(() => {
+                    // Build a map of sessionId → session info for dividers
+                    const sessionMap = {};
+                    activeSessions.forEach((s) => { sessionMap[s._id] = s; });
+
+                    // Track which sessions we've already shown dividers for
+                    const shownDividers = new Set();
+                    let lastSessionId = null;
+
+                    return activeMessages.map((msg) => {
+                      const isAgent = msg.senderRole !== 'investor';
+                      const msgSessionId = msg.sessionId;
+                      const showDivider = msgSessionId && !shownDividers.has(msgSessionId) && msgSessionId !== lastSessionId;
+                      const session = msgSessionId ? sessionMap[msgSessionId] : null;
+                      if (showDivider && msgSessionId) {
+                        shownDividers.add(msgSessionId);
+                        lastSessionId = msgSessionId;
+                      } else if (msgSessionId) {
+                        lastSessionId = msgSessionId;
+                      }
+
+                      return (
+                        <React.Fragment key={msg._id}>
+                          {showDivider && (
+                            <div className="flex items-center gap-3 my-4">
+                              <div className="flex-1 h-px bg-slate-200" />
+                              <span className="text-[10px] text-slate-400 font-medium px-2 bg-white">
+                                {session ? `Session started ${new Date(session.startedAt).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}` : 'Session'}
+                              </span>
+                              <div className="flex-1 h-px bg-slate-200" />
+                            </div>
+                          )}
+                          <div className={`flex ${isAgent ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`max-w-[70%] flex flex-col ${isAgent ? 'items-end' : 'items-start'}`}>
+                              <div
+                                className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed break-words ${
+                                  isAgent
+                                    ? 'bg-gradient-to-br from-[#001f3f] to-[#083358] text-white rounded-br-sm'
+                                    : 'bg-slate-100 text-slate-800 rounded-bl-sm'
+                                }`}
+                              >
+                                {msg.body}
+                              </div>
+                              <span className="text-[10px] text-slate-400 mt-1 px-1">
+                                {msg.senderRole !== 'investor' ? 'You · ' : ''}{formatTime(msg.sentAt)}
+                              </span>
+                            </div>
                           </div>
-                          <span className="text-[10px] text-slate-400 mt-1 px-1">
-                            {msg.senderRole !== 'investor' ? 'You · ' : ''}{formatTime(msg.sentAt)}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
+                        </React.Fragment>
+                      );
+                    });
+                  })()}
                   <div ref={messagesEndRef} />
                 </div>
 

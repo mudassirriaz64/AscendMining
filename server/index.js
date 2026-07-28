@@ -5,6 +5,7 @@ const app = require('./app');
 const connectDB = require('./config/db');
 const seedAdmin = require('./utils/seedAdmin');
 const initSupportChatSocket = require('./sockets/supportChat');
+const { startSlaCron } = require('./jobs/supportSlaCheck.cron');
 
 const PORT = process.env.PORT || 5000;
 
@@ -25,6 +26,9 @@ const startServer = async () => {
 
   // Initialize support chat socket namespace
   initSupportChatSocket(io);
+
+  // Start SLA cron (checks every 60s for conversations unanswered > 30 min)
+  startSlaCron(io);
 
   server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
