@@ -167,6 +167,18 @@ export const updateAdminTicket = createAsyncThunk(
   }
 );
 
+export const fetchAdminUnreadCount = createAsyncThunk(
+  'supportChat/fetchAdminUnreadCount',
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await api.get('/admin/support/chat/unread-count');
+      return res.data.data.count;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.error?.message || 'Failed to load unread count.');
+    }
+  }
+);
+
 // ── Slice ─────────────────────────────────────────────────────────────────────
 
 const supportChatSlice = createSlice({
@@ -183,6 +195,9 @@ const supportChatSlice = createSlice({
     activeConversationId: null,
     activeMessages: [],
     activeSessions: [], // sessions for the active admin conversation (for dividers)
+    unreadCount: 0,
+    // SLA alarms
+    activeAlarms: [], // { conversationId, userId, user, awaitingSince, overdueMinutes }
     // Tickets
     tickets: [],
     ticketsMeta: { total: 0, page: 1, totalPages: 1 },
@@ -241,6 +256,18 @@ const supportChatSlice = createSlice({
       state.activeConversationId = action.payload;
       state.activeMessages = [];
       state.activeSessions = [];
+    },
+    // SLA alarm reducers (dispatched from socket events)
+    triggerAlarm(state, action) {
+      const alarm = action.payload;
+      const exists = state.activeAlarms.find((a) => a.conversationId === alarm.conversationId);
+      if (!exists) {
+        state.activeAlarms.push(alarm);
+      }
+    },
+    clearAlarm(state, action) {
+      const { conversationId } = action.payload;
+      state.activeAlarms = state.activeAlarms.filter((a) => a.conversationId !== conversationId);
     },
     clearError(state) {
       state.error = null;
@@ -399,6 +426,12 @@ const supportChatSlice = createSlice({
         const idx = state.adminTickets.findIndex((t) => t._id === action.payload._id);
         if (idx !== -1) state.adminTickets[idx] = action.payload;
       });
+
+    // fetchAdminUnreadCount
+    builder
+      .addCase(fetchAdminUnreadCount.fulfilled, (state, action) => {
+        state.unreadCount = action.payload;
+      });
   },
 });
 
@@ -408,6 +441,8 @@ export const {
   markSessionClosed,
   appendAdminMessage,
   setActiveConversation,
+  triggerAlarm,
+  clearAlarm,
   clearError,
 } = supportChatSlice.actions;
 export default supportChatSlice.reducer;

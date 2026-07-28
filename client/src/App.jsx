@@ -22,6 +22,7 @@ const PackageListPage = lazy(() => import('./pages/admin/packages/PackageListPag
 const AdminSupportPage = lazy(() => import('./pages/admin/support/AdminSupportPage'));
 const SupportChatPage = lazy(() => import('./pages/support/SupportChatPage'));
 const SupportTicketsPage = lazy(() => import('./pages/support/SupportTicketsPage'));
+const SupportChatWidget = lazy(() => import('./components/common/SupportChatWidget'));
 
 const ProtectedRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
@@ -68,6 +69,7 @@ const App = () => {
     <Router>
       <Toaster position="top-right" />
       <Suspense fallback={<LoadingSpinner />}>
+        <SupportChatWidget />
         <Routes>
           <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
           <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />

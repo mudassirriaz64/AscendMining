@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -7,6 +7,8 @@ import {
   Menu, X, LogOut, ChevronDown,
 } from 'lucide-react';
 import { logoutUser } from '../store/slices/authSlice';
+import { fetchAdminUnreadCount, triggerAlarm } from '../store/slices/supportChatSlice';
+import { connectSocket } from '../services/socketService';
 import Logo from '../components/common/Logo';
 
 const sidebarLinks = [
@@ -26,6 +28,7 @@ const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const { user } = useSelector((state) => state.auth);
+  const { unreadCount } = useSelector((state) => state.supportChat);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -33,6 +36,36 @@ const AdminLayout = () => {
     await dispatch(logoutUser());
     navigate('/admin/login');
   };
+
+  // Fetch unread count + listen for real-time updates
+  useEffect(() => {
+    dispatch(fetchAdminUnreadCount());
+
+    const getCookie = (name) => {
+      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+      return match ? decodeURIComponent(match[2]) : null;
+    };
+    const token = getCookie('accessToken');
+    if (!token) return;
+
+    const socket = connectSocket(token);
+
+    const onNewMessage = () => {
+      dispatch(fetchAdminUnreadCount());
+    };
+
+    const onAlarmTrigger = (alarm) => {
+      dispatch(triggerAlarm(alarm));
+    };
+
+    socket.on('new_message', onNewMessage);
+    socket.on('alarm:trigger', onAlarmTrigger);
+
+    return () => {
+      socket.off('new_message', onNewMessage);
+      socket.off('alarm:trigger', onAlarmTrigger);
+    };
+  }, [dispatch]);
 
   return (
     <div className="min-h-screen bg-bg-light-alt flex">
@@ -87,9 +120,16 @@ const AdminLayout = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="relative p-2 text-text-secondary hover:bg-bg-light-alt rounded-lg cursor-pointer">
+            <button
+              onClick={() => navigate('/admin/support')}
+              className="relative p-2 text-text-secondary hover:bg-bg-light-alt rounded-lg cursor-pointer"
+            >
               <Bell size={20} />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-danger rounded-full" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold px-1">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </button>
 
             <div className="relative">

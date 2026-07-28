@@ -7,6 +7,9 @@ const supportChatController = require('../../controllers/supportChat.controller'
 // Admin: Get paginated list of all conversations
 router.get('/', authMiddleware, requireRole('admin', 'support_agent'), supportChatController.getConversations);
 
+// Admin: Get unread conversation count
+router.get('/unread-count', authMiddleware, requireRole('admin', 'support_agent'), supportChatController.getUnreadCount);
+
 // Admin: Get messages for a specific conversation
 router.get('/:conversationId/messages', authMiddleware, requireRole('admin', 'support_agent'), supportChatController.getConversationMessages);
 

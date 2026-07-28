@@ -148,6 +148,20 @@ const replyToConversation = async (req, res, next) => {
   }
 };
 
+/**
+ * GET /api/admin/support/chat/unread-count
+ * Admin: Get count of conversations with unread messages
+ */
+const getUnreadCount = async (req, res, next) => {
+  try {
+    const conversationRepo = require('../repositories/conversation.repository');
+    const count = await conversationRepo.countUnread();
+    return res.status(200).json({ success: true, data: { count } });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getMySessions,
   startSession,
@@ -158,4 +172,5 @@ module.exports = {
   getConversations,
   getConversationMessages,
   replyToConversation,
+  getUnreadCount,
 };

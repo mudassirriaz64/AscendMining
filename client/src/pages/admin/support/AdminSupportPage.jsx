@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   MessageCircle, Ticket, Send, Clock, CheckCircle2,
-  AlertCircle, X,
+  AlertCircle, X, AlertTriangle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
@@ -10,9 +10,12 @@ import {
   fetchAdminConversationMessages,
   adminReplyREST,
   fetchAdminTickets,
+  fetchAdminUnreadCount,
   updateAdminTicket,
   setActiveConversation,
   appendAdminMessage,
+  triggerAlarm,
+  clearAlarm,
 } from '../../../store/slices/supportChatSlice';
 import { connectSocket, getSocket } from '../../../services/socketService';
 
@@ -23,23 +26,42 @@ const STATUS_CONFIG = {
   closed: { label: 'Closed', color: 'text-slate-500 bg-slate-50 border-slate-200', icon: X },
 };
 
+// Simple alarm audio — a short beep
+const playAlarmAudio = () => {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.5);
+  } catch { /* audio not supported */ }
+};
+
 const AdminSupportPage = () => {
   const dispatch = useDispatch();
   const {
     conversations, activeConversationId, activeMessages, activeSessions,
-    adminTickets, adminTicketsMeta,
+    adminTickets, adminTicketsMeta, activeAlarms,
   } = useSelector((s) => s.supportChat);
 
   const [activeTab, setActiveTab] = useState('chat');
   const [replyInput, setReplyInput] = useState('');
   const [sending, setSending] = useState(false);
   const [ticketFilter, setTicketFilter] = useState('all');
+  const [alarmDismissed, setAlarmDismissed] = useState(false);
   const messagesEndRef = useRef(null);
 
   // ── Load data ─────────────────────────────────────────────────────────────
   useEffect(() => {
     dispatch(fetchAdminConversations());
     dispatch(fetchAdminTickets({}));
+    dispatch(fetchAdminUnreadCount());
   }, [dispatch]);
 
   // ── Admin socket connection ───────────────────────────────────────────────
@@ -55,10 +77,27 @@ const AdminSupportPage = () => {
 
     socket.on('new_message', ({ conversationId, message }) => {
       dispatch(appendAdminMessage({ conversationId, message }));
+      dispatch(fetchAdminUnreadCount());
+    });
+
+    socket.on('alarm:trigger', (alarm) => {
+      dispatch(triggerAlarm(alarm));
+      playAlarmAudio();
+      setAlarmDismissed(false);
+      toast.error(`SLA Alert: No response for ${alarm.user?.fullName || 'user'} for ${alarm.overdueMinutes}min!`, {
+        duration: 10000,
+        icon: '🚨',
+      });
+    });
+
+    socket.on('alarm:clear', (data) => {
+      dispatch(clearAlarm(data));
     });
 
     return () => {
       socket.off('new_message');
+      socket.off('alarm:trigger');
+      socket.off('alarm:clear');
     };
   }, [dispatch]);
 
@@ -68,10 +107,10 @@ const AdminSupportPage = () => {
   }, [activeMessages]);
 
   // ── Select a conversation ─────────────────────────────────────────────────
-  const handleSelectConversation = (conversationId) => {
+  const handleSelectConversation = useCallback((conversationId) => {
     dispatch(setActiveConversation(conversationId));
     dispatch(fetchAdminConversationMessages(conversationId));
-  };
+  }, [dispatch]);
 
   // ── Send reply ────────────────────────────────────────────────────────────
   const handleSendReply = async () => {
@@ -123,6 +162,10 @@ const AdminSupportPage = () => {
     ? adminTickets
     : adminTickets.filter((t) => t.status === ticketFilter);
 
+  // Check if the active conversation has an SLA alarm
+  const activeAlarm = activeAlarms.find((a) => a.conversationId === activeConversationId);
+  const hasAnyAlarm = activeAlarms.length > 0 && !alarmDismissed;
+
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
@@ -130,6 +173,31 @@ const AdminSupportPage = () => {
         <h1 className="text-2xl font-bold text-text-light-bg">Support Center</h1>
         <p className="text-sm text-text-secondary mt-1">Manage live chats and support tickets</p>
       </div>
+
+      {/* SLA Alarm Banner */}
+      {hasAnyAlarm && (
+        <div className="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-xl px-5 py-3 flex items-center justify-between animate-pulse">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center">
+              <AlertTriangle size={18} className="text-red-600" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-red-800">
+                SLA Alert — {activeAlarms.length} conversation{activeAlarms.length > 1 ? 's' : ''} waiting 30+ min
+              </p>
+              <p className="text-xs text-red-600 mt-0.5">
+                {activeAlarms.map((a) => a.user?.fullName || 'User').join(', ')} — respond now
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setAlarmDismissed(true)}
+            className="px-3 py-1.5 rounded-lg bg-red-200/60 text-red-700 text-xs font-semibold hover:bg-red-200 transition-all cursor-pointer"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 bg-bg-light-alt rounded-xl p-1 w-fit border border-border-light">
@@ -170,33 +238,51 @@ const AdminSupportPage = () => {
               {conversations.length === 0 && (
                 <div className="p-6 text-center text-text-secondary text-sm">No conversations yet.</div>
               )}
-              {conversations.map((convo) => (
-                <button
-                  key={convo._id}
-                  onClick={() => handleSelectConversation(convo._id)}
-                  className={`w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-bg-light-alt transition-colors cursor-pointer ${
-                    activeConversationId === convo._id ? 'bg-primary/5 border-l-2 border-primary' : ''
-                  }`}
-                >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#001f3f] to-[#083358] flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5">
-                    {convo.userId?.fullName?.charAt(0) || 'U'}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-text-light-bg truncate">
-                        {convo.userId?.fullName || 'Unknown User'}
-                      </p>
-                      {convo.unreadByAdmin && (
-                        <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+              {conversations.map((convo) => {
+                const convoId = convo._id;
+                const hasAlarm = activeAlarms.some((a) => a.conversationId === convoId);
+                return (
+                  <button
+                    key={convoId}
+                    onClick={() => handleSelectConversation(convoId)}
+                    className={`w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-bg-light-alt transition-colors cursor-pointer ${
+                      activeConversationId === convoId ? 'bg-primary/5 border-l-2 border-primary' : ''
+                    }`}
+                  >
+                    <div className="relative">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5 ${
+                        hasAlarm
+                          ? 'bg-gradient-to-br from-red-500 to-red-600'
+                          : 'bg-gradient-to-br from-[#001f3f] to-[#083358]'
+                      }`}>
+                        {convo.userId?.fullName?.charAt(0) || 'U'}
+                      </div>
+                      {hasAlarm && (
+                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                          <AlertTriangle size={9} className="text-white" />
+                        </span>
                       )}
                     </div>
-                    <p className="text-xs text-text-secondary truncate mt-0.5">
-                      {convo.lastMessagePreview || 'No messages yet'}
-                    </p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">{formatDate(convo.lastMessageAt)}</p>
-                  </div>
-                </button>
-              ))}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold text-text-light-bg truncate">
+                          {convo.userId?.fullName || 'Unknown User'}
+                        </p>
+                        {convo.unreadByAdmin && !hasAlarm && (
+                          <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                        )}
+                        {hasAlarm && (
+                          <span className="text-[10px] text-red-600 font-bold flex-shrink-0">SLA</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-text-secondary truncate mt-0.5">
+                        {convo.lastMessagePreview || 'No messages yet'}
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">{formatDate(convo.lastMessageAt)}</p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -210,18 +296,28 @@ const AdminSupportPage = () => {
             ) : (
               <>
                 {/* Thread header */}
-                <div className="px-5 py-3 border-b border-border-light flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#001f3f] to-[#083358] flex items-center justify-center text-white text-xs font-bold">
-                    {activeConversation?.userId?.fullName?.charAt(0) || 'U'}
+                <div className="px-5 py-3 border-b border-border-light flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#001f3f] to-[#083358] flex items-center justify-center text-white text-xs font-bold">
+                      {activeConversation?.userId?.fullName?.charAt(0) || 'U'}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-text-light-bg">
+                        {activeConversation?.userId?.fullName || 'User'}
+                      </p>
+                      <p className="text-xs text-text-secondary">
+                        @{activeConversation?.userId?.username || '—'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-text-light-bg">
-                      {activeConversation?.userId?.fullName || 'User'}
-                    </p>
-                    <p className="text-xs text-text-secondary">
-                      @{activeConversation?.userId?.username || '—'}
-                    </p>
-                  </div>
+                  {activeAlarm && (
+                    <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-1.5">
+                      <AlertTriangle size={14} className="text-red-600" />
+                      <span className="text-xs font-bold text-red-700">
+                        SLA: {activeAlarm.overdueMinutes}min overdue
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Messages with session dividers */}
@@ -230,11 +326,8 @@ const AdminSupportPage = () => {
                     <div className="text-center text-sm text-text-secondary py-8">No messages in this conversation.</div>
                   )}
                   {(() => {
-                    // Build a map of sessionId → session info for dividers
                     const sessionMap = {};
                     activeSessions.forEach((s) => { sessionMap[s._id] = s; });
-
-                    // Track which sessions we've already shown dividers for
                     const shownDividers = new Set();
                     let lastSessionId = null;
 
@@ -251,7 +344,7 @@ const AdminSupportPage = () => {
                       }
 
                       return (
-                        <React.Fragment key={msg._id}>
+                        <div key={msg._id}>
                           {showDivider && (
                             <div className="flex items-center gap-3 my-4">
                               <div className="flex-1 h-px bg-slate-200" />
@@ -277,7 +370,7 @@ const AdminSupportPage = () => {
                               </span>
                             </div>
                           </div>
-                        </React.Fragment>
+                        </div>
                       );
                     });
                   })()}
@@ -290,7 +383,7 @@ const AdminSupportPage = () => {
                     value={replyInput}
                     onChange={(e) => setReplyInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendReply(); } }}
-                    placeholder="Type a reply…"
+                    placeholder="Type a reply..."
                     rows={1}
                     className="flex-1 resize-none bg-white border border-border-light rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all placeholder-text-secondary max-h-28 overflow-y-auto"
                     style={{ minHeight: '42px' }}
@@ -312,7 +405,6 @@ const AdminSupportPage = () => {
       {/* ── TICKETS TAB ──────────────────────────────────────────────────── */}
       {activeTab === 'tickets' && (
         <div className="flex flex-col gap-4">
-          {/* Filter */}
           <div className="flex items-center gap-2 flex-wrap">
             {['all', 'open', 'in_progress', 'resolved', 'closed'].map((f) => (
               <button
@@ -329,7 +421,6 @@ const AdminSupportPage = () => {
             ))}
           </div>
 
-          {/* Tickets table */}
           <div className="bg-white rounded-2xl border border-border-light shadow-sm overflow-hidden">
             {filteredTickets.length === 0 ? (
               <div className="py-16 text-center text-text-secondary">
@@ -351,14 +442,20 @@ const AdminSupportPage = () => {
                   {filteredTickets.map((ticket) => {
                     const cfg = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.open;
                     const Icon = cfg.icon;
+                    const isSla = ticket.escalationReason === 'no_agent_response_30min';
                     return (
-                      <tr key={ticket._id} className="hover:bg-bg-light-alt/50 transition-colors">
+                      <tr key={ticket._id} className={`hover:bg-bg-light-alt/50 transition-colors ${isSla ? 'bg-red-50/30' : ''}`}>
                         <td className="px-5 py-3.5">
                           <p className="font-semibold text-text-light-bg">{ticket.userId?.fullName || '—'}</p>
                           <p className="text-xs text-text-secondary">@{ticket.userId?.username || '—'}</p>
                         </td>
                         <td className="px-5 py-3.5 text-text-light-bg max-w-xs">
                           <p className="truncate">{ticket.subject}</p>
+                          {isSla && (
+                            <span className="inline-flex items-center gap-1 text-[10px] text-red-600 font-bold mt-0.5">
+                              <AlertTriangle size={9} /> SLA Auto-Escalation
+                            </span>
+                          )}
                         </td>
                         <td className="px-5 py-3.5">
                           <span className={`flex items-center gap-1.5 w-fit px-3 py-1 rounded-full border text-xs font-semibold ${cfg.color}`}>

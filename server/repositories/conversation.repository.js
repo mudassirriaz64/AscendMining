@@ -29,6 +29,10 @@ const countAll = async () => {
   return Conversation.countDocuments({});
 };
 
+const countUnread = async () => {
+  return Conversation.countDocuments({ unreadByAdmin: true });
+};
+
 const findUnread = async () => {
   return Conversation.find({ unreadByAdmin: true })
     .sort({ lastMessageAt: -1 })
@@ -41,5 +45,6 @@ module.exports = {
   updateById,
   findAll,
   countAll,
+  countUnread,
   findUnread,
 };
