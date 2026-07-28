@@ -29,7 +29,7 @@ const authMiddleware = async (req, res, next) => {
     const decoded = verifyAccessToken(token);
 
     if (decoded.role === 'admin' || decoded.role === 'support_agent') {
-      const admin = await Admin.findById(decoded.id);
+      const admin = await Admin.findById(decoded.id).maxTimeMS(8000);
       if (!admin) {
         return res.status(401).json({
           success: false,

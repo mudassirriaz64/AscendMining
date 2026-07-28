@@ -40,7 +40,7 @@ const InvestorRoute = ({ children }) => {
 const AdminRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
   if (!user) return <Navigate to="/admin/login" replace />;
-  if (user.role !== 'admin' && user.role !== 'support_agent') return <Navigate to="/dashboard" replace />;
+  if (user.role !== 'admin' && user.role !== 'support_agent') return <Navigate to="/admin/login" replace />;
   return children;
 };
 

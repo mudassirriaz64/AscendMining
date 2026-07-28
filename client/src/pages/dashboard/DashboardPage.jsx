@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { 
   Wallet, Gift, Cpu, Copy, Check, LogOut, 
-  ExternalLink, Clock, TrendingUp, ShieldAlert
+  ExternalLink, Clock, TrendingUp, ShieldAlert, RefreshCw
 } from 'lucide-react';
 import { fetchDashboardSummary, claimMiningPayout } from '../../store/slices/dashboardSlice';
 import { logoutUser } from '../../store/slices/authSlice';
@@ -32,9 +32,13 @@ const DashboardPage = () => {
     error 
   } = useSelector((state) => state.dashboard);
 
-  useEffect(() => {
+  const loadDashboard = useCallback(() => {
     dispatch(fetchDashboardSummary());
   }, [dispatch]);
+
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
 
   useEffect(() => {
     if (!activePackage || !activePackage.nextMiningAt) {
@@ -118,6 +122,32 @@ const DashboardPage = () => {
 
   if (loading && !balances.walletBalance && latestTransactions.length === 0) {
     return <PageSkeleton />;
+  }
+
+  if (error && !balances.walletBalance && latestTransactions.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#f0f2f5] font-sans antialiased text-slate-800">
+        <Header />
+        <main className="max-w-7xl w-full mx-auto px-6 py-10 flex-grow flex items-center justify-center">
+          <div className="bg-white rounded-2xl shadow-md border border-slate-200 p-12 text-center max-w-md w-full">
+            <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+              <ShieldAlert className="w-8 h-8 text-red-500" />
+            </div>
+            <h2 className="text-lg font-bold text-slate-900 mb-2">Failed to Load Dashboard</h2>
+            <p className="text-sm text-slate-500 mb-6">
+              {error?.message || 'An unexpected error occurred while loading your dashboard.'}
+            </p>
+            <button
+              onClick={loadDashboard}
+              className="px-6 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-yellow-400 to-orange-500 text-slate-900 hover:shadow-lg transition-all active:scale-95 cursor-pointer flex items-center gap-2 mx-auto"
+            >
+              <RefreshCw size={16} />
+              Retry
+            </button>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   return (

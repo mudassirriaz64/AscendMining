@@ -21,7 +21,7 @@ const create = async (data) => {
 };
 
 const updateById = async (id, updateData) => {
-  return Coin.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+  return Coin.findByIdAndUpdate(id, updateData, { returnDocument: 'after', runValidators: true });
 };
 
 const countByFilter = async (filter = {}) => {

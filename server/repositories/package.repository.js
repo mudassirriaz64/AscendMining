@@ -20,7 +20,7 @@ const create = async (data) => {
 };
 
 const updateById = async (id, updateData) => {
-  return Package.findByIdAndUpdate(id, updateData, { new: true, runValidators: true }).populate(
+  return Package.findByIdAndUpdate(id, updateData, { returnDocument: 'after', runValidators: true }).populate(
     'coins',
     'name symbol logoUrl isActive miningAvailable'
   );

@@ -265,7 +265,7 @@ const SupportChatWidget = () => {
                   </span>
                   <div className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[82%] rounded-2xl px-3 py-2 text-sm ${mine ? 'rounded-br-sm bg-gradient-to-br from-[#001f3f] to-[#083358] text-white' : 'rounded-bl-sm bg-white text-text-light-bg ring-1 ring-slate-200'}`}>
-                      <p className="whitespace-pre-wrap break-words">{message.body}</p>
+                      <p className="whitespace-pre-wrap break-words">{typeof message.body === 'string' ? message.body : String(message.body ?? '')}</p>
                       <time className="mt-1 block text-[10px] text-white/60">{new Date(message.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time>
                     </div>
                   </div>

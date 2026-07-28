@@ -29,7 +29,7 @@ const create = async (userData) => {
 };
 
 const updateById = async (id, updateData) => {
-  return User.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+  return User.findByIdAndUpdate(id, updateData, { returnDocument: 'after', runValidators: true });
 };
 
 const existsByEmail = async (email) => {

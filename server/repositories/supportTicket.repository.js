@@ -40,7 +40,7 @@ const findById = async (id) => {
 };
 
 const updateById = async (id, updateData) => {
-  return SupportTicket.findByIdAndUpdate(id, updateData, { new: true });
+  return SupportTicket.findByIdAndUpdate(id, updateData, { returnDocument: 'after' });
 };
 
 module.exports = {

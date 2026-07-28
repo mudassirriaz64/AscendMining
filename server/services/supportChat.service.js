@@ -65,7 +65,16 @@ const deleteSession = async (sessionId, conversationId) => {
 const isSessionClosed = (session) => session && session.closedAt !== null;
 
 const sendMessage = async ({ conversationId, senderId, senderRole, body, sessionId }) => {
-  const trimmedBody = body?.trim();
+  let trimmedBody;
+  if (Array.isArray(body)) {
+    trimmedBody = body.join('');
+  } else if (typeof body === 'string') {
+    trimmedBody = body.trim();
+  } else if (body != null) {
+    trimmedBody = String(body).trim();
+  } else {
+    trimmedBody = '';
+  }
   if (!trimmedBody) {
     const error = new Error('Message body is required.');
     error.statusCode = 400;

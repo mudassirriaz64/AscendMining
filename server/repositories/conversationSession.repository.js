@@ -13,7 +13,7 @@ const closeSession = (id, closeReason) =>
   ConversationSession.findByIdAndUpdate(
     id,
     { closedAt: new Date(), closeReason },
-    { new: true }
+    { returnDocument: 'after' }
   );
 
 const findLatestActiveSession = (conversationId) =>

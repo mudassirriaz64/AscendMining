@@ -247,7 +247,7 @@ const AdminSupportPage = () => {
                       </span>
                       <div className={`flex ${agent ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${agent ? 'rounded-br-sm bg-gradient-to-br from-[#001f3f] to-[#083358] text-white' : 'rounded-bl-sm bg-white text-slate-800 ring-1 ring-slate-200'}`}>
-                          <p className="whitespace-pre-wrap break-words">{msg.body}</p>
+                          <p className="whitespace-pre-wrap break-words">{typeof msg.body === 'string' ? msg.body : String(msg.body ?? '')}</p>
                           <time className="mt-1 block text-[10px] text-white/60">{new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time>
                         </div>
                       </div>

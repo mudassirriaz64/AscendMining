@@ -6,7 +6,11 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 15000,
 });
+
+let isRefreshing = false;
+let refreshPromise = null;
 
 api.interceptors.response.use(
   (response) => response,
@@ -22,10 +26,38 @@ api.interceptors.response.use(
     ) {
       originalRequest._retry = true;
 
+      if (isRefreshing && refreshPromise) {
+        try {
+          await refreshPromise;
+          return api(originalRequest);
+        } catch {
+          const pathname = window.location.pathname || '';
+          if (pathname.startsWith('/admin')) {
+            window.location.href = '/admin/login';
+          } else {
+            window.location.href = '/login';
+          }
+          return Promise.reject(error);
+        }
+      }
+
+      isRefreshing = true;
+      refreshPromise = axios.post('/api/auth/refresh-token', {}, { withCredentials: true, timeout: 10000 });
+
       try {
-        await axios.post('/api/auth/refresh-token', {}, { withCredentials: true });
+        await refreshPromise;
+        isRefreshing = false;
+        refreshPromise = null;
         return api(originalRequest);
       } catch (refreshError) {
+        isRefreshing = false;
+        refreshPromise = null;
+        const pathname = window.location.pathname || '';
+        if (pathname.startsWith('/admin')) {
+          window.location.href = '/admin/login';
+        } else {
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       }
     }

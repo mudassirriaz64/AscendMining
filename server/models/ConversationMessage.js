@@ -25,6 +25,10 @@ const conversationMessageSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      set(value) {
+        if (Array.isArray(value)) return value.join('');
+        return value;
+      },
     },
     attachmentUrl: {
       type: String,

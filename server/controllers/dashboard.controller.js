@@ -6,7 +6,7 @@ const Coin = require('../models/Coin');
 const getDashboardSummary = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).maxTimeMS(10000);
 
     if (!user) {
       return res.status(404).json({
@@ -24,7 +24,8 @@ const getDashboardSummary = async (req, res, next) => {
       .populate({
         path: 'packageId',
         populate: { path: 'coins', model: 'Coin' },
-      });
+      })
+      .maxTimeMS(10000);
 
     const isMiningActive = activePackages.length > 0;
 
@@ -39,7 +40,7 @@ const getDashboardSummary = async (req, res, next) => {
 
     // 3. Fetch only coins the user actually mines
     const coins = activeCoinIds.size > 0
-      ? await Coin.find({ _id: { $in: Array.from(activeCoinIds) }, isActive: true })
+      ? await Coin.find({ _id: { $in: Array.from(activeCoinIds) }, isActive: true }).maxTimeMS(10000)
       : [];
 
     const coinRateMap = {};
@@ -100,7 +101,8 @@ const getDashboardSummary = async (req, res, next) => {
     // 7. Fetch latest transactions
     const transactions = await WalletTransaction.find({ userId })
       .sort({ createdAt: -1 })
-      .limit(5);
+      .limit(5)
+      .maxTimeMS(10000);
 
     res.status(200).json({
       success: true,

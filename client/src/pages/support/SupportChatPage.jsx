@@ -297,7 +297,7 @@ const SupportChatPage = () => {
                                 : 'bg-white text-slate-800 rounded-bl-sm ring-1 ring-slate-200'
                             }`}
                           >
-                            {msg.body}
+                            {typeof msg.body === 'string' ? msg.body : String(msg.body ?? '')}
                           </div>
                           <span className="text-[10px] text-slate-400 mt-1 px-1">
                             {formatTime(msg.sentAt || msg.createdAt)}

@@ -9,7 +9,7 @@ const getOrCreateByUserId = async (userId) => {
     return await Conversation.findOneAndUpdate(
       { userId },
       { $setOnInsert: { userId } },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
+      { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true }
     );
   } catch (error) {
     if (error?.code === 11000) return Conversation.findOne({ userId });
@@ -17,11 +17,11 @@ const getOrCreateByUserId = async (userId) => {
   }
 };
 
-const updateById = (id, updateData) => Conversation.findByIdAndUpdate(id, updateData, { new: true });
+const updateById = (id, updateData) => Conversation.findByIdAndUpdate(id, updateData, { returnDocument: 'after' });
 const markAwaitingIfNull = (id, timestamp) => Conversation.findOneAndUpdate(
   { _id: id, awaitingAgentSince: null },
   { $set: { awaitingAgentSince: timestamp } },
-  { new: true }
+  { returnDocument: 'after' }
 );
 
 const findAllUrgentFirst = ({ skip = 0, limit = 30 } = {}) => Conversation.aggregate([
