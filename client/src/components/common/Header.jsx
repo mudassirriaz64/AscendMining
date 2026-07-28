@@ -112,10 +112,13 @@ const Header = () => {
             </DropdownLink>
           </NavDropdown>
 
-          <NavDropdown label="Support Ticket" isActive={false}>
-            <span className="block px-4 py-2 text-xs font-bold text-slate-400 cursor-not-allowed">
-              Coming Soon
-            </span>
+          <NavDropdown label="Support" isActive={isDropdownActive(['/support'])}>
+            <DropdownLink to="/support/chat" currentPath={location.pathname} onClick={navigate}>
+              Live Chat
+            </DropdownLink>
+            <DropdownLink to="/support/tickets" currentPath={location.pathname} onClick={navigate}>
+              My Tickets
+            </DropdownLink>
           </NavDropdown>
 
           <NavDropdown label="My Account" isActive={isDropdownActive(['/wallets'])}>

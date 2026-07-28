@@ -6,6 +6,7 @@ import adminPackageReducer from './slices/adminPackageSlice';
 import dashboardReducer from './slices/dashboardSlice';
 import withdrawalReducer from './slices/withdrawalSlice';
 import packageReducer from './slices/packageSlice';
+import supportChatReducer from './slices/supportChatSlice';
 
 const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ const store = configureStore({
     dashboard: dashboardReducer,
     withdrawal: withdrawalReducer,
     package: packageReducer,
+    supportChat: supportChatReducer,
   },
 });
 

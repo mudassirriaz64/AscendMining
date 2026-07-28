@@ -19,6 +19,9 @@ const UserListPage = lazy(() => import('./pages/admin/users/UserListPage'));
 const UserDetailPage = lazy(() => import('./pages/admin/users/UserDetailPage'));
 const CoinListPage = lazy(() => import('./pages/admin/coins/CoinListPage'));
 const PackageListPage = lazy(() => import('./pages/admin/packages/PackageListPage'));
+const AdminSupportPage = lazy(() => import('./pages/admin/support/AdminSupportPage'));
+const SupportChatPage = lazy(() => import('./pages/support/SupportChatPage'));
+const SupportTicketsPage = lazy(() => import('./pages/support/SupportTicketsPage'));
 
 const ProtectedRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
@@ -76,6 +79,8 @@ const App = () => {
           <Route path="/wallets" element={<ProtectedRoute><WalletAddressesPage /></ProtectedRoute>} />
           <Route path="/mining/plans" element={<ProtectedRoute><StartMiningPage /></ProtectedRoute>} />
           <Route path="/mining/tracks" element={<ProtectedRoute><MiningTracksPage /></ProtectedRoute>} />
+          <Route path="/support/chat" element={<ProtectedRoute><SupportChatPage /></ProtectedRoute>} />
+          <Route path="/support/tickets" element={<ProtectedRoute><SupportTicketsPage /></ProtectedRoute>} />
 
           <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
             <Route index element={<Navigate to="/admin/users" replace />} />
@@ -83,6 +88,7 @@ const App = () => {
             <Route path="users/:id" element={<UserDetailPage />} />
             <Route path="coins" element={<CoinListPage />} />
             <Route path="packages" element={<PackageListPage />} />
+            <Route path="support" element={<AdminSupportPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />

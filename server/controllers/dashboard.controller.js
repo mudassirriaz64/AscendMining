@@ -81,11 +81,13 @@ const getDashboardSummary = async (req, res, next) => {
         });
       });
 
-      // Calculate progress percentage of the latest active plan
+      // Calculate progress percentage based on the daily claim cycle
       const latestPkg = activePackages[0];
-      if (latestPkg.cycleStartedAt && latestPkg.cycleEndsAt) {
-        const start = latestPkg.cycleStartedAt.getTime();
-        const end = latestPkg.cycleEndsAt.getTime();
+      const cycleEnd = latestPkg.nextMiningAt || latestPkg.cycleEndsAt;
+      const cycleStart = latestPkg.lastPayoutAt || latestPkg.cycleStartedAt;
+      if (cycleEnd && cycleStart) {
+        const start = new Date(cycleStart).getTime();
+        const end = new Date(cycleEnd).getTime();
         const now = Date.now();
         if (end > start) {
           progressPercent = Math.min(100, Math.max(0, Math.round(((now - start) / (end - start)) * 100)));

@@ -14,6 +14,10 @@ const withdrawalRoutes = require('./routes/withdrawal.routes');
 const walletRoutes = require('./routes/wallet.routes');
 const packageRoutes = require('./routes/package.routes');
 const paymentMethodRoutes = require('./routes/paymentMethod.routes');
+const supportChatRoutes = require('./routes/supportChat/index');
+const supportTicketRoutes = require('./routes/supportTicket/index');
+const adminSupportChatRoutes = require('./routes/supportChat/admin');
+const adminSupportTicketRoutes = require('./routes/supportTicket/admin');
 
 const app = express();
 
@@ -37,6 +41,10 @@ app.use('/api/withdrawals', withdrawalRoutes);
 app.use('/api/wallets', walletRoutes);
 app.use('/api/packages', packageRoutes);
 app.use('/api/payment-methods', paymentMethodRoutes);
+app.use('/api/support/chat', supportChatRoutes);
+app.use('/api/support/tickets', supportTicketRoutes);
+app.use('/api/admin/support/chat', adminSupportChatRoutes);
+app.use('/api/admin/support/tickets', adminSupportTicketRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ success: true, message: 'Server is running.' });
