@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Plus, Pencil, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react';
 import { fetchCoins, toggleCoinStatus, deleteCoin, clearCoinError, clearCoinActionSuccess } from '../../../store/slices/adminCoinSlice';
@@ -64,7 +64,7 @@ const CoinListPage = () => {
     setModalOpen(true);
   };
 
-  const columns = [
+  const columns = useMemo(() => [
     {
       key: 'logo',
       label: '',
@@ -112,7 +112,7 @@ const CoinListPage = () => {
         </div>
       ),
     },
-  ];
+  ], [loading]);
 
   return (
     <div className="space-y-4">

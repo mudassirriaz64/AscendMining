@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { ArrowUpRight } from 'lucide-react';
 import WalletAddressCell from '../../../components/common/WalletAddressCell';
@@ -77,7 +77,7 @@ const AdminWithdrawalsPage = () => {
     setRejectModal({ open: false, withdrawalId: null });
   };
 
-  const columns = [
+  const columns = useMemo(() => [
     {
       key: 'user',
       label: 'User',
@@ -147,7 +147,7 @@ const AdminWithdrawalsPage = () => {
         );
       },
     },
-  ];
+  ], [loading]);
 
   return (
     <div className="space-y-6">

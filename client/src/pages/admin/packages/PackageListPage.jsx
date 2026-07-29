@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Plus, Pencil, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react';
 import { fetchAdminPackages, toggleAdminPackageStatus, deleteAdminPackage, clearPackageError, clearPackageActionSuccess } from '../../../store/slices/adminPackageSlice';
@@ -64,7 +64,7 @@ const PackageListPage = () => {
     }
   };
 
-  const columns = [
+  const columns = useMemo(() => [
     { key: 'name', label: 'Name', render: (_, pkg) => <span className="font-medium text-text-light-bg">{pkg.name}</span> },
     { key: 'price', label: 'Price', render: (_, pkg) => <span className="font-mono text-sm">${pkg.price}</span> },
     { key: 'dailyROI', label: 'Daily ROI', render: (_, pkg) => <span className="font-mono text-sm text-success">{pkg.dailyROI}%</span> },
@@ -111,7 +111,7 @@ const PackageListPage = () => {
         </div>
       ),
     },
-  ];
+  ], [loading]);
 
   return (
     <div className="space-y-4">

@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 const StatusBadge = ({ status }) => {
   const config = {
     active: 'bg-success/10 text-success border-success/20',
@@ -24,4 +26,4 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-export default StatusBadge;
+export default memo(StatusBadge);

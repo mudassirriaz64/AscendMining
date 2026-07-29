@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Users, ShieldCheck } from 'lucide-react';
@@ -46,7 +46,7 @@ const UserListPage = () => {
     setPage(1);
   };
 
-  const columns = [
+  const columns = useMemo(() => [
     {
       key: 'fullName',
       label: 'Name',
@@ -88,7 +88,7 @@ const UserListPage = () => {
       label: 'Joined',
       render: (val) => new Date(val).toLocaleDateString(),
     },
-  ];
+  ], [loading]);
 
   return (
     <div>

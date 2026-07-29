@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import EmptyState from './EmptyState';
 import LoadingSpinner from './LoadingSpinner';
 
@@ -40,4 +41,4 @@ const DataTable = ({ columns, data, loading, emptyTitle, emptyDescription, onRow
   );
 };
 
-export default DataTable;
+export default memo(DataTable);

@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 const FilterChips = ({ options, active, onChange }) => {
   return (
     <div className="flex flex-wrap gap-2">
@@ -20,4 +22,4 @@ const FilterChips = ({ options, active, onChange }) => {
   );
 };
 
-export default FilterChips;
+export default memo(FilterChips);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Check, X, Eye, FileText, Calendar, User as UserIcon } from 'lucide-react';
 import { fetchAdminKYCRequests, approveUserKYC, rejectUserKYC, clearKYCStatus } from '../../../store/slices/kycSlice';
@@ -74,7 +74,7 @@ const AdminKYCPage = () => {
     dispatch(rejectUserKYC({ userId: selectedReq._id, reason: rejectionReason }));
   };
 
-  const columns = [
+  const columns = useMemo(() => [
     {
       key: 'user',
       label: 'User',
@@ -155,7 +155,7 @@ const AdminKYCPage = () => {
         </div>
       )
     }
-  ];
+  ], [loading]);
 
   return (
     <div className="space-y-4 font-sans antialiased text-slate-800">

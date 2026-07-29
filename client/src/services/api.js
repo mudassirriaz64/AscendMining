@@ -1,6 +1,9 @@
 import axios from 'axios';
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from './tokenStorage';
 
+const cache = new Map();
+const CACHE_TTL = 30000;
+
 const api = axios.create({
   baseURL: '/api',
   headers: {
@@ -9,12 +12,22 @@ const api = axios.create({
   timeout: 15000,
 });
 
-// Request Interceptor: Attach access token
+// Request cache key
+const cacheKey = (config) => `${config.method}:${config.url}:${JSON.stringify(config.params || {})}`;
+
+// Request Interceptor: Attach access token + cache hit for GET
 api.interceptors.request.use(
   (config) => {
     const token = getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    if (config.method === 'get') {
+      const key = cacheKey(config);
+      const cached = cache.get(key);
+      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        config.adapter = () => Promise.resolve({ data: cached.data, status: 200, statusText: 'OK', headers: {}, config });
+      }
     }
     return config;
   },
@@ -37,7 +50,17 @@ const processQueue = (error, token = null) => {
 };
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response.config.method === 'get' && !response.config._retry) {
+      const key = cacheKey(response.config);
+      cache.set(key, { data: response.data, timestamp: Date.now() });
+      if (cache.size > 100) {
+        const oldest = cache.keys().next().value;
+        cache.delete(oldest);
+      }
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 
@@ -105,5 +128,12 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export const clearCache = () => cache.clear();
+export const invalidateCache = (urlPrefix) => {
+  for (const key of cache.keys()) {
+    if (key.includes(urlPrefix)) cache.delete(key);
+  }
+};
 
 export default api;

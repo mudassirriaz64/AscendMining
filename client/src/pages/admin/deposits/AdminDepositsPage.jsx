@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { ArrowDownToLine, Image as ImageIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -77,7 +77,7 @@ const AdminDepositsPage = () => {
     setRejectModal({ open: false, depositId: null });
   };
 
-  const columns = [
+  const columns = useMemo(() => [
     {
       key: 'user',
       label: 'User',
@@ -156,7 +156,7 @@ const AdminDepositsPage = () => {
         </div>
       ),
     },
-  ];
+  ], [loading]);
 
   return (
     <div className="animate-fade-in">
