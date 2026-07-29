@@ -2,6 +2,7 @@ const User = require('../models/User');
 const UserPackage = require('../models/UserPackage');
 const WalletTransaction = require('../models/WalletTransaction');
 const Coin = require('../models/Coin');
+const Deposit = require('../models/Deposit');
 
 const getDashboardSummary = async (req, res, next) => {
   try {
@@ -130,6 +131,60 @@ const getDashboardSummary = async (req, res, next) => {
   }
 };
 
+const getMyDeposits = async (req, res, next) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    const skip = (Number(page) - 1) * Number(limit);
+    const [deposits, total] = await Promise.all([
+      Deposit.find({ userId: req.user.id })
+        .populate('packageId')
+        .populate('paymentMethod')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit)),
+      Deposit.countDocuments({ userId: req.user.id })
+    ]);
+    res.status(200).json({ success: true, data: { deposits, total, page: Number(page), limit: Number(limit) } });
+  } catch (error) { next(error); }
+};
+
+const getMyTransactions = async (req, res, next) => {
+  try {
+    const { page = 1, limit = 20, type } = req.query;
+    const filter = { userId: req.user.id };
+    if (type) filter.type = type;
+
+    const skip = (Number(page) - 1) * Number(limit);
+    const [transactions, total] = await Promise.all([
+      WalletTransaction.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit)),
+      WalletTransaction.countDocuments(filter)
+    ]);
+    res.status(200).json({ success: true, data: { transactions, total, page: Number(page), limit: Number(limit) } });
+  } catch (error) { next(error); }
+};
+
+const getMyReferrals = async (req, res, next) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    const skip = (Number(page) - 1) * Number(limit);
+    const [referrals, total] = await Promise.all([
+      User.find({ referredBy: req.user.id })
+        .select('fullName username createdAt status')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit)),
+      User.countDocuments({ referredBy: req.user.id })
+    ]);
+    res.status(200).json({ success: true, data: { referrals, total, page: Number(page), limit: Number(limit) } });
+  } catch (error) { next(error); }
+};
+
 module.exports = {
   getDashboardSummary,
+  getMyDeposits,
+  getMyTransactions,
+  getMyReferrals,
 };

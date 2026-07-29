@@ -7,29 +7,7 @@ const AppError = require('../utils/AppError');
 const { PASSWORD_RESET_EXPIRY_MINUTES } = require('../config/constants');
 const Admin = require('../models/Admin');
 
-const isProduction = process.env.NODE_ENV === 'production';
-
-const setTokenCookies = (res, accessToken, refreshToken) => {
-  res.cookie('accessToken', accessToken, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'strict',
-    maxAge: 15 * 60 * 1000,
-    path: '/',
-  });
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'strict',
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-    path: '/',
-  });
-};
-
-const clearTokenCookies = (res) => {
-  res.clearCookie('accessToken', { path: '/' });
-  res.clearCookie('refreshToken', { path: '/' });
-};
+// No cookie setup functions are needed for sessionStorage auth
 
 const register = async ({ fullName, username, email, password, country, phone, referralCode }) => {
   const emailExists = await userRepository.existsByEmail(email);
@@ -72,7 +50,7 @@ const register = async ({ fullName, username, email, password, country, phone, r
   };
 };
 
-const login = async (res, { emailOrUsername, password }) => {
+const login = async ({ emailOrUsername, password }) => {
   const isEmail = emailOrUsername.includes('@');
   const user = isEmail
     ? await userRepository.findByEmailWithPassword(emailOrUsername)
@@ -95,12 +73,10 @@ const login = async (res, { emailOrUsername, password }) => {
   const { token: refreshTokenHash, rawToken } = generateRefreshToken();
   await refreshTokenRepository.create(refreshTokenHash, user._id);
 
-  setTokenCookies(res, accessToken, rawToken);
-
-  return { user };
+  return { user, accessToken, refreshToken: rawToken };
 };
 
-const adminLogin = async (res, { email, password }) => {
+const adminLogin = async ({ email, password }) => {
   const admin = await Admin.findOne({ email: email.toLowerCase() }).select('+passwordHash');
   if (!admin) {
     throw new AppError('INVALID_CREDENTIALS', 'Invalid email or password.', 401);
@@ -122,12 +98,10 @@ const adminLogin = async (res, { email, password }) => {
   const { token: refreshTokenHash, rawToken } = generateRefreshToken();
   await refreshTokenRepository.create(refreshTokenHash, admin._id);
 
-  setTokenCookies(res, accessToken, rawToken);
-
-  return { admin };
+  return { admin, accessToken, refreshToken: rawToken };
 };
 
-const refreshAccessToken = async (res, rawRefreshToken) => {
+const refreshAccessToken = async (rawRefreshToken) => {
   const tokens = await require('../models/RefreshToken').find({ revoked: false });
 
   let matchedToken = null;
@@ -168,9 +142,7 @@ const refreshAccessToken = async (res, rawRefreshToken) => {
   const { token: newRefreshHash, rawToken: newRawToken } = generateRefreshToken();
   await refreshTokenRepository.create(newRefreshHash, entity._id);
 
-  setTokenCookies(res, accessToken, newRawToken);
-
-  return { user: entity.toJSON() };
+  return { user: entity.toJSON(), accessToken, refreshToken: newRawToken };
 };
 
 const getMe = async (userId) => {
@@ -183,8 +155,8 @@ const getMe = async (userId) => {
   throw new AppError('USER_NOT_FOUND', 'User not found.', 404);
 };
 
-const logout = async (res) => {
-  clearTokenCookies(res);
+const logout = async () => {
+  // Session storage is cleared client-side, no-op here
 };
 
 const forgotPassword = async (email) => {
@@ -243,6 +215,30 @@ const checkAvailability = async ({ email, username }) => {
   return result;
 };
 
+const updateProfile = async (userId, data) => {
+  const user = await userRepository.findById(userId);
+  if (!user) throw new AppError('USER_NOT_FOUND', 'User not found.', 404);
+
+  if (data.fullName !== undefined) user.fullName = data.fullName;
+  if (data.phone !== undefined) user.phone = data.phone;
+  if (data.country !== undefined) user.country = data.country;
+  
+  await user.save();
+  return user;
+};
+
+const updatePassword = async (userId, { currentPassword, newPassword }) => {
+  const user = await userRepository.findById(userId, '+passwordHash');
+  if (!user) throw new AppError('USER_NOT_FOUND', 'User not found.', 404);
+
+  const isMatch = await user.comparePassword(currentPassword);
+  if (!isMatch) throw new AppError('INVALID_CREDENTIALS', 'Incorrect current password.', 401);
+
+  user.passwordHash = newPassword;
+  await user.save();
+  return user;
+};
+
 module.exports = {
   register,
   login,
@@ -253,4 +249,6 @@ module.exports = {
   forgotPassword,
   resetPassword,
   checkAvailability,
+  updateProfile,
+  updatePassword,
 };

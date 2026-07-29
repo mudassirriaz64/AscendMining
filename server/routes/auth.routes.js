@@ -21,5 +21,7 @@ router.post('/refresh-token', authController.refreshToken);
 router.get('/check-availability', authController.checkAvailability);
 router.get('/me', authMiddleware, authController.getMe);
 router.post('/logout', authController.logout);
+router.put('/profile', authMiddleware, authController.updateProfile);
+router.put('/password', authMiddleware, authController.updatePassword);
 
 module.exports = router;

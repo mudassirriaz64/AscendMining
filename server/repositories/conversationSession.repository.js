@@ -3,7 +3,7 @@ const ConversationSession = require('../models/ConversationSession');
 const create = (data) => ConversationSession.create(data);
 
 const findActiveByConversationId = (conversationId) =>
-  ConversationSession.find({ conversationId, closedAt: null }).sort({ createdAt: -1 }).lean();
+  ConversationSession.find({ conversationId, closedAt: null, hiddenFromUser: { $ne: true } }).sort({ createdAt: -1 }).lean();
 
 const findActiveById = (id) => ConversationSession.findOne({ _id: id, closedAt: null });
 
@@ -24,6 +24,11 @@ const findLatestActiveSession = (conversationId) =>
 const countActiveByConversationId = (conversationId) =>
   ConversationSession.countDocuments({ conversationId, closedAt: null });
 
+const deleteById = (id) => ConversationSession.findByIdAndDelete(id);
+
+const deleteByConversationId = (conversationId) =>
+  ConversationSession.deleteMany({ conversationId });
+
 module.exports = {
   create,
   findActiveByConversationId,
@@ -32,4 +37,6 @@ module.exports = {
   closeSession,
   findLatestActiveSession,
   countActiveByConversationId,
+  deleteById,
+  deleteByConversationId,
 };

@@ -8,6 +8,8 @@ const register = async (req, res, next) => {
       message: 'Registration successful.',
       data: {
         user: result.user,
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
       },
     });
   } catch (error) {
@@ -17,12 +19,14 @@ const register = async (req, res, next) => {
 
 const login = async (req, res, next) => {
   try {
-    const result = await authService.login(res, req.body);
+    const result = await authService.login(req.body);
     res.status(200).json({
       success: true,
       message: 'Login successful.',
       data: {
         user: result.user,
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
       },
     });
   } catch (error) {
@@ -32,12 +36,14 @@ const login = async (req, res, next) => {
 
 const adminLogin = async (req, res, next) => {
   try {
-    const result = await authService.adminLogin(res, req.body);
+    const result = await authService.adminLogin(req.body);
     res.status(200).json({
       success: true,
       message: 'Admin login successful.',
       data: {
         admin: result.admin,
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
       },
     });
   } catch (error) {
@@ -47,7 +53,7 @@ const adminLogin = async (req, res, next) => {
 
 const refreshToken = async (req, res, next) => {
   try {
-    const rawRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
+    const rawRefreshToken = req.body?.refreshToken;
     if (!rawRefreshToken) {
       return res.status(401).json({
         success: false,
@@ -58,11 +64,15 @@ const refreshToken = async (req, res, next) => {
         },
       });
     }
-    await authService.refreshAccessToken(res, rawRefreshToken);
+    const result = await authService.refreshAccessToken(rawRefreshToken);
     res.status(200).json({
       success: true,
       message: 'Token refreshed.',
-      data: {},
+      data: {
+        user: result.user,
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+      },
     });
   } catch (error) {
     next(error);
@@ -83,7 +93,7 @@ const getMe = async (req, res, next) => {
 
 const logout = async (req, res, next) => {
   try {
-    await authService.logout(res);
+    await authService.logout();
     res.status(200).json({
       success: true,
       message: 'Logged out successfully.',
@@ -130,6 +140,31 @@ const checkAvailability = async (req, res, next) => {
   }
 };
 
+const updateProfile = async (req, res, next) => {
+  try {
+    const user = await authService.updateProfile(req.user.id, req.body);
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully.',
+      data: { user },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updatePassword = async (req, res, next) => {
+  try {
+    await authService.updatePassword(req.user.id, req.body);
+    res.status(200).json({
+      success: true,
+      message: 'Password updated successfully.',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -140,4 +175,6 @@ module.exports = {
   forgotPassword,
   resetPassword,
   checkAvailability,
+  updateProfile,
+  updatePassword,
 };

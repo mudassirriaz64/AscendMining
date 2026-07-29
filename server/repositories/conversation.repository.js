@@ -1,4 +1,5 @@
 const Conversation = require('../models/Conversation');
+require('../models/User');
 
 const findByUserId = (userId) => Conversation.findOne({ userId });
 const findById = (id) => Conversation.findById(id);
@@ -25,6 +26,7 @@ const markAwaitingIfNull = (id, timestamp) => Conversation.findOneAndUpdate(
 );
 
 const findAllUrgentFirst = ({ skip = 0, limit = 30 } = {}) => Conversation.aggregate([
+  { $match: { hiddenFromAdmin: { $ne: true } } },
   { $addFields: { urgentRank: { $cond: [{ $ne: ['$awaitingAgentSince', null] }, 0, 1] } } },
   { $sort: { urgentRank: 1, awaitingAgentSince: 1, lastMessageAt: -1 } },
   { $skip: skip },
@@ -34,12 +36,14 @@ const findAllUrgentFirst = ({ skip = 0, limit = 30 } = {}) => Conversation.aggre
   { $project: { urgentRank: 0, 'user.passwordHash': 0 } },
 ]);
 
-const countAll = () => Conversation.countDocuments({});
-const countUnread = () => Conversation.countDocuments({ unreadByAdmin: true });
-const findAwaiting = () => Conversation.find({ awaitingAgentSince: { $ne: null } })
+const countAll = () => Conversation.countDocuments({ hiddenFromAdmin: { $ne: true } });
+const countUnread = () => Conversation.countDocuments({ unreadByAdmin: true, hiddenFromAdmin: { $ne: true } });
+const findAwaiting = () => Conversation.find({ awaitingAgentSince: { $ne: null }, hiddenFromAdmin: { $ne: true } })
   .sort({ awaitingAgentSince: 1 })
   .populate('userId', 'fullName username email');
-const findOverdue = (threshold) => Conversation.find({ awaitingAgentSince: { $lte: threshold } });
+const findOverdue = (threshold) => Conversation.find({ awaitingAgentSince: { $lte: threshold }, hiddenFromAdmin: { $ne: true } });
+
+const deleteById = (id) => Conversation.findByIdAndDelete(id);
 
 module.exports = {
   findByUserId,
@@ -52,4 +56,5 @@ module.exports = {
   countUnread,
   findAwaiting,
   findOverdue,
+  deleteById,
 };

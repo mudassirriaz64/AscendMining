@@ -11,10 +11,6 @@ const authMiddleware = async (req, res, next) => {
       token = authHeader.split(' ')[1];
     }
 
-    if (!token && req.cookies && req.cookies.accessToken) {
-      token = req.cookies.accessToken;
-    }
-
     if (!token) {
       return res.status(401).json({
         success: false,

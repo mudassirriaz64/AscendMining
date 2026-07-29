@@ -2,9 +2,11 @@ const router = require('express').Router();
 const auth = require('../../middlewares/auth.middleware');
 const requireRole = require('../../middlewares/role.middleware');
 const controller = require('../../controllers/supportChat.controller');
+const uploadMiddleware = require('../../middlewares/upload.middleware');
 
 router.get('/me', auth, requireRole('investor'), controller.getMyConversation);
 router.post('/message', auth, requireRole('investor', 'admin', 'support_agent'), controller.sendMessage);
+router.post('/upload', auth, requireRole('investor'), uploadMiddleware, controller.uploadAttachment);
 
 router.get('/sessions', auth, requireRole('investor'), controller.getMyConversation);
 router.post('/sessions', auth, requireRole('investor'), controller.createSession);

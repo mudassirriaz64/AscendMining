@@ -121,10 +121,38 @@ const Header = () => {
             </DropdownLink>
           </NavDropdown>
 
-          <NavDropdown label="My Account" isActive={isDropdownActive(['/wallets'])}>
+          <NavDropdown label="My Account" isActive={isDropdownActive(['/wallets', '/profile', '/deposits', '/transactions', '/referrals'])}>
+            <DropdownLink to="/profile" currentPath={location.pathname} onClick={navigate}>
+              Profile Setting
+            </DropdownLink>
+            <DropdownLink to="/profile/password" currentPath={location.pathname} onClick={navigate}>
+              Change Password
+            </DropdownLink>
             <DropdownLink to="/wallets" currentPath={location.pathname} onClick={navigate}>
               Wallets
             </DropdownLink>
+            <DropdownLink to="/deposits" currentPath={location.pathname} onClick={navigate}>
+              Payments Log
+            </DropdownLink>
+            <DropdownLink to="/transactions" currentPath={location.pathname} onClick={navigate}>
+              Transactions
+            </DropdownLink>
+            <DropdownLink to="/referrals" currentPath={location.pathname} onClick={navigate}>
+              My Referral
+            </DropdownLink>
+            <DropdownLink to="/referrals/bonus" currentPath={location.pathname} onClick={navigate}>
+              Referral Bonus Logs
+            </DropdownLink>
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                handleLogout();
+              }}
+              className="block px-4 py-2 text-xs font-bold text-red-600 hover:bg-slate-50 hover:text-red-700 transition-colors border-t border-slate-100"
+            >
+              Logout
+            </a>
           </NavDropdown>
         </nav>
 

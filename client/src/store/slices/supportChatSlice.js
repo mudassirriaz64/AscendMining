@@ -218,14 +218,19 @@ const supportChatSlice = createSlice({
   },
   reducers: {
     appendMessage(state, action) {
-      const { message, conversation, sessionId } = action.payload;
-      if (state.activeSessionId && sessionId && state.activeSessionId === sessionId) {
-        if (!state.messages.some((m) => m._id === message._id)) {
-          state.messages.push(message);
+      const payload = action.payload || {};
+      const msg = payload.message || payload;
+      if (!msg || !msg._id) return;
+      const conversation = payload.conversation;
+      const sessionId = payload.sessionId || msg.sessionId;
+
+      if (state.activeSessionId && sessionId && String(state.activeSessionId) === String(sessionId)) {
+        if (!state.messages.some((m) => m._id === msg._id)) {
+          state.messages.push(msg);
         }
-      } else if (!sessionId && state.conversation?._id === message.conversationId) {
-        if (!state.messages.some((m) => m._id === message._id)) {
-          state.messages.push(message);
+      } else if (!sessionId && state.conversation?._id && String(state.conversation._id) === String(msg.conversationId)) {
+        if (!state.messages.some((m) => m._id === msg._id)) {
+          state.messages.push(msg);
         }
       }
       if (conversation) {
@@ -267,6 +272,25 @@ const supportChatSlice = createSlice({
     },
     clearError(state) {
       state.error = null;
+    },
+    markMessagesRead(state, action) {
+      const { readerRole, readAt } = action.payload;
+      const targetRole = readerRole === 'investor' ? ['admin', 'support_agent'] : ['investor'];
+      state.messages.forEach((msg) => {
+        if (targetRole.includes(msg.senderRole) && !msg.readAt) {
+          msg.readAt = readAt;
+        }
+      });
+      state.activeMessages.forEach((msg) => {
+        if (targetRole.includes(msg.senderRole) && !msg.readAt) {
+          msg.readAt = readAt;
+        }
+      });
+    },
+    prependMessages(state, action) {
+      const { messages } = action.payload;
+      const newMsgs = messages.filter(m => !state.messages.some(existing => existing._id === m._id));
+      state.messages = [...newMsgs, ...state.messages];
     },
   },
   extraReducers: (builder) => {
@@ -443,5 +467,7 @@ export const {
   triggerAlarm,
   clearAlarm,
   clearError,
+  markMessagesRead,
+  prependMessages,
 } = supportChatSlice.actions;
 export default supportChatSlice.reducer;

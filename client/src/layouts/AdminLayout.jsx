@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -12,16 +12,18 @@ import api from '../services/api';
 import Logo from '../components/common/Logo';
 
 const sidebarLinks = [
-  { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
+  { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/admin/users', icon: Users, label: 'Users' },
   { to: '/admin/coins', icon: Coins, label: 'Coins' },
   { to: '/admin/packages', icon: Package, label: 'Packages' },
   { to: '/admin/deposits', icon: ArrowDownToLine, label: 'Deposits' },
   { to: '/admin/withdrawals', icon: ArrowUpFromLine, label: 'Withdrawals' },
+  { to: '/admin/payment-methods', icon: FileText, label: 'Payment Methods' },
   { to: '/admin/referrals', icon: UsersRound, label: 'Referrals' },
-  { to: '/admin/cms', icon: FileText, label: 'CMS' },
+  { to: '/admin/faqs', icon: FileText, label: 'FAQs' },
+  { to: '/admin/services', icon: FileText, label: 'Services' },
+  { to: '/admin/contact-messages', icon: MessageCircle, label: 'Contact Messages' },
   { to: '/admin/support', icon: MessageCircle, label: 'Support' },
-  { to: '/admin/audit-log', icon: ShieldCheck, label: 'Audit Log' },
 ];
 
 const AdminLayout = () => {
@@ -30,8 +32,14 @@ const AdminLayout = () => {
   const { user } = useSelector((state) => state.auth);
   const [waitingIds, setWaitingIds] = useState(() => new Set());
   const [muted, setMuted] = useState(false);
+  const [audioUnlocked, setAudioUnlocked] = useState(() => {
+    // If permission was already granted previously, we still need a gesture to resume audio in the new session.
+    // However, we can initialize it from localStorage to see if the user has opted-in previously.
+    return localStorage.getItem('admin_sound_alerts_enabled') === 'true';
+  });
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const prevWaitingSizeRef = useRef(0);
 
   const handleLogout = async () => {
     await dispatch(logoutUser());
@@ -41,13 +49,13 @@ const AdminLayout = () => {
   // Alarm state lives in the shared layout so it remains active away from Support.
   useEffect(() => {
     api.get('/admin/support/conversations/waiting').then((response) => {
-      setWaitingIds(new Set(response.data.data.conversations.map((item) => item._id)));
+      setWaitingIds(new Set(response.data.data.conversations.map((item) => String(item._id))));
     }).catch(() => {});
     const socket = connectSocket();
-    const onAlarmTrigger = ({ conversationId }) => setWaitingIds((current) => new Set(current).add(conversationId));
+    const onAlarmTrigger = ({ conversationId }) => setWaitingIds((current) => new Set(current).add(String(conversationId)));
     const onAlarmClear = ({ conversationId }) => setWaitingIds((current) => {
       const next = new Set(current);
-      next.delete(conversationId);
+      next.delete(String(conversationId));
       return next;
     });
     socket.on('alarm:trigger', onAlarmTrigger);
@@ -59,8 +67,43 @@ const AdminLayout = () => {
     };
   }, []);
 
+  // Web Audio Context Autoplay unlock listener
   useEffect(() => {
-    if (muted || waitingIds.size === 0) return undefined;
+    const unlock = () => {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const context = new AudioContext();
+        if (context.state === 'suspended') {
+          context.resume().then(() => {
+            setAudioUnlocked(true);
+            localStorage.setItem('admin_sound_alerts_enabled', 'true');
+            context.close();
+          });
+        } else {
+          setAudioUnlocked(true);
+          localStorage.setItem('admin_sound_alerts_enabled', 'true');
+          context.close();
+        }
+      } catch (e) {
+        console.warn('Silent audio context resume failed:', e);
+      }
+      window.removeEventListener('click', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+
+    if (!audioUnlocked) {
+      window.addEventListener('click', unlock);
+      window.addEventListener('keydown', unlock);
+    }
+    return () => {
+      window.removeEventListener('click', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+  }, [audioUnlocked]);
+
+  // SLA looping tone alarm beep loop
+  useEffect(() => {
+    if (muted || waitingIds.size === 0 || !audioUnlocked) return undefined;
     const beep = () => {
       try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -74,12 +117,58 @@ const AdminLayout = () => {
         oscillator.start();
         oscillator.stop(context.currentTime + 0.45);
         oscillator.onended = () => context.close();
-      } catch { /* Audio can be blocked until the first user gesture. */ }
+      } catch (e) {
+        console.warn('SLA beep failed:', e);
+      }
     };
     beep();
     const interval = window.setInterval(beep, 3000);
     return () => window.clearInterval(interval);
-  }, [muted, waitingIds.size]);
+  }, [muted, waitingIds.size, audioUnlocked]);
+
+  // Visual desktop notification fallback
+  useEffect(() => {
+    if (waitingIds.size > prevWaitingSizeRef.current) {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('AscendX Support SLA Overdue Alert', {
+          body: `${waitingIds.size} support conversation(s) waiting over 30 minutes! Please respond.`,
+          tag: 'support-sla-alarm',
+          renotify: true,
+        });
+      }
+    }
+    prevWaitingSizeRef.current = waitingIds.size;
+  }, [waitingIds.size]);
+
+  // Unlocks alerts programmatically (for button)
+  const handleEnableAlerts = () => {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      const context = new AudioContext();
+      if (context.state === 'suspended') {
+        context.resume();
+      }
+      // Play brief high-pitch chirp to notify success
+      const osc = context.createOscillator();
+      const gain = context.createGain();
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.05, context.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.15);
+      osc.connect(gain).connect(context.destination);
+      osc.start();
+      osc.stop(context.currentTime + 0.15);
+      osc.onended = () => context.close();
+
+      setAudioUnlocked(true);
+      localStorage.setItem('admin_sound_alerts_enabled', 'true');
+    } catch (e) {
+      console.warn('Alert chirper fail:', e);
+    }
+
+    if ('Notification' in window) {
+      Notification.requestPermission();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-bg-light-alt flex">
@@ -187,6 +276,24 @@ const AdminLayout = () => {
             </div>
           </div>
         </header>
+
+        {!audioUnlocked && (
+          <div className="bg-amber-50 border-b border-amber-200 px-4 py-2.5 flex items-center justify-between text-xs text-amber-900 sticky top-16 z-20 shadow-sm animate-fade-in">
+            <div className="flex items-center gap-2">
+              <Volume2 size={16} className="text-amber-600 animate-pulse shrink-0" />
+              <span>
+                <strong>Sound alerts are muted by the browser.</strong> Click Enable to hear audible alarm cues and authorize desktop notifications for overdue SLA conversations.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleEnableAlerts}
+              className="bg-amber-600 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-amber-700 active:scale-95 transition-all cursor-pointer shadow-sm ml-4 shrink-0"
+            >
+              Enable Alerts
+            </button>
+          </div>
+        )}
 
         <main className="flex-1 p-4 lg:p-6 overflow-y-auto">
           <Outlet />

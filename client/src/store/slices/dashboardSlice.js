@@ -26,6 +26,42 @@ export const claimMiningPayout = createAsyncThunk(
   }
 );
 
+export const fetchMyDeposits = createAsyncThunk(
+  'dashboard/fetchMyDeposits',
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await dashboardService.getMyDeposits(params);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: 'Failed to fetch deposits.' });
+    }
+  }
+);
+
+export const fetchMyTransactions = createAsyncThunk(
+  'dashboard/fetchMyTransactions',
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await dashboardService.getMyTransactions(params);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: 'Failed to fetch transactions.' });
+    }
+  }
+);
+
+export const fetchMyReferrals = createAsyncThunk(
+  'dashboard/fetchMyReferrals',
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await dashboardService.getMyReferrals(params);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: 'Failed to fetch referrals.' });
+    }
+  }
+);
+
 const dashboardSlice = createSlice({
   name: 'dashboard',
   initialState: {
@@ -45,6 +81,11 @@ const dashboardSlice = createSlice({
     },
     activePackage: null,
     latestTransactions: [],
+    history: {
+      deposits: { data: [], total: 0, page: 1, limit: 20, loading: false, error: null },
+      transactions: { data: [], total: 0, page: 1, limit: 20, loading: false, error: null },
+      referrals: { data: [], total: 0, page: 1, limit: 20, loading: false, error: null },
+    },
     loading: false,
     error: null,
   },
@@ -83,6 +124,51 @@ const dashboardSlice = createSlice({
       .addCase(claimMiningPayout.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(fetchMyDeposits.pending, (state) => {
+        state.history.deposits.loading = true;
+        state.history.deposits.error = null;
+      })
+      .addCase(fetchMyDeposits.fulfilled, (state, action) => {
+        state.history.deposits.loading = false;
+        state.history.deposits.data = action.payload.deposits;
+        state.history.deposits.total = action.payload.total;
+        state.history.deposits.page = action.payload.page;
+        state.history.deposits.limit = action.payload.limit;
+      })
+      .addCase(fetchMyDeposits.rejected, (state, action) => {
+        state.history.deposits.loading = false;
+        state.history.deposits.error = action.payload;
+      })
+      .addCase(fetchMyTransactions.pending, (state) => {
+        state.history.transactions.loading = true;
+        state.history.transactions.error = null;
+      })
+      .addCase(fetchMyTransactions.fulfilled, (state, action) => {
+        state.history.transactions.loading = false;
+        state.history.transactions.data = action.payload.transactions;
+        state.history.transactions.total = action.payload.total;
+        state.history.transactions.page = action.payload.page;
+        state.history.transactions.limit = action.payload.limit;
+      })
+      .addCase(fetchMyTransactions.rejected, (state, action) => {
+        state.history.transactions.loading = false;
+        state.history.transactions.error = action.payload;
+      })
+      .addCase(fetchMyReferrals.pending, (state) => {
+        state.history.referrals.loading = true;
+        state.history.referrals.error = null;
+      })
+      .addCase(fetchMyReferrals.fulfilled, (state, action) => {
+        state.history.referrals.loading = false;
+        state.history.referrals.data = action.payload.referrals;
+        state.history.referrals.total = action.payload.total;
+        state.history.referrals.page = action.payload.page;
+        state.history.referrals.limit = action.payload.limit;
+      })
+      .addCase(fetchMyReferrals.rejected, (state, action) => {
+        state.history.referrals.loading = false;
+        state.history.referrals.error = action.payload;
       });
   },
 });

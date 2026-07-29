@@ -20,6 +20,14 @@ const conversationSessionSchema = new mongoose.Schema(
       enum: ['user_close', 'inactivity', 'admin', 'system'],
       default: null,
     },
+    hiddenFromAdmin: {
+      type: Boolean,
+      default: false,
+    },
+    hiddenFromUser: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

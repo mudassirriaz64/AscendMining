@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const paymentMethodSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    type: { type: String, enum: ['bank', 'crypto_manual', 'crypto_api'], required: true },
+    type: { type: String, enum: ['bank', 'crypto_manual', 'crypto_api', 'mobile_wallet'], required: true },
     instructions: { type: String, default: '' },
     minDeposit: { type: Number, required: true },
     maxDeposit: { type: Number, required: true },

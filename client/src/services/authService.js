@@ -10,6 +10,8 @@ const authService = {
   forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
   resetPassword: (data) => api.post('/auth/reset-password', data),
   checkAvailability: (params) => api.get('/auth/check-availability', { params }),
+  updateProfile: (data) => api.put('/auth/profile', data),
+  updatePassword: (data) => api.put('/auth/password', data),
 };
 
 export default authService;

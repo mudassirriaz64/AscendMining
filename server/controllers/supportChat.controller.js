@@ -1,4 +1,7 @@
 const supportChatService = require('../services/supportChat.service');
+const { emitAlarmClear, emitAlarmTrigger } = require('../utils/supportChatEvents');
+const mongoose = require('mongoose');
+const cloudinary = require('../config/cloudinary');
 
 const pagination = (query, fallback = 50) => ({
   page: Math.max(parseInt(query.page, 10) || 1, 1),
@@ -63,15 +66,21 @@ const sendMessage = async (req, res, next) => {
       senderRole: req.user.role,
       body: req.body.body,
       sessionId,
+      attachmentUrl: req.body.attachmentUrl || null,
+      attachmentPublicId: req.body.attachmentPublicId || null,
+      attachmentFileName: req.body.attachmentFileName || null,
+      attachmentType: req.body.attachmentType || null,
+      messageId: req.body.messageId || null,
     });
     req.app.get('supportNamespace')?.to(`conversation:${conversationId}`).emit('message:new', result);
     if (result.startedWaiting) {
-      req.app.get('supportNamespace')?.to('admin-alerts').emit('alarm:trigger', {
-        conversationId: conversationId.toString(),
-        awaitingAgentSince: result.conversation.awaitingAgentSince,
-      });
+      emitAlarmTrigger(
+        req.app.get('supportNamespace'),
+        conversationId,
+        result.conversation.awaitingAgentSince
+      );
     } else if (!isInvestor) {
-      req.app.get('supportNamespace')?.to('admin-alerts').emit('alarm:clear', { conversationId });
+      emitAlarmClear(req.app.get('supportNamespace'), conversationId);
     }
     res.status(201).json({ success: true, data: result });
   } catch (error) { next(error); }
@@ -87,7 +96,16 @@ const openConversation = async (req, res, next) => {
   try {
     const data = await supportChatService.openConversation(req.params.id, req.user.id, pagination(req.query, 100));
     if (!data) return res.status(404).json({ success: false, error: { message: 'Conversation not found.' } });
-    req.app.get('supportNamespace')?.to('admin-alerts').emit('alarm:clear', { conversationId: req.params.id });
+    emitAlarmClear(req.app.get('supportNamespace'), req.params.id);
+    
+    if (data.systemMessage) {
+      req.app.get('supportNamespace')?.to(`conversation:${req.params.id}`).emit('message:new', {
+        message: data.systemMessage,
+        conversation: data.conversation,
+        sessionId: data.systemMessage.sessionId.toString(),
+      });
+    }
+
     return res.json({ success: true, data });
   } catch (error) { next(error); }
 };
@@ -115,6 +133,81 @@ const closeSession = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+const uploadToCloudinary = (fileBuffer, folder, filename) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        public_id: filename.replace(/\.[^/.]+$/, ""), // Cloudinary adds extension automatically
+        resource_type: 'auto',
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
+    uploadStream.end(fileBuffer);
+  });
+};
+
+const uploadAttachment = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'NO_FILE_UPLOADED',
+          message: 'Please provide a file to upload.',
+          status: 400,
+        },
+      });
+    }
+
+    let conversationId;
+    if (req.params.id) {
+      conversationId = req.params.id;
+    } else {
+      const conversation = await supportChatService.getOrCreateConversation(req.user.id);
+      conversationId = conversation._id.toString();
+    }
+
+    const messageId = new mongoose.Types.ObjectId();
+    const originalFilename = req.file.originalname;
+    const folder = `support-conversations/${conversationId}`;
+    const filename = `${messageId}-${originalFilename}`;
+
+    const uploadResult = await uploadToCloudinary(req.file.buffer, folder, filename);
+    const attachmentType = req.file.mimetype.startsWith('image/') ? 'image' : 'document';
+
+    res.status(200).json({
+      success: true,
+      data: {
+        attachmentUrl: uploadResult.secure_url,
+        attachmentPublicId: uploadResult.public_id,
+        attachmentFileName: originalFilename,
+        attachmentType,
+        messageId: messageId.toString(),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const adminCreateSession = async (req, res, next) => {
+  try {
+    const session = await supportChatService.adminCreateSession(req.params.id, req.body.title);
+    res.status(201).json({ success: true, data: { session } });
+  } catch (error) { next(error); }
+};
+
+const adminDeleteConversation = async (req, res, next) => {
+  try {
+    await supportChatService.adminDeleteConversation(req.params.id);
+    res.json({ success: true, data: { message: 'Conversation deleted.' } });
+  } catch (error) { next(error); }
+};
+
 module.exports = {
   getMyConversation,
   getMySessionMessages,
@@ -126,4 +219,7 @@ module.exports = {
   openConversation,
   getWaiting,
   adminDeleteSession,
+  uploadAttachment,
+  adminCreateSession,
+  adminDeleteConversation,
 };

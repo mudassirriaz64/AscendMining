@@ -1,4 +1,6 @@
 const SupportTicket = require('../models/SupportTicket');
+require('../models/User');
+require('../models/Admin');
 
 const create = async ({ userId, conversationId, subject, escalationReason }) => {
   return SupportTicket.create({ userId, conversationId, subject, escalationReason });

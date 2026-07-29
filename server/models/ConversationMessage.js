@@ -23,7 +23,7 @@ const conversationMessageSchema = new mongoose.Schema(
     },
     body: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
       set(value) {
         if (Array.isArray(value)) return value.join('');
@@ -32,6 +32,19 @@ const conversationMessageSchema = new mongoose.Schema(
     },
     attachmentUrl: {
       type: String,
+      default: null,
+    },
+    attachmentPublicId: {
+      type: String,
+      default: null,
+    },
+    attachmentFileName: {
+      type: String,
+      default: null,
+    },
+    attachmentType: {
+      type: String,
+      enum: ['image', 'document', null],
       default: null,
     },
     sentAt: {
@@ -45,6 +58,12 @@ const conversationMessageSchema = new mongoose.Schema(
   },
   { timestamps: false }
 );
+
+conversationMessageSchema.pre('validate', function () {
+  if (!this.body && !this.attachmentUrl) {
+    this.invalidate('body', 'Either message body or attachment is required.');
+  }
+});
 
 conversationMessageSchema.index({ conversationId: 1, sentAt: 1 });
 conversationMessageSchema.index({ sessionId: 1, sentAt: 1 });

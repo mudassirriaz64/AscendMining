@@ -19,4 +19,7 @@ const markReadByConversation = (conversationId, readerRole) => {
   );
 };
 
-module.exports = { create, findByConversationId, findBySessionId, deleteBySessionId, markReadByConversation };
+const deleteByConversationId = (conversationId) =>
+  ConversationMessage.deleteMany({ conversationId });
+
+module.exports = { create, findByConversationId, findBySessionId, deleteBySessionId, markReadByConversation, deleteByConversationId };

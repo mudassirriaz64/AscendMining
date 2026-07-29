@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Send, MessageCircle, AlertCircle, Plus, Trash2, ChevronRight } from 'lucide-react';
+import { MessageCircle, Send, Check, ChevronLeft, Calendar, LogOut, Paperclip, FileText, Image as ImageIcon, Download, Loader2, X, AlertCircle, Plus, Trash2, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Header from '../../components/common/Header';
 import PageSkeleton from '../../components/common/PageSkeleton';
@@ -13,8 +13,13 @@ import {
   escalateConversation,
   appendMessage,
   setActiveSession,
+  markMessagesRead,
+  prependMessages,
 } from '../../store/slices/supportChatSlice';
+import api from '../../services/api';
 import { connectSocket, getSocket } from '../../services/socketService';
+import { formatRelativeTime, formatFullTimestamp } from '../../utils/date';
+import { triggerTabFlash } from '../../utils/browser';
 
 const SupportChatPage = () => {
   const dispatch = useDispatch();
@@ -29,11 +34,53 @@ const SupportChatPage = () => {
 
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
-  const [socketReady, setSocketReady] = useState(false);
+  const [connectionState, setConnectionState] = useState('connecting');
   const [escalating, setEscalating] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [isNearBottom, setIsNearBottom] = useState(true);
+  const [showScrollPill, setShowScrollPill] = useState(false);
+  const [agentsOnline, setAgentsOnline] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  
+  // Attachments State
+  const [uploading, setUploading] = useState(false);
+  const [pendingAttachment, setPendingAttachment] = useState(null);
+  const [enlargedImage, setEnlargedImage] = useState(null);
+
+  const chatContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+
+  const handleScroll = (e) => {
+    const el = e.currentTarget;
+    const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= 100;
+    setIsNearBottom(isAtBottom);
+    if (isAtBottom) {
+      setShowScrollPill(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const el = e.target;
+    setInput(el.value);
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+
+    // Typing start emit
+    const socket = getSocket();
+    if (socket?.connected && conversation?._id) {
+      socket.emit('typing:start', { conversationId: conversation._id });
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => {
+        socket.emit('typing:stop', { conversationId: conversation._id });
+      }, 3000);
+    }
+  };
 
   useEffect(() => {
     dispatch(fetchMyConversation());
@@ -42,29 +89,107 @@ const SupportChatPage = () => {
   useEffect(() => {
     const socket = connectSocket();
 
-    const onConnect = () => setSocketReady(true);
-    const onDisconnect = () => setSocketReady(false);
+    const onConnect = () => setConnectionState('connected');
+    const onDisconnect = () => setConnectionState('offline');
+    const onReconnectAttempt = () => setConnectionState('reconnecting');
+    const onConnectError = () => setConnectionState('offline');
 
     const onMessage = (data) => {
-      if (data.sessionId && data.sessionId !== activeSessionId) return;
+      const msg = data?.message || data;
+      if (!msg || !msg._id) return;
+      const sessionId = data?.sessionId || msg?.sessionId;
+      if (sessionId && activeSessionId && String(sessionId) !== String(activeSessionId)) return;
       dispatch(appendMessage(data));
+      if (msg.senderRole !== 'investor') {
+        triggerTabFlash('New message from Support');
+        // Real-time mark read if tab/widget is actively open
+        if (socket?.connected && (conversation?._id || msg.conversationId)) {
+          socket.emit('conversation:read', { conversationId: conversation?._id || msg.conversationId });
+        }
+      }
+    };
+
+    const onRead = (data) => {
+      dispatch(markMessagesRead(data));
+    };
+
+    const onTypingStart = ({ senderRole }) => {
+      if (senderRole !== 'investor') setIsTyping(true);
+    };
+
+    const onTypingStop = ({ senderRole }) => {
+      if (senderRole !== 'investor') setIsTyping(false);
+    };
+
+    const onAgentsStatus = ({ online }) => {
+      setAgentsOnline(online);
     };
 
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
+    socket.on('reconnect_attempt', onReconnectAttempt);
+    socket.on('connect_error', onConnectError);
     socket.on('message:new', onMessage);
-    if (socket.connected) setSocketReady(true);
+    socket.on('conversation:read', onRead);
+    socket.on('typing:start', onTypingStart);
+    socket.on('typing:stop', onTypingStop);
+    socket.on('agents:status', onAgentsStatus);
+
+    if (socket.connected) {
+      setConnectionState('connected');
+    } else {
+      setConnectionState('connecting');
+    }
 
     return () => {
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
+      socket.off('reconnect_attempt', onReconnectAttempt);
+      socket.off('connect_error', onConnectError);
       socket.off('message:new', onMessage);
+      socket.off('conversation:read', onRead);
+      socket.off('typing:start', onTypingStart);
+      socket.off('typing:stop', onTypingStop);
+      socket.off('agents:status', onAgentsStatus);
     };
-  }, [dispatch, activeSessionId]);
+  }, [dispatch, activeSessionId, conversation?._id]);
+
+  // Read message emitter when conversation opens/switches
+  useEffect(() => {
+    const socket = getSocket();
+    if (socket?.connected && conversation?._id) {
+      socket.emit('conversation:read', { conversationId: conversation._id });
+    }
+  }, [conversation?._id, activeSessionId]);
+
+  // Reset pagination on session switch
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+  }, [activeSessionId]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const el = chatContainerRef.current;
+    if (!el) return;
+    const lastMsg = messages[messages.length - 1];
+    const sentByMe = lastMsg && lastMsg.senderRole === 'investor';
+
+    if (isNearBottom || sentByMe) {
+      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+      setShowScrollPill(false);
+    } else {
+      setShowScrollPill(true);
+    }
   }, [messages]);
+
+  useEffect(() => {
+    const el = chatContainerRef.current;
+    if (el) {
+      el.scrollTop = el.scrollHeight;
+    }
+    setIsNearBottom(true);
+    setShowScrollPill(false);
+  }, [activeSessionId]);
 
   const switchSession = useCallback((sessionId) => {
     dispatch(setActiveSession(sessionId));
@@ -94,29 +219,139 @@ const SupportChatPage = () => {
 
   const handleSend = useCallback(async () => {
     const trimmed = input.trim();
-    if (!trimmed || sending) return;
+    if ((!trimmed && !pendingAttachment) || sending) return;
     setSending(true);
 
     const socket = getSocket();
+    if (socket?.connected && conversation?._id) {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      socket.emit('typing:stop', { conversationId: conversation._id });
+    }
+
+    const payload = {
+      body: trimmed,
+      sessionId: activeSessionId,
+      attachmentUrl: pendingAttachment?.attachmentUrl || null,
+      attachmentPublicId: pendingAttachment?.attachmentPublicId || null,
+      attachmentFileName: pendingAttachment?.attachmentFileName || null,
+      attachmentType: pendingAttachment?.attachmentType || null,
+      messageId: pendingAttachment?.messageId || null,
+    };
+
     if (socket?.connected) {
-      socket.emit('message:send', { body: trimmed, sessionId: activeSessionId }, (result) => {
+      socket.emit('message:send', payload, (result) => {
         setSending(false);
         if (!result?.ok) return toast.error(result?.message || 'Message could not be sent.');
         setInput('');
+        setPendingAttachment(null);
+        if (inputRef.current) {
+          inputRef.current.style.height = 'auto';
+        }
       });
       return;
     }
 
     try {
-      await dispatch(sendMessageREST({ body: trimmed, sessionId: activeSessionId })).unwrap();
+      await dispatch(sendMessageREST(payload)).unwrap();
       setInput('');
+      setPendingAttachment(null);
+      if (inputRef.current) {
+        inputRef.current.style.height = 'auto';
+      }
     } catch (err) {
       toast.error(err || 'Failed to send message.');
     } finally {
       setSending(false);
     }
     inputRef.current?.focus();
-  }, [input, sending, dispatch, activeSessionId]);
+  }, [input, pendingAttachment, sending, dispatch, activeSessionId, conversation?._id]);
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Invalid file type. Only JPG, PNG, and PDF files are allowed.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size exceeds the 5MB limit.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setUploading(true);
+    try {
+      const response = await api.post('/support/conversations/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setPendingAttachment(response.data.data);
+    } catch (err) {
+      toast.error(err.response?.data?.error?.message || 'Failed to upload attachment.');
+    } finally {
+      setUploading(false);
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore || !activeSessionId) return;
+    setLoadingMore(true);
+    try {
+      const response = await api.get(`/support/conversations/sessions/${activeSessionId}/messages?page=${page + 1}&limit=50`);
+      const newMsgs = response.data.data.messages;
+      if (newMsgs.length < 50) {
+        setHasMore(false);
+      }
+      if (newMsgs.length > 0) {
+        dispatch(prependMessages({ messages: newMsgs }));
+        setPage(prev => prev + 1);
+      } else {
+        setHasMore(false);
+      }
+    } catch (e) {
+      toast.error('Could not load older messages.');
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const renderConnectionBadge = () => {
+    switch (connectionState) {
+      case 'connected':
+        return (
+          <span className="flex items-center gap-1.5 text-xs text-emerald-600 font-semibold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Live
+          </span>
+        );
+      case 'reconnecting':
+        return (
+          <span className="flex items-center gap-1.5 text-xs text-amber-600 font-semibold bg-amber-50 px-2.5 py-1 rounded-full border border-amber-100 animate-pulse">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+            Reconnecting...
+          </span>
+        );
+      case 'offline':
+        return (
+          <span className="flex items-center gap-1.5 text-xs text-rose-600 font-semibold bg-rose-50 px-2.5 py-1 rounded-full border border-rose-100">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+            Offline
+          </span>
+        );
+      case 'connecting':
+      default:
+        return (
+          <span className="flex items-center gap-1.5 text-xs text-amber-600 font-semibold bg-amber-50 px-2.5 py-1 rounded-full border border-amber-100 animate-pulse">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+            Connecting...
+          </span>
+        );
+    }
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -176,18 +411,15 @@ const SupportChatPage = () => {
               Support Chat
             </h1>
             <p className="text-sm text-slate-500 mt-1">
-              Our support team typically responds within 30 minutes.
+              {agentsOnline ? 'Support agents are online. We reply within 30 minutes.' : 'Support is away. We typically reply within 30 minutes.'}
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <div className={`w-2.5 h-2.5 rounded-full ${socketReady ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
-            <span className="text-xs text-slate-500 font-medium">
-              {socketReady ? 'Live' : 'Connecting...'}
-            </span>
+            {renderConnectionBadge()}
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-100 flex flex-col overflow-hidden" style={{ height: '68vh' }}>
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-100 flex flex-col overflow-hidden relative" style={{ height: '68vh' }}>
           <div className="px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-[#001f3f] to-[#083358] flex items-center gap-3">
             <button
               type="button"
@@ -257,7 +489,20 @@ const SupportChatPage = () => {
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+          <div ref={chatContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-5 py-4 space-y-3 relative">
+            {hasMore && messages.length >= 50 && (
+              <div className="flex justify-center my-2">
+                <button
+                  type="button"
+                  disabled={loadingMore}
+                  onClick={loadMore}
+                  className="text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200 px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {loadingMore ? 'Loading...' : 'Load older messages'}
+                </button>
+              </div>
+            )}
+
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full text-center">
                 <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
@@ -276,32 +521,92 @@ const SupportChatPage = () => {
                   <div className="flex-1 h-px bg-slate-100" />
                 </div>
 
-                {msgs.map((msg) => {
+                {msgs.map((msg, idx) => {
                   const isMe = msg.senderRole === 'investor';
+                  const isAgent = ['admin', 'support_agent'].includes(msg.senderRole);
+                  const senderLabel = isMe ? 'You' : (isAgent ? 'Support' : 'Unknown');
+                  const consecutive = idx > 0 && msgs[idx - 1].senderRole === msg.senderRole && (new Date(msg.sentAt || msg.createdAt).getTime() - new Date(msgs[idx - 1].sentAt || msgs[idx - 1].createdAt).getTime() < 60000);
+                  const isSystem = msg.body?.startsWith('[SYSTEM]');
+                  const lastSentMsgId = [...messages].reverse().find(m => m.senderRole === 'investor')?._id;
+                  const isLastSent = msg._id === lastSentMsgId;
+
+                  if (isSystem) {
+                    return (
+                      <div key={msg._id} className="flex justify-center my-3 w-full animate-fade-in">
+                        <span className="text-xs text-slate-400 bg-slate-100 px-3 py-1.5 rounded-full font-medium shadow-sm border border-slate-200/50">
+                          {msg.body.replace('[SYSTEM] ', '')}
+                        </span>
+                      </div>
+                    );
+                  }
+
                   return (
-                    <div key={msg._id} className={`flex flex-col mb-3 ${isMe ? 'items-end' : 'items-start'}`}>
-                      <span className={`text-[10px] font-semibold mb-1 px-1 ${isMe ? 'text-right text-slate-500' : 'text-left text-slate-500'}`}>
-                        {isMe ? 'You' : 'Support'}
-                      </span>
-                      <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                    <div key={msg._id} className={`flex flex-col ${consecutive ? 'mb-1.5' : 'mb-4'} ${isMe ? 'items-end' : 'items-start'}`}>
+                      {!consecutive && (
+                        <span className={`text-[10px] font-semibold mb-1 px-1 ${isMe ? 'text-right text-slate-500' : 'text-left text-slate-500'}`}>
+                          {senderLabel}
+                        </span>
+                      )}
+                      <div className={`w-full flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                         {!isMe && (
-                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#001f3f] to-[#083358] flex items-center justify-center text-white text-xs font-bold mr-2 mt-auto mb-0.5 flex-shrink-0">
-                            S
-                          </div>
+                          consecutive ? (
+                            <div className="w-7 mr-2 flex-shrink-0" />
+                          ) : (
+                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#001f3f] to-[#083358] flex items-center justify-center text-white text-xs font-bold mr-2 mt-auto mb-0.5 flex-shrink-0">
+                              S
+                            </div>
+                          )
                         )}
                         <div className={`max-w-[72%] flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                           <div
-                            className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed break-words ${
+                            title={formatFullTimestamp(msg.sentAt || msg.createdAt)}
+                            className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed break-words w-fit max-w-full cursor-help ${
                               isMe
                                 ? 'bg-gradient-to-br from-[#001f3f] to-[#083358] text-white rounded-br-sm'
                                 : 'bg-white text-slate-800 rounded-bl-sm ring-1 ring-slate-200'
                             }`}
                           >
-                            {typeof msg.body === 'string' ? msg.body : String(msg.body ?? '')}
+                            {msg.body && <p className="whitespace-pre-wrap">{typeof msg.body === 'string' ? msg.body : String(msg.body ?? '')}</p>}
+                            
+                            {msg.attachmentUrl && msg.attachmentType === 'image' && (
+                              <div className={`max-w-sm rounded-lg overflow-hidden border border-slate-200/50 shadow-sm cursor-zoom-in ${msg.body ? 'mt-2' : ''}`}>
+                                <img
+                                  src={msg.attachmentUrl}
+                                  alt={msg.attachmentFileName || 'Attachment'}
+                                  onClick={() => setEnlargedImage(msg.attachmentUrl)}
+                                  className="max-h-48 w-full object-cover hover:opacity-95 transition-opacity"
+                                />
+                              </div>
+                            )}
+
+                            {msg.attachmentUrl && msg.attachmentType === 'document' && (
+                              <a
+                                href={msg.attachmentUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold transition-all hover:bg-slate-50/50 ${msg.body ? 'mt-2' : ''} ${
+                                  isMe
+                                    ? 'bg-[#083358]/20 border-white/20 text-white hover:text-[#e2b007]'
+                                    : 'bg-slate-50 border-slate-200 text-[#001f3f] hover:text-[#e2b007]'
+                                }`}
+                              >
+                                <FileText size={16} />
+                                <span className="truncate max-w-[200px]">{msg.attachmentFileName || 'Download Document'}</span>
+                                <Download size={14} className="ml-auto" />
+                              </a>
+                            )}
                           </div>
-                          <span className="text-[10px] text-slate-400 mt-1 px-1">
-                            {formatTime(msg.sentAt || msg.createdAt)}
-                          </span>
+                          {isMe && isLastSent ? (
+                            <span className="text-[10px] text-slate-400 mt-1 px-1 flex items-center gap-0.5 font-medium" title={formatFullTimestamp(msg.sentAt || msg.createdAt)}>
+                              {msg.readAt ? '✓✓ Seen' : '✓ Sent'}
+                            </span>
+                          ) : (
+                            (!consecutive || idx === msgs.length - 1) && (
+                              <span className="text-[10px] text-slate-400 mt-1 px-1" title={formatFullTimestamp(msg.sentAt || msg.createdAt)}>
+                                {formatRelativeTime(msg.sentAt || msg.createdAt)}
+                              </span>
+                            )
+                          )}
                         </div>
                       </div>
                     </div>
@@ -309,30 +614,118 @@ const SupportChatPage = () => {
                 })}
               </div>
             ))}
+            {isTyping && (
+              <div className="flex items-center gap-1.5 px-6 py-2 text-xs text-slate-400 animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                <span className="ml-1 font-medium">Support is typing...</span>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="border-t border-slate-100 px-4 py-3 flex items-end gap-3 bg-slate-50/50">
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type a message...  (Enter to send)"
-              rows={1}
-              className="flex-1 resize-none bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-[#083358] focus:ring-2 focus:ring-[#083358]/15 transition-all placeholder-slate-400 max-h-32 overflow-y-auto"
-              style={{ minHeight: '42px' }}
-            />
+          {showScrollPill && (
             <button
-              onClick={handleSend}
-              disabled={!input.trim() || sending}
-              className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#001f3f] to-[#083358] text-white flex items-center justify-center hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
+              type="button"
+              onClick={() => {
+                chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: 'smooth' });
+                setShowScrollPill(false);
+              }}
+              className="absolute bottom-16 left-1/2 -translate-x-1/2 bg-[#083358] text-white px-4 py-2 rounded-full text-xs font-semibold shadow-lg hover:bg-[#001f3f] transition-all flex items-center gap-1 cursor-pointer animate-bounce z-10"
             >
-              <Send size={16} />
+              ↓ New message
             </button>
+          )}
+
+          <div className="border-t border-slate-100 p-4 bg-white flex flex-col relative">
+            {pendingAttachment && (
+              <div className="flex items-center justify-between bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs text-slate-600 mb-2 w-full animate-fade-in">
+                <div className="flex items-center gap-1.5 truncate">
+                  {pendingAttachment.attachmentType === 'image' ? <ImageIcon size={14} /> : <FileText size={14} />}
+                  <span className="truncate font-medium">{pendingAttachment.attachmentFileName}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPendingAttachment(null)}
+                  className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+
+            <div className="flex items-end gap-2 relative w-full">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                accept=".jpg,.jpeg,.png,.pdf"
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading || sending}
+                className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 disabled:opacity-50 transition-all cursor-pointer shrink-0 mb-0.5"
+                title="Attach JPG, PNG, or PDF file"
+              >
+                {uploading ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <Paperclip size={18} />
+                )}
+              </button>
+
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                placeholder="Type a message...  (Enter to send)"
+                rows={1}
+                maxLength={500}
+                className="flex-1 resize-none bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-[#083358] focus:ring-2 focus:ring-[#083358]/15 transition-all placeholder-slate-400 max-h-32 overflow-y-auto animate-fade-in"
+                style={{ minHeight: '40px', height: 'auto' }}
+              />
+              <button
+                onClick={handleSend}
+                disabled={(!input.trim() && !pendingAttachment) || sending || uploading}
+                className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#001f3f] to-[#083358] text-white flex items-center justify-center hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex-shrink-0 mb-1"
+              >
+                <Send size={16} />
+              </button>
+            </div>
+            {input.length > 400 && (
+              <span className="text-[10px] text-slate-400 self-end px-1 absolute bottom-1.5 right-16">
+                {input.length}/500
+              </span>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Lightbox Overlay */}
+      {enlargedImage && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 cursor-zoom-out animate-fade-in"
+          onClick={() => setEnlargedImage(null)}
+        >
+          <div className="relative max-w-full max-h-full">
+            <img
+              src={enlargedImage}
+              alt="Enlarged screenshot"
+              className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            />
+            <button
+              onClick={() => setEnlargedImage(null)}
+              className="absolute -top-10 right-0 text-white hover:text-slate-300 font-bold text-sm bg-black/40 px-3 py-1.5 rounded-full cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

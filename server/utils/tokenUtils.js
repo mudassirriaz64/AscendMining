@@ -11,9 +11,10 @@ const generateAccessToken = (user) => {
 };
 
 const generateRefreshToken = () => {
+  const rawToken = uuidv4();
   return {
-    token: uuidv4(),
-    rawToken: uuidv4(),
+    token: rawToken,
+    rawToken,
   };
 };
 

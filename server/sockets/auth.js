@@ -4,13 +4,8 @@ const Admin = require('../models/Admin');
 
 module.exports = async (socket, next) => {
   try {
-    const cookieToken = socket.handshake.headers?.cookie
-      ?.split(';')
-      .map((part) => part.trim().split('='))
-      .find(([name]) => name === 'accessToken')?.[1];
     const token = socket.handshake.auth?.token
-      || socket.handshake.headers?.authorization?.replace(/^Bearer\s+/i, '')
-      || (cookieToken ? decodeURIComponent(cookieToken) : null);
+      || socket.handshake.headers?.authorization?.replace(/^Bearer\s+/i, '');
     if (!token) return next(new Error('Authentication required.'));
     const decoded = verifyAccessToken(token);
     if (decoded.role === 'admin' || decoded.role === 'support_agent') {

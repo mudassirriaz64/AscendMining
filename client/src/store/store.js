@@ -7,6 +7,14 @@ import dashboardReducer from './slices/dashboardSlice';
 import withdrawalReducer from './slices/withdrawalSlice';
 import packageReducer from './slices/packageSlice';
 import supportChatReducer from './slices/supportChatSlice';
+import adminDepositReducer from './slices/adminDepositSlice';
+import adminWithdrawalReducer from './slices/adminWithdrawalSlice';
+import adminPaymentMethodReducer from './slices/adminPaymentMethodSlice';
+import adminFaqReducer from './slices/adminFaqSlice';
+import adminServiceReducer from './slices/adminServiceSlice';
+import adminContactMessageReducer from './slices/adminContactMessageSlice';
+import adminReferralReducer from './slices/adminReferralSlice';
+import adminDashboardStatsReducer from './slices/adminDashboardSlice';
 
 const store = configureStore({
   reducer: {
@@ -18,6 +26,14 @@ const store = configureStore({
     withdrawal: withdrawalReducer,
     package: packageReducer,
     supportChat: supportChatReducer,
+    adminDeposits: adminDepositReducer,
+    adminWithdrawals: adminWithdrawalReducer,
+    adminPaymentMethods: adminPaymentMethodReducer,
+    adminFAQs: adminFaqReducer,
+    adminServices: adminServiceReducer,
+    adminContactMessages: adminContactMessageReducer,
+    adminReferrals: adminReferralReducer,
+    adminDashboardStats: adminDashboardStatsReducer,
   },
 });
 

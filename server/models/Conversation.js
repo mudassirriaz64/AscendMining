@@ -39,6 +39,14 @@ const conversationSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    hiddenFromAdmin: {
+      type: Boolean,
+      default: false,
+    },
+    hiddenFromUser: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

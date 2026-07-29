@@ -72,7 +72,7 @@ const purchasePackage = async (req, res, next) => {
       dailyROISnapshot: pkg.dailyROI,
       durationSnapshot: pkg.duration,
       hashRateSnapshot: pkg.hashRate,
-      status: 'unpaid',
+      status: 'pending_deposit',
       isMining: false,
     });
 
