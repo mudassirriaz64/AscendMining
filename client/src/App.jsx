@@ -18,6 +18,7 @@ const ProfilePage = lazy(() => import('./pages/account/ProfilePage'));
 const ChangePasswordPage = lazy(() => import('./pages/account/ChangePasswordPage'));
 const PaymentsLogPage = lazy(() => import('./pages/account/PaymentsLogPage'));
 const TransactionsPage = lazy(() => import('./pages/account/TransactionsPage'));
+const KYCPage = lazy(() => import('./pages/account/KYCPage'));
 const MyReferralPage = lazy(() => import('./pages/account/MyReferralPage'));
 const ReferralBonusLogsPage = lazy(() => import('./pages/account/ReferralBonusLogsPage'));
 const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
@@ -142,6 +143,7 @@ const App = () => {
           <Route path="/profile/password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
           <Route path="/deposits" element={<ProtectedRoute><PaymentsLogPage /></ProtectedRoute>} />
           <Route path="/transactions" element={<ProtectedRoute><TransactionsPage /></ProtectedRoute>} />
+          <Route path="/kyc" element={<ProtectedRoute><KYCPage /></ProtectedRoute>} />
           <Route path="/referrals" element={<ProtectedRoute><MyReferralPage /></ProtectedRoute>} />
           <Route path="/referrals/bonus" element={<ProtectedRoute><ReferralBonusLogsPage /></ProtectedRoute>} />
 
