@@ -137,7 +137,7 @@ const AdminSupportPage = () => {
           socket.emit('conversation:read', { conversationId: String(targetConvoId) });
         }
       }
-      if (msg.senderRole === 'investor') {
+      if (['investor', 'guest'].includes(msg.senderRole)) {
         triggerTabFlash('New support chat message');
       }
       loadConversations().catch(() => {});
@@ -162,9 +162,9 @@ const AdminSupportPage = () => {
       });
     };
     const onRead = ({ readerRole, conversationId, readAt }) => {
-      if (readerRole === 'investor' && conversationId === selectedIdRef.current) {
+      if (['investor', 'guest'].includes(readerRole) && conversationId === selectedIdRef.current) {
         setMessages((current) => current.map((msg) => {
-          if (msg.senderRole !== 'investor' && !msg.readAt) {
+          if (!['investor', 'guest'].includes(msg.senderRole) && !msg.readAt) {
             return { ...msg, readAt };
           }
           return msg;
@@ -172,10 +172,10 @@ const AdminSupportPage = () => {
       }
     };
     const onTypingStart = ({ senderRole, conversationId }) => {
-      if (senderRole === 'investor' && conversationId === selectedIdRef.current) setIsTyping(true);
+      if (['investor', 'guest'].includes(senderRole) && conversationId === selectedIdRef.current) setIsTyping(true);
     };
     const onTypingStop = ({ senderRole, conversationId }) => {
-      if (senderRole === 'investor' && conversationId === selectedIdRef.current) setIsTyping(false);
+      if (['investor', 'guest'].includes(senderRole) && conversationId === selectedIdRef.current) setIsTyping(false);
     };
     socket.on('message:new', onMessage);
     socket.on('session:new', onNewSession);
@@ -576,7 +576,7 @@ const AdminSupportPage = () => {
                   }
                   const msg = item.message;
                   const isAgent = ['admin', 'support_agent'].includes(msg?.senderRole);
-                  const isInvestor = msg?.senderRole === 'investor';
+                  const isInvestor = ['investor', 'guest'].includes(msg?.senderRole);
                   const senderName = isAgent ? 'Support' : (isInvestor ? 'Investor' : 'Unknown');
                   const msgIdx = messages.findIndex(m => m._id === msg._id);
                   const consecutive = msgIdx > 0 && messages[msgIdx - 1].senderRole === msg.senderRole && (new Date(msg.sentAt || msg.createdAt).getTime() - new Date(messages[msgIdx - 1].sentAt || messages[msgIdx - 1].createdAt).getTime() < 60000);

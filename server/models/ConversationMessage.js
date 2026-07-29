@@ -13,12 +13,12 @@ const conversationMessageSchema = new mongoose.Schema(
       default: null,
     },
     senderId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       required: true,
     },
     senderRole: {
       type: String,
-      enum: ['investor', 'admin', 'support_agent'],
+      enum: ['investor', 'admin', 'support_agent', 'guest'],
       required: true,
     },
     body: {

@@ -100,7 +100,7 @@ const SupportChatPage = () => {
       const sessionId = data?.sessionId || msg?.sessionId;
       if (sessionId && activeSessionId && String(sessionId) !== String(activeSessionId)) return;
       dispatch(appendMessage(data));
-      if (msg.senderRole !== 'investor') {
+      if (!['investor', 'guest'].includes(msg.senderRole)) {
         triggerTabFlash('New message from Support');
         // Real-time mark read if tab/widget is actively open
         if (socket?.connected && (conversation?._id || msg.conversationId)) {
@@ -114,11 +114,11 @@ const SupportChatPage = () => {
     };
 
     const onTypingStart = ({ senderRole }) => {
-      if (senderRole !== 'investor') setIsTyping(true);
+      if (!['investor', 'guest'].includes(senderRole)) setIsTyping(true);
     };
 
     const onTypingStop = ({ senderRole }) => {
-      if (senderRole !== 'investor') setIsTyping(false);
+      if (!['investor', 'guest'].includes(senderRole)) setIsTyping(false);
     };
 
     const onAgentsStatus = ({ online }) => {
@@ -172,7 +172,7 @@ const SupportChatPage = () => {
     const el = chatContainerRef.current;
     if (!el) return;
     const lastMsg = messages[messages.length - 1];
-    const sentByMe = lastMsg && lastMsg.senderRole === 'investor';
+    const sentByMe = lastMsg && ['investor', 'guest'].includes(lastMsg.senderRole);
 
     if (isNearBottom || sentByMe) {
       el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
@@ -522,12 +522,12 @@ const SupportChatPage = () => {
                 </div>
 
                 {msgs.map((msg, idx) => {
-                  const isMe = msg.senderRole === 'investor';
+                  const isMe = ['investor', 'guest'].includes(msg.senderRole);
                   const isAgent = ['admin', 'support_agent'].includes(msg.senderRole);
                   const senderLabel = isMe ? 'You' : (isAgent ? 'Support' : 'Unknown');
                   const consecutive = idx > 0 && msgs[idx - 1].senderRole === msg.senderRole && (new Date(msg.sentAt || msg.createdAt).getTime() - new Date(msgs[idx - 1].sentAt || msgs[idx - 1].createdAt).getTime() < 60000);
                   const isSystem = msg.body?.startsWith('[SYSTEM]');
-                  const lastSentMsgId = [...messages].reverse().find(m => m.senderRole === 'investor')?._id;
+                  const lastSentMsgId = [...messages].reverse().find(m => ['investor', 'guest'].includes(m.senderRole))?._id;
                   const isLastSent = msg._id === lastSentMsgId;
 
                   if (isSystem) {

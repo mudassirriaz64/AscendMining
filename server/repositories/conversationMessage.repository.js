@@ -12,7 +12,8 @@ const deleteBySessionId = (sessionId) =>
   ConversationMessage.deleteMany({ sessionId });
 
 const markReadByConversation = (conversationId, readerRole) => {
-  const senderRole = readerRole === 'investor' ? { $in: ['admin', 'support_agent'] } : 'investor';
+  const isUserReader = ['investor', 'guest'].includes(readerRole);
+  const senderRole = isUserReader ? { $in: ['admin', 'support_agent'] } : { $in: ['investor', 'guest'] };
   return ConversationMessage.updateMany(
     { conversationId, senderRole, readAt: null },
     { $set: { readAt: new Date() } }

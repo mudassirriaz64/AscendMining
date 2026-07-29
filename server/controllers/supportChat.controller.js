@@ -150,7 +150,7 @@ const sendMessage = async (req, res, next) => {
     const result = await supportChatService.sendMessage({
       conversationId,
       senderId: req.user.id,
-      senderRole: req.user.role,
+      senderRole: req.user.isGuest ? 'guest' : req.user.role,
       body: req.body.body,
       sessionId,
       attachmentUrl: req.body.attachmentUrl || null,

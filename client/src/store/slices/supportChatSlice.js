@@ -249,7 +249,7 @@ const supportChatSlice = createSlice({
       if (convo) {
         convo.lastMessagePreview = message.body?.substring(0, 80);
         convo.lastMessageAt = message.sentAt;
-        convo.unreadByAdmin = message.senderRole === 'investor';
+        convo.unreadByAdmin = ['investor', 'guest'].includes(message.senderRole);
       }
     },
     setActiveConversation(state, action) {
@@ -275,7 +275,7 @@ const supportChatSlice = createSlice({
     },
     markMessagesRead(state, action) {
       const { readerRole, readAt } = action.payload;
-      const targetRole = readerRole === 'investor' ? ['admin', 'support_agent'] : ['investor'];
+      const targetRole = ['investor', 'guest'].includes(readerRole) ? ['admin', 'support_agent'] : ['investor', 'guest'];
       state.messages.forEach((msg) => {
         if (targetRole.includes(msg.senderRole) && !msg.readAt) {
           msg.readAt = readAt;

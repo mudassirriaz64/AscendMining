@@ -76,10 +76,11 @@ const initSupportChatSocket = (io) => {
             targetSessionId = sessions.length > 0 ? sessions[0]._id.toString() : null;
           }
         }
+        const senderRole = socket.user.isGuest ? 'guest' : role;
         const result = await supportChatService.sendMessage({
           conversationId: targetId,
           senderId: id,
-          senderRole: role,
+          senderRole,
           body,
           sessionId: targetSessionId,
           attachmentUrl,
@@ -123,7 +124,7 @@ const initSupportChatSocket = (io) => {
       if (!conversationId) return;
       socket.to(`conversation:${conversationId}`).emit('typing:start', {
         conversationId,
-        senderRole: role,
+        senderRole: socket.user.isGuest ? 'guest' : role,
       });
     });
 
@@ -131,7 +132,7 @@ const initSupportChatSocket = (io) => {
       if (!conversationId) return;
       socket.to(`conversation:${conversationId}`).emit('typing:stop', {
         conversationId,
-        senderRole: role,
+        senderRole: socket.user.isGuest ? 'guest' : role,
       });
     });
 

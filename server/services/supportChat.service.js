@@ -165,8 +165,8 @@ const sendMessage = async ({
   }
 
   const message = await messageRepo.create(messageData);
-  const isInvestor = senderRole === 'investor';
-  const startedWaitingConversation = isInvestor
+  const isUserSender = ['investor', 'guest'].includes(senderRole);
+  const startedWaitingConversation = isUserSender
     ? await conversationRepo.markAwaitingIfNull(conversationId, now)
     : null;
   const startedWaiting = Boolean(startedWaitingConversation);

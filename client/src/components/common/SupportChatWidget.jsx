@@ -109,16 +109,16 @@ const SupportChatWidget = () => {
         }
       }
       if (nextConversation) setConversation(nextConversation);
-      if (msg.senderRole !== 'investor' && !openRef.current) {
+      if (!['investor', 'guest'].includes(msg.senderRole) && !openRef.current) {
         setConversation((current) => current ? { ...current, unreadByUser: true } : current);
       }
-      if (msg.senderRole !== 'investor') {
+      if (!['investor', 'guest'].includes(msg.senderRole)) {
         triggerTabFlash('New message from Support');
       }
     };
 
     const onRead = ({ readerRole, readAt }) => {
-      const targetRole = readerRole === 'investor' ? ['admin', 'support_agent'] : ['investor'];
+      const targetRole = ['investor', 'guest'].includes(readerRole) ? ['admin', 'support_agent'] : ['investor', 'guest'];
       setMessages((current) => current.map((msg) => {
         if (targetRole.includes(msg.senderRole) && !msg.readAt) {
           return { ...msg, readAt };
@@ -128,11 +128,11 @@ const SupportChatWidget = () => {
     };
 
     const onTypingStart = ({ senderRole }) => {
-      if (senderRole !== 'investor') setIsTyping(true);
+      if (!['investor', 'guest'].includes(senderRole)) setIsTyping(true);
     };
 
     const onTypingStop = ({ senderRole }) => {
-      if (senderRole !== 'investor') setIsTyping(false);
+      if (!['investor', 'guest'].includes(senderRole)) setIsTyping(false);
     };
 
     const onAgentsStatus = ({ online }) => {
@@ -213,7 +213,7 @@ const SupportChatWidget = () => {
     const el = chatContainerRef.current;
     if (!el) return;
     const lastMsg = messages[messages.length - 1];
-    const sentByMe = lastMsg && lastMsg.senderRole === 'investor';
+    const sentByMe = lastMsg && ['investor', 'guest'].includes(lastMsg.senderRole);
 
     if (isNearBottom || sentByMe) {
       el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
@@ -532,12 +532,12 @@ const SupportChatWidget = () => {
              )}
 
              {messages.map((message, idx) => {
-              const mine = message.senderRole === 'investor';
+               const mine = ['investor', 'guest'].includes(message.senderRole);
               const isAgent = ['admin', 'support_agent'].includes(message.senderRole);
               const senderLabel = mine ? 'You' : (isAgent ? 'Support' : 'Unknown');
               const consecutive = idx > 0 && messages[idx - 1].senderRole === message.senderRole && (new Date(message.sentAt || message.createdAt).getTime() - new Date(messages[idx - 1].sentAt || messages[idx - 1].createdAt).getTime() < 60000);
               const isSystem = message.body?.startsWith('[SYSTEM]');
-              const lastSentMsgId = [...messages].reverse().find(m => m.senderRole === 'investor')?._id;
+               const lastSentMsgId = [...messages].reverse().find(m => ['investor', 'guest'].includes(m.senderRole))?._id;
               const isLastSent = message._id === lastSentMsgId;
 
               if (isSystem) {

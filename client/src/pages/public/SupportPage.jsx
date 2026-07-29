@@ -349,7 +349,7 @@ const SupportPage = () => {
                     </div>
                   ) : (
                     messages.map((message) => {
-                      const mine = message.senderRole === 'investor';
+                      const mine = ['investor', 'guest'].includes(message.senderRole);
                       const isSystem = message.body?.startsWith('[SYSTEM]');
                       if (isSystem) {
                         return (
