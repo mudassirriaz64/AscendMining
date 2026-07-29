@@ -8,6 +8,25 @@ const requestWithdrawal = async (req, res, next) => {
     const userId = req.user.id;
     const { coinSymbol, amount } = req.body;
 
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'User not found.' },
+      });
+    }
+
+    if (user.kycStatus !== 'approved') {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'KYC_REQUIRED',
+          message: 'Please complete your KYC verification first to withdraw funds.',
+          status: 403,
+        },
+      });
+    }
+
     if (!coinSymbol || !amount || isNaN(amount) || amount <= 0) {
       return res.status(400).json({
         success: false,
@@ -45,7 +64,6 @@ const requestWithdrawal = async (req, res, next) => {
     }
 
     // 3. Validate user has wallet address set
-    const user = await User.findById(userId);
     if (!user.walletAddresses) {
       user.walletAddresses = new Map();
     }

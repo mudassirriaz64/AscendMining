@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import {
   LayoutDashboard, Users, Package, Coins, ArrowDownToLine, ArrowUpFromLine,
   UsersRound, FileText, MessageCircle, ShieldCheck, Bell, Search,
-  Menu, X, LogOut, ChevronDown, Volume2, VolumeX, ChevronRight, Globe
+  Menu, X, LogOut, ChevronDown, Volume2, VolumeX, ChevronRight, Globe, Settings
 } from 'lucide-react';
 import { logoutUser } from '../store/slices/authSlice';
 import { connectSocket } from '../services/socketService';
@@ -16,6 +16,7 @@ const sidebarLinks = [
   { to: '/admin/users', icon: Users, label: 'Users' },
   { to: '/admin/coins', icon: Coins, label: 'Coins' },
   { to: '/admin/packages', icon: Package, label: 'Packages' },
+  { to: '/admin/mining-settings', icon: Settings, label: 'Mining Settings' },
   { to: '/admin/deposits', icon: ArrowDownToLine, label: 'Deposits' },
   { to: '/admin/withdrawals', icon: ArrowUpFromLine, label: 'Withdrawals' },
   { to: '/admin/payment-methods', icon: FileText, label: 'Payment Methods' },

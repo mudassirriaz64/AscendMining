@@ -30,6 +30,10 @@ const countByFilter = async (filter = {}) => {
   return Package.countDocuments(filter);
 };
 
+const deleteById = async (id) => {
+  return Package.findByIdAndDelete(id);
+};
+
 module.exports = {
   findAll,
   findById,
@@ -37,4 +41,5 @@ module.exports = {
   create,
   updateById,
   countByFilter,
+  deleteById,
 };

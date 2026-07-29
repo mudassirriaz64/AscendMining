@@ -102,10 +102,42 @@ const togglePackageStatus = async (packageId, adminId, ip) => {
   return updated;
 };
 
+const deletePackage = async (packageId, adminId, ip) => {
+  const pkg = await packageRepository.findById(packageId);
+  if (!pkg) throw new AppError('PACKAGE_NOT_FOUND', 'Package not found.', 404);
+
+  // Check if any UserPackage references this base package
+  const UserPackage = require('../../models/UserPackage');
+  const activeSubscriptions = await UserPackage.countDocuments({ packageId });
+  if (activeSubscriptions > 0) {
+    throw new AppError(
+      'PACKAGE_IN_USE',
+      'Cannot delete package as it has active or historical user subscriptions. Please deactivate it instead.',
+      400
+    );
+  }
+
+  const beforeState = pkg.toJSON();
+  await packageRepository.deleteById(packageId);
+
+  await adminLogRepository.create({
+    actorId: adminId,
+    action: 'package_deleted',
+    targetType: 'Package',
+    targetId: packageId,
+    beforeState,
+    afterState: null,
+    ipAddress: ip,
+  });
+
+  return pkg;
+};
+
 module.exports = {
   listPackages,
   getPackage,
   createPackage,
   updatePackage,
   togglePackageStatus,
+  deletePackage,
 };

@@ -81,6 +81,11 @@ const dashboardSlice = createSlice({
     },
     activePackage: null,
     latestTransactions: [],
+    miningSettings: {
+      timerDuration: 24,
+      isPaused: false,
+      isDisabled: false,
+    },
     history: {
       deposits: { data: [], total: 0, page: 1, limit: 20, loading: false, error: null },
       transactions: { data: [], total: 0, page: 1, limit: 20, loading: false, error: null },
@@ -109,6 +114,7 @@ const dashboardSlice = createSlice({
         state.miningStatus = action.payload.miningStatus;
         state.activePackage = action.payload.activePackage;
         state.latestTransactions = action.payload.latestTransactions;
+        state.miningSettings = action.payload.miningSettings || { timerDuration: 24, isPaused: false, isDisabled: false };
       })
       .addCase(fetchDashboardSummary.rejected, (state, action) => {
         state.loading = false;

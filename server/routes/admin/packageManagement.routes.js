@@ -69,4 +69,12 @@ router.patch(
   packageManagementController.togglePackageStatus
 );
 
+router.delete(
+  '/:id',
+  authMiddleware,
+  requireRole('admin'),
+  validateParams(packageIdParamSchema),
+  packageManagementController.deletePackage
+);
+
 module.exports = router;

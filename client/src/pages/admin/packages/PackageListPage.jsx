@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Plus, Pencil, ToggleLeft, ToggleRight } from 'lucide-react';
-import { fetchAdminPackages, toggleAdminPackageStatus, clearPackageError, clearPackageActionSuccess } from '../../../store/slices/adminPackageSlice';
+import { Plus, Pencil, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react';
+import { fetchAdminPackages, toggleAdminPackageStatus, deleteAdminPackage, clearPackageError, clearPackageActionSuccess } from '../../../store/slices/adminPackageSlice';
 import DataTable from '../../../components/common/DataTable';
 import Pagination from '../../../components/common/Pagination';
 import SearchInput from '../../../components/common/SearchInput';
@@ -58,6 +58,12 @@ const PackageListPage = () => {
     setModalOpen(true);
   };
 
+  const handleDelete = (id) => {
+    if (window.confirm('Are you sure you want to permanently delete this package?')) {
+      dispatch(deleteAdminPackage(id));
+    }
+  };
+
   const columns = [
     { key: 'name', label: 'Name', render: (_, pkg) => <span className="font-medium text-text-light-bg">{pkg.name}</span> },
     { key: 'price', label: 'Price', render: (_, pkg) => <span className="font-mono text-sm">${pkg.price}</span> },
@@ -98,6 +104,9 @@ const PackageListPage = () => {
             ) : (
               <ToggleLeft size={18} className="text-text-secondary" />
             )}
+          </button>
+          <button onClick={() => handleDelete(pkg._id)} className="p-1.5 hover:bg-bg-light-alt rounded-lg cursor-pointer text-red-500 hover:text-red-700" title="Delete">
+            <Trash2 size={16} />
           </button>
         </div>
       ),

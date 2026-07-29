@@ -20,11 +20,41 @@ const seedPackagesAndMethods = async () => {
     // 2. Seed Packages
     const packagesCount = await Package.countDocuments();
     if (packagesCount === 0) {
+      const tether = await Coin.findOne({ symbol: 'Tx' });
+      const okx = await Coin.findOne({ symbol: 'OKX' });
+      const doge = await Coin.findOne({ symbol: 'Doge' });
+
       await Package.create([
-        { name: 'ABNNN', price: 10, dailyROI: 14.2857, duration: 7, hashRate: 10, coinSymbol: 'Tx' },
-        { name: 'OKX-Starter', price: 50, dailyROI: 5.0, duration: 30, hashRate: 50, coinSymbol: 'OKX' },
-        { name: 'OKX-Premium', price: 200, dailyROI: 6.5, duration: 30, hashRate: 250, coinSymbol: 'OKX' },
-        { name: 'Doge-Basic', price: 30, dailyROI: 4.0, duration: 30, hashRate: 25, coinSymbol: 'Doge' },
+        { 
+          name: 'Starter', 
+          description: 'Great for beginners starting their mining journey.',
+          price: 110, 
+          dailyROI: 1.25, 
+          duration: 30, 
+          hashRate: 100, 
+          coins: [tether._id], 
+          status: 'active' 
+        },
+        { 
+          name: 'Medium', 
+          description: 'Our most popular plan for balanced returns.',
+          price: 500, 
+          dailyROI: 1.75, 
+          duration: 30, 
+          hashRate: 500, 
+          coins: [tether._id, okx._id], 
+          status: 'active' 
+        },
+        { 
+          name: 'Gold', 
+          description: 'High-performance mining for professional yields.',
+          price: 1000, 
+          dailyROI: 2.50, 
+          duration: 30, 
+          hashRate: 1100, 
+          coins: [tether._id, okx._id, doge._id], 
+          status: 'active' 
+        },
       ]);
       console.log('Mining packages seeded successfully.');
     }

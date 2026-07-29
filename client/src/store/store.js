@@ -17,6 +17,7 @@ import adminReferralReducer from './slices/adminReferralSlice';
 import adminDashboardStatsReducer from './slices/adminDashboardSlice';
 import notificationReducer from './slices/notificationSlice';
 import adminMiningSettingsReducer from './slices/adminMiningSettingsSlice';
+import kycReducer from './slices/kycSlice';
 
 const store = configureStore({
   reducer: {
@@ -30,6 +31,7 @@ const store = configureStore({
     supportChat: supportChatReducer,
     notifications: notificationReducer,
     adminMiningSettings: adminMiningSettingsReducer,
+    kyc: kycReducer,
     adminDeposits: adminDepositReducer,
     adminWithdrawals: adminWithdrawalReducer,
     adminPaymentMethods: adminPaymentMethodReducer,

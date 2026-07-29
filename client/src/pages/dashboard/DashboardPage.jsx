@@ -27,7 +27,8 @@ const DashboardPage = () => {
     miningStatus, 
     coins,
     activePackage,
-    latestTransactions, 
+    latestTransactions,
+    miningSettings, 
     loading, 
     error 
   } = useSelector((state) => state.dashboard);
@@ -158,6 +159,16 @@ const DashboardPage = () => {
       {/* MAIN CONTAINER */}
       <main className="max-w-7xl w-full mx-auto px-6 py-10 flex-grow space-y-10">
         
+        {miningSettings?.isPaused && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3 text-amber-800 text-xs font-medium shadow-sm">
+            <ShieldAlert size={18} className="text-amber-500 flex-shrink-0" />
+            <div>
+              <p className="font-bold">Mining Operations Paused</p>
+              <p className="text-amber-600 mt-0.5">The administrator has temporarily paused the mining claims. Your timers will continue counting down, but reward payouts are suspended.</p>
+            </div>
+          </div>
+        )}
+        
         {/* STATS CARDS */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
           
@@ -244,17 +255,24 @@ const DashboardPage = () => {
         </section>
 
         {/* ACTIVE PACKAGE DETAILS */}
-        {activePackage && (
+        {activePackage && !miningSettings?.isDisabled && (
           <section className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden flex flex-col sm:flex-row">
             <div className="bg-[#0a1931] p-8 text-white sm:w-1/3 flex flex-col justify-center relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-16 translate-x-16 blur-2xl"></div>
               <div className="relative z-10">
                 <p className="text-yellow-400 font-bold text-xs uppercase tracking-widest mb-2">Current Plan</p>
                 <h2 className="text-3xl font-black mb-2">{activePackage.packageId?.name || 'Active Plan'}</h2>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-xs font-bold border border-green-500/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
-                  Active
-                </span>
+                {miningSettings?.isPaused ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-xs font-bold border border-amber-500/30">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                    Paused
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-xs font-bold border border-green-500/30">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+                    Active
+                  </span>
+                )}
               </div>
             </div>
             <div className="p-8 sm:w-2/3 grid grid-cols-2 gap-6 items-center">
@@ -287,22 +305,27 @@ const DashboardPage = () => {
         )}
 
         {/* LIVE MINING PROGRESS */}
-        <section className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
-          <div className="bg-slate-900 p-6 flex items-center border-b border-slate-850">
-            <div className="bg-yellow-400 p-2 rounded-lg mr-3.5">
-              <Cpu className="w-5 h-5 text-slate-900" />
+        {!miningSettings?.isDisabled && (
+          <section className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+            <div className="bg-slate-900 p-6 flex items-center border-b border-slate-850">
+              <div className="bg-yellow-400 p-2 rounded-lg mr-3.5">
+                <Cpu className="w-5 h-5 text-slate-900" />
+              </div>
+              <h2 className="text-lg font-bold text-white tracking-tight">Live Mining Progress</h2>
             </div>
-            <h2 className="text-lg font-bold text-white tracking-tight">Live Mining Progress</h2>
-          </div>
-          <div className="p-8 space-y-8">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-slate-500 font-bold uppercase tracking-wider text-xs flex items-center gap-1.5">
-                  Current Engine Status:{' '}
-                  <span className={miningStatus.status === 'active' ? 'text-green-500' : 'text-slate-400'}>
-                    {miningStatus.status === 'active' ? 'Active' : 'Inactive'}
-                  </span>
-                </div>
+            <div className="p-8 space-y-8">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-slate-500 font-bold uppercase tracking-wider text-xs flex items-center gap-1.5">
+                    Current Engine Status:{' '}
+                    {miningSettings?.isPaused ? (
+                      <span className="text-amber-500">Paused</span>
+                    ) : (
+                      <span className={miningStatus.status === 'active' ? 'text-green-500' : 'text-slate-400'}>
+                        {miningStatus.status === 'active' ? 'Active' : 'Inactive'}
+                      </span>
+                    )}
+                  </div>
                 <div>
                   <span className="text-xs font-black text-slate-900 bg-slate-100 px-2.5 py-1 rounded-full">
                     {miningStatus.progressPercent}% Complete
@@ -373,20 +396,21 @@ const DashboardPage = () => {
                   )}
                   <button
                     onClick={handleClaimReward}
-                    disabled={!isReadyToClaim || loading}
+                    disabled={!isReadyToClaim || loading || miningSettings?.isPaused}
                     className={`px-6 py-3 rounded-xl font-black text-sm shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-1.5
-                      ${isReadyToClaim 
+                      ${isReadyToClaim && !miningSettings?.isPaused
                         ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-slate-900 hover:from-yellow-350 hover:to-orange-450 hover:shadow-lg' 
                         : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
                       }`}
                   >
-                    Claim Reward
+                    {miningSettings?.isPaused ? 'Mining Paused' : 'Claim Reward'}
                   </button>
                 </div>
               </div>
             )}
           </div>
         </section>
+        )}
 
         {/* TRANSACTION HISTORY */}
         <section className="space-y-4">

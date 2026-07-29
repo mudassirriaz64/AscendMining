@@ -45,10 +45,20 @@ const togglePackageStatus = async (req, res, next) => {
   }
 };
 
+const deletePackage = async (req, res, next) => {
+  try {
+    const pkg = await packageManagementService.deletePackage(req.params.id, req.user.id, req.ip);
+    res.status(200).json({ success: true, message: 'Package deleted successfully.', data: { package: pkg } });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   listPackages,
   getPackage,
   createPackage,
   updatePackage,
   togglePackageStatus,
+  deletePackage,
 };

@@ -87,6 +87,24 @@ const userSchema = new mongoose.Schema(
       default: null,
       immutable: true,
     },
+    kycStatus: {
+      type: String,
+      enum: ['none', 'pending', 'approved', 'rejected'],
+      default: 'none',
+    },
+    kycDocumentType: {
+      type: String,
+      enum: ['cnic', 'driver_license', 'passport'],
+      default: null,
+    },
+    kycDocumentUrl: {
+      type: String,
+      default: null,
+    },
+    kycRejectionReason: {
+      type: String,
+      default: null,
+    },
     passwordResetToken: {
       type: String,
       default: null,

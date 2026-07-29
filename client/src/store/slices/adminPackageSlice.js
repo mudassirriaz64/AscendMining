@@ -61,6 +61,18 @@ export const toggleAdminPackageStatus = createAsyncThunk(
   }
 );
 
+export const deleteAdminPackage = createAsyncThunk(
+  'adminPackages/deletePackage',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await adminPackageService.delete(id);
+      return response.data.data.package;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: 'Failed to delete package.' });
+    }
+  }
+);
+
 export const fetchAllCoins = createAsyncThunk(
   'adminPackages/fetchAllCoins',
   async (_, { rejectWithValue }) => {
@@ -136,6 +148,11 @@ const adminPackageSlice = createSlice({
       })
       .addCase(fetchAllCoins.fulfilled, (state, action) => {
         state.allCoins = action.payload;
+      })
+      .addCase(deleteAdminPackage.fulfilled, (state, action) => {
+        state.packages = state.packages.filter((p) => p._id !== action.payload._id);
+        state.packagesTotal = Math.max(0, state.packagesTotal - 1);
+        state.actionSuccess = 'Package deleted successfully.';
       });
   },
 });
