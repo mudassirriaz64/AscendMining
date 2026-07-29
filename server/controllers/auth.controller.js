@@ -81,6 +81,9 @@ const refreshToken = async (req, res, next) => {
 
 const getMe = async (req, res, next) => {
   try {
+    if (req.user.isGuest) {
+      return res.status(200).json({ success: true, data: { user: null } });
+    }
     const user = await authService.getMe(req.user.id);
     res.status(200).json({
       success: true,

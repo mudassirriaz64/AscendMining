@@ -180,12 +180,12 @@ const sendMessage = async ({
 
   const update = {
     lastMessageAt: now,
-    lastMessageBy: isInvestor ? 'user' : 'agent',
+    lastMessageBy: isUserSender ? 'user' : 'agent',
     lastMessagePreview: previewText,
-    unreadByAdmin: isInvestor,
-    unreadByUser: !isInvestor,
+    unreadByAdmin: isUserSender,
+    unreadByUser: !isUserSender,
   };
-  if (!isInvestor) {
+  if (!isUserSender) {
     update.awaitingAgentSince = null;
     try {
       const SupportTicket = require('../models/SupportTicket');
@@ -198,7 +198,7 @@ const sendMessage = async ({
     }
   }
 
-  if (isInvestor) {
+  if (isUserSender) {
     update.hiddenFromAdmin = false;
   } else {
     update.hiddenFromUser = false;
@@ -208,10 +208,10 @@ const sendMessage = async ({
   const session = await sessionRepo.findById(activeSessionId);
   if (session) {
     let sessionUpdated = false;
-    if (isInvestor && session.hiddenFromAdmin) {
+    if (isUserSender && session.hiddenFromAdmin) {
       session.hiddenFromAdmin = false;
       sessionUpdated = true;
-    } else if (!isInvestor && session.hiddenFromUser) {
+    } else if (!isUserSender && session.hiddenFromUser) {
       session.hiddenFromUser = false;
       sessionUpdated = true;
     }
