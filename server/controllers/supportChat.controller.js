@@ -208,6 +208,13 @@ const adminDeleteConversation = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+const adminCloseSession = async (req, res, next) => {
+  try {
+    const session = await supportChatService.closeSession(req.params.sessionId, req.user.id, 'admin');
+    res.json({ success: true, data: { session } });
+  } catch (error) { next(error); }
+};
+
 module.exports = {
   getMyConversation,
   getMySessionMessages,
@@ -222,4 +229,5 @@ module.exports = {
   uploadAttachment,
   adminCreateSession,
   adminDeleteConversation,
+  adminCloseSession,
 };

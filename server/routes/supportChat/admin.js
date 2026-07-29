@@ -9,6 +9,7 @@ router.get('/waiting', auth, requireRole('admin', 'support_agent'), controller.g
 router.get('/:id', auth, requireRole('admin', 'support_agent'), controller.openConversation);
 router.post('/:id/upload', auth, requireRole('admin', 'support_agent'), uploadMiddleware, controller.uploadAttachment);
 router.delete('/sessions/:sessionId', auth, requireRole('admin', 'support_agent'), controller.adminDeleteSession);
+router.patch('/sessions/:sessionId/close', auth, requireRole('admin', 'support_agent'), controller.adminCloseSession);
 router.post('/:id/sessions', auth, requireRole('admin', 'support_agent'), controller.adminCreateSession);
 router.delete('/:id', auth, requireRole('admin', 'support_agent'), controller.adminDeleteConversation);
 
