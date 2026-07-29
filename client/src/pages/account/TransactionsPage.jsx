@@ -88,7 +88,7 @@ const TransactionsPage = () => {
                         {tx.currency}
                       </td>
                       <td className="px-6 py-4 text-slate-500">
-                        {tx.description || '-'}
+                        {tx.reason || '-'}
                       </td>
                       <td className="px-6 py-4 text-slate-500">
                         {formatDate(tx.createdAt)}

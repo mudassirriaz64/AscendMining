@@ -24,6 +24,11 @@ const authMiddleware = async (req, res, next) => {
 
     const decoded = verifyAccessToken(token);
 
+    if (decoded.isGuest) {
+      req.user = { id: decoded.id, role: 'investor', isGuest: true };
+      return next();
+    }
+
     if (decoded.role === 'admin' || decoded.role === 'support_agent') {
       const admin = await Admin.findById(decoded.id).maxTimeMS(8000);
       if (!admin) {

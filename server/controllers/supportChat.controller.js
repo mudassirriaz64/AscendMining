@@ -10,47 +10,134 @@ const pagination = (query, fallback = 50) => ({
 
 const getMyConversation = async (req, res, next) => {
   try {
-    const data = await supportChatService.getMyConversation(req.user.id, {
-      ...pagination(req.query),
-      markRead: req.query.opened === 'true',
-    });
+    let data;
+    if (req.user.isGuest) {
+      const Conversation = require('../models/Conversation');
+      const conversation = await Conversation.findOne({ guestId: req.user.id });
+      if (!conversation) {
+        return res.status(404).json({ success: false, error: { message: 'Conversation not found.' } });
+      }
+
+      const sessions = await supportChatService.getSessions(conversation._id);
+      if (sessions.length === 0) {
+        const newSession = await supportChatService.createSession(conversation._id);
+        sessions.unshift({ ...newSession.toObject(), _id: newSession._id });
+      }
+
+      const activeSessionId = sessions[0]._id;
+      const messages = await require('../repositories/conversationMessage.repository').findBySessionId(activeSessionId, pagination(req.query));
+
+      if (req.query.opened === 'true') {
+        const messageRepo = require('../repositories/conversationMessage.repository');
+        const conversationRepo = require('../repositories/conversation.repository');
+        await Promise.all([
+          messageRepo.markReadByConversation(conversation._id, 'investor'),
+          conversationRepo.updateById(conversation._id, { unreadByUser: false }),
+        ]);
+      }
+
+      data = {
+        conversation: supportChatService.serializeConversation({ ...conversation.toObject(), unreadByUser: req.query.opened === 'true' ? false : conversation.unreadByUser }),
+        sessions: sessions.map(supportChatService.serializeSession),
+        activeSessionId: activeSessionId.toString(),
+        messages: messages.map(supportChatService.serializeMessage),
+        page: pagination(req.query).page,
+      };
+    } else {
+      data = await supportChatService.getMyConversation(req.user.id, {
+        ...pagination(req.query),
+        markRead: req.query.opened === 'true',
+      });
+    }
     res.json({ success: true, data });
   } catch (error) { next(error); }
 };
 
 const getMySessionMessages = async (req, res, next) => {
   try {
-    const data = await supportChatService.getMySessionMessages(req.user.id, req.params.sessionId, pagination(req.query, 100));
-    res.json({ success: true, data });
+    let conversationId;
+    if (req.user.isGuest) {
+      const Conversation = require('../models/Conversation');
+      const conversation = await Conversation.findOne({ guestId: req.user.id });
+      if (!conversation) return res.status(404).json({ success: false, error: { message: 'Conversation not found.' } });
+      conversationId = conversation._id;
+    } else {
+      const conversation = await supportChatService.getConversationByUserId(req.user.id);
+      if (!conversation) return res.status(404).json({ success: false, error: { message: 'Conversation not found.' } });
+      conversationId = conversation._id;
+    }
+
+    const session = await require('../repositories/conversationSession.repository').findById(req.params.sessionId);
+    if (!session || session.conversationId.toString() !== conversationId.toString() || session.hiddenFromUser) {
+      return res.json({ success: true, data: { messages: [], session: null } });
+    }
+
+    const messages = await require('../repositories/conversationMessage.repository').findBySessionId(req.params.sessionId, pagination(req.query, 100));
+    res.json({
+      success: true,
+      data: {
+        messages: messages.map(supportChatService.serializeMessage),
+        session: supportChatService.serializeSession(session),
+      },
+    });
   } catch (error) { next(error); }
 };
 
 const createSession = async (req, res, next) => {
   try {
-    const conversation = await supportChatService.getOrCreateConversation(req.user.id);
-    const session = await supportChatService.createSession(conversation._id, req.body.title);
+    req.body = req.body || {};
+    let conversationId;
+    if (req.user.isGuest) {
+      const Conversation = require('../models/Conversation');
+      const conversation = await Conversation.findOne({ guestId: req.user.id });
+      if (!conversation) return res.status(404).json({ success: false, error: { message: 'Conversation not found.' } });
+      conversationId = conversation._id;
+    } else {
+      const conversation = await supportChatService.getOrCreateConversation(req.user.id);
+      conversationId = conversation._id;
+    }
+
+    const session = await supportChatService.createSession(conversationId, req.body.title);
+    req.app.get('supportNamespace')?.to(`conversation:${conversationId}`).emit('session:new', { session });
     res.status(201).json({ success: true, data: { session } });
   } catch (error) { next(error); }
 };
 
 const deleteSession = async (req, res, next) => {
   try {
-    const conversation = await supportChatService.getConversationByUserId(req.user.id);
-    if (!conversation) return res.status(404).json({ success: false, error: { message: 'Conversation not found.' } });
-    await supportChatService.deleteSession(req.params.sessionId, conversation._id);
+    let conversationId;
+    if (req.user.isGuest) {
+      const Conversation = require('../models/Conversation');
+      const conversation = await Conversation.findOne({ guestId: req.user.id });
+      if (!conversation) return res.status(404).json({ success: false, error: { message: 'Conversation not found.' } });
+      conversationId = conversation._id;
+    } else {
+      const conversation = await supportChatService.getConversationByUserId(req.user.id);
+      if (!conversation) return res.status(404).json({ success: false, error: { message: 'Conversation not found.' } });
+      conversationId = conversation._id;
+    }
+    await supportChatService.deleteSession(req.params.sessionId, conversationId);
     res.json({ success: true, data: { message: 'Session deleted.' } });
   } catch (error) { next(error); }
 };
 
 const sendMessage = async (req, res, next) => {
   try {
+    req.body = req.body || {};
     const isInvestor = req.user.role === 'investor';
     let conversationId;
     let sessionId = req.body.sessionId || null;
 
     if (isInvestor) {
-      const conversation = await supportChatService.getOrCreateConversation(req.user.id);
-      conversationId = conversation._id;
+      if (req.user.isGuest) {
+        const Conversation = require('../models/Conversation');
+        const conversation = await Conversation.findOne({ guestId: req.user.id });
+        if (!conversation) return res.status(404).json({ success: false, error: { message: 'Conversation not found.' } });
+        conversationId = conversation._id;
+      } else {
+        const conversation = await supportChatService.getOrCreateConversation(req.user.id);
+        conversationId = conversation._id;
+      }
       if (!sessionId) {
         const sessions = await supportChatService.getSessions(conversationId);
         sessionId = sessions.length > 0 ? sessions[0]._id : null;
@@ -126,6 +213,7 @@ const adminDeleteSession = async (req, res, next) => {
 
 const closeSession = async (req, res, next) => {
   try {
+    req.body = req.body || {};
     const conversation = await supportChatService.getConversationByUserId(req.user.id);
     if (!conversation) return res.status(404).json({ success: false, error: { message: 'Conversation not found.' } });
     const session = await supportChatService.closeSession(req.params.sessionId, req.user.id, req.body.reason || 'user_close');
@@ -196,7 +284,9 @@ const uploadAttachment = async (req, res, next) => {
 
 const adminCreateSession = async (req, res, next) => {
   try {
+    req.body = req.body || {};
     const session = await supportChatService.adminCreateSession(req.params.id, req.body.title);
+    req.app.get('supportNamespace')?.to(`conversation:${req.params.id}`).emit('session:new', { session });
     res.status(201).json({ success: true, data: { session } });
   } catch (error) { next(error); }
 };
@@ -215,6 +305,54 @@ const adminCloseSession = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+const deleteConversation = async (req, res, next) => {
+  try {
+    const conversation = await supportChatService.getConversationByUserId(req.user.id);
+    if (!conversation) return res.status(404).json({ success: false, error: { message: 'Conversation not found.' } });
+    const result = await supportChatService.deleteConversation(conversation._id);
+    res.json({ success: true, data: result });
+  } catch (error) { next(error); }
+};
+
+const createGuestConversation = async (req, res, next) => {
+  try {
+    req.body = req.body || {};
+    const { guestId, name, email, phone } = req.body;
+    if (!guestId || !name || !email) {
+      return res.status(400).json({ success: false, error: { message: 'GuestId, Name, and Email are required.' } });
+    }
+
+    const Conversation = require('../models/Conversation');
+    const jwt = require('jsonwebtoken');
+
+    let conversation = await Conversation.findOne({ guestId });
+    if (!conversation) {
+      conversation = await Conversation.create({
+        isGuest: true,
+        guestId,
+        guestName: name,
+        guestEmail: email,
+        guestPhone: phone || null,
+        lastMessageAt: new Date(),
+      });
+    }
+
+    const guestToken = jwt.sign(
+      { id: guestId, role: 'investor', isGuest: true },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.status(201).json({
+      success: true,
+      data: {
+        conversation,
+        token: guestToken,
+      },
+    });
+  } catch (error) { next(error); }
+};
+
 module.exports = {
   getMyConversation,
   getMySessionMessages,
@@ -230,4 +368,6 @@ module.exports = {
   adminCreateSession,
   adminDeleteConversation,
   adminCloseSession,
+  deleteConversation,
+  createGuestConversation,
 };

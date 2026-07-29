@@ -199,7 +199,7 @@ const adjustUserBalance = async (userId, { type, amount, reason }, adminId, ip) 
     referenceType: 'AdminLog',
     referenceId: new mongoose.Types.ObjectId(adminId),
     balanceAfter: afterBalance,
-    description: reason || `Admin balance adjustment: ${type}`,
+        reason: reason || `Admin balance adjustment: ${type}`,
     createdBy: adminId,
   });
 

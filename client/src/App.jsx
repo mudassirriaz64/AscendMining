@@ -42,17 +42,44 @@ const SupportChatPage = lazy(() => import('./pages/support/SupportChatPage'));
 const SupportTicketsPage = lazy(() => import('./pages/support/SupportTicketsPage'));
 const SupportChatWidget = lazy(() => import('./components/common/SupportChatWidget'));
 
+const PublicLayout = lazy(() => import('./layouts/PublicLayout'));
+const HomePage = lazy(() => import('./pages/public/HomePage'));
+const AboutPage = lazy(() => import('./pages/public/AboutPage'));
+const ServicesPage = lazy(() => import('./pages/public/ServicesPage'));
+const PackagesPage = lazy(() => import('./pages/public/PackagesPage'));
+const FAQsPage = lazy(() => import('./pages/public/FAQsPage'));
+const SupportPage = lazy(() => import('./pages/public/SupportPage'));
+const ContactPage = lazy(() => import('./pages/public/ContactPage'));
+
 const TitleHandler = () => {
   const location = useLocation();
 
   useEffect(() => {
     const path = location.pathname;
+    const siteName = 'AscendHash';
+
     if (path.startsWith('/admin')) {
-      document.title = 'Admin Panel | AscendMining';
-    } else if (path === '/login' || path === '/register') {
-      document.title = 'AscendMining';
+      document.title = `Admin Panel | ${siteName}`;
+      return;
+    }
+
+    const titleMap = {
+      '/': `Home | ${siteName}`,
+      '/about': `About Us | ${siteName}`,
+      '/services': `Our Services | ${siteName}`,
+      '/packages': `Investment Packages | ${siteName}`,
+      '/faqs': `FAQs | ${siteName}`,
+      '/support': `Customer Support | ${siteName}`,
+      '/contact': `Contact Us | ${siteName}`,
+      '/login': siteName,
+      '/register': siteName,
+      '/admin/login': siteName,
+    };
+
+    if (titleMap[path]) {
+      document.title = titleMap[path];
     } else {
-      document.title = 'Client Dashboard | AscendMining';
+      document.title = `Client Dashboard | ${siteName}`;
     }
   }, [location.pathname]);
 
@@ -129,6 +156,17 @@ const App = () => {
       <Suspense fallback={<LoadingSpinner />}>
         {user?.role === 'investor' ? <SupportChatWidget /> : null}
         <Routes>
+          {/* Public Marketing Pages */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/services" element={<ServicesPage />} />
+            <Route path="/packages" element={<PackagesPage />} />
+            <Route path="/faqs" element={<FAQsPage />} />
+            <Route path="/support" element={<SupportPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+          </Route>
+
           <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
           <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
           <Route path="/admin/login" element={<AdminPublicRoute><AdminLoginPage /></AdminPublicRoute>} />
@@ -169,7 +207,7 @@ const App = () => {
             <Route path="support" element={<AdminSupportPage />} />
           </Route>
 
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
     </Router>

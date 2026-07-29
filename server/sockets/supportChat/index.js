@@ -29,7 +29,9 @@ const initSupportChatSocket = (io) => {
     }
 
     if (role === 'investor') {
-      const conversation = await supportChatService.getConversationByUserId(id);
+      const conversation = socket.user.isGuest
+        ? await supportChatService.getConversationByGuestId(id)
+        : await supportChatService.getConversationByUserId(id);
       if (conversation) socket.join(`conversation:${conversation._id}`);
     }
 
@@ -37,7 +39,9 @@ const initSupportChatSocket = (io) => {
       try {
         if (!conversationId) throw new Error('Conversation ID is required.');
         if (role === 'investor') {
-          const conversation = await supportChatService.getConversationByUserId(id);
+          const conversation = socket.user.isGuest
+            ? await supportChatService.getConversationByGuestId(id)
+            : await supportChatService.getConversationByUserId(id);
           if (!conversation || conversation._id.toString() !== conversationId) throw new Error('Forbidden.');
         }
         socket.join(`conversation:${conversationId}`);
@@ -62,7 +66,10 @@ const initSupportChatSocket = (io) => {
         let targetId = conversationId;
         let targetSessionId = sessionId || null;
         if (role === 'investor') {
-          const conversation = await supportChatService.getOrCreateConversation(id);
+          const conversation = socket.user.isGuest
+            ? await supportChatService.getConversationByGuestId(id)
+            : await supportChatService.getOrCreateConversation(id);
+          if (!conversation) throw new Error('Conversation not found.');
           targetId = conversation._id.toString();
           if (!targetSessionId) {
             const sessions = await supportChatService.getSessions(targetId);

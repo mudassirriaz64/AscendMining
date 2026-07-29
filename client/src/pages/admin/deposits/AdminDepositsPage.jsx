@@ -172,7 +172,7 @@ const AdminDepositsPage = () => {
 
       <div className="bg-white rounded-xl border border-border-light shadow-sm mb-6">
         <div className="p-4 border-b border-border-light flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <FilterChips options={statusFilters} value={status} onChange={handleStatusFilter} />
+          <FilterChips options={statusFilters} active={status} onChange={handleStatusFilter} />
         </div>
 
         <DataTable

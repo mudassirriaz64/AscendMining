@@ -7,6 +7,7 @@ const SESSION_INACTIVITY_MS = 30 * 60 * 1000;
 
 const getOrCreateConversation = (userId) => conversationRepo.getOrCreateByUserId(userId);
 const getConversationByUserId = (userId) => conversationRepo.findByUserId(userId);
+const getConversationByGuestId = (guestId) => conversationRepo.findByGuestId(guestId);
 
 const serializeConversation = (conversation) => {
   const value = conversation?.toObject ? conversation.toObject() : conversation;
@@ -379,9 +380,41 @@ const adminDeleteConversation = async (conversationId) => {
     err.statusCode = 404;
     throw err;
   }
-  conversation.hiddenFromAdmin = true;
-  await conversation.save();
-  return conversation;
+  if (conversation.hiddenFromUser) {
+    const Conversation = require('../models/Conversation');
+    const ConversationSession = require('../models/ConversationSession');
+    const ConversationMessage = require('../models/ConversationMessage');
+    await ConversationMessage.deleteMany({ conversationId });
+    await ConversationSession.deleteMany({ conversationId });
+    await Conversation.deleteOne({ _id: conversationId });
+    return { _id: conversationId, deletedPermanently: true };
+  } else {
+    conversation.hiddenFromAdmin = true;
+    await conversation.save();
+    return conversation;
+  }
+};
+
+const deleteConversation = async (conversationId) => {
+  const conversation = await conversationRepo.findById(conversationId);
+  if (!conversation) {
+    const err = new Error('Conversation not found.');
+    err.statusCode = 404;
+    throw err;
+  }
+  if (conversation.hiddenFromAdmin) {
+    const Conversation = require('../models/Conversation');
+    const ConversationSession = require('../models/ConversationSession');
+    const ConversationMessage = require('../models/ConversationMessage');
+    await ConversationMessage.deleteMany({ conversationId });
+    await ConversationSession.deleteMany({ conversationId });
+    await Conversation.deleteOne({ _id: conversationId });
+    return { _id: conversationId, deletedPermanently: true };
+  } else {
+    conversation.hiddenFromUser = true;
+    await conversation.save();
+    return conversation;
+  }
 };
 
 module.exports = {
@@ -389,6 +422,7 @@ module.exports = {
   SESSION_INACTIVITY_MS,
   getOrCreateConversation,
   getConversationByUserId,
+  getConversationByGuestId,
   sendMessage,
   getMyConversation,
   getMySessionMessages,
@@ -404,4 +438,8 @@ module.exports = {
   adminDeleteSession,
   adminCreateSession,
   adminDeleteConversation,
+  deleteConversation,
+  serializeConversation,
+  serializeSession,
+  serializeMessage,
 };

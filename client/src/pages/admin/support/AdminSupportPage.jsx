@@ -51,6 +51,7 @@ const AdminSupportPage = () => {
   const selectedIdRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const lastMessageIdRef = useRef(null);
+  const lastSelectedIdRef = useRef(null);
 
   const handleScroll = (e) => {
     const el = e.currentTarget;
@@ -116,6 +117,20 @@ const AdminSupportPage = () => {
       const targetConvoId = convo?._id || msg?.conversationId;
       if (targetConvoId && String(targetConvoId) === String(selectedIdRef.current)) {
         setMessages((current) => current.some((item) => item._id === msg._id) ? current : [...current, msg]);
+        
+        // If the message has a session ID, ensure we have the session details, else fetch them
+        if (msg.sessionId) {
+          setActiveSessions((current) => {
+            const hasSession = current.some((s) => String(s._id) === String(msg.sessionId));
+            if (!hasSession) {
+              api.get(`/admin/support/conversations/${targetConvoId}`).then((response) => {
+                setActiveSessions(response.data.data.sessions || []);
+              }).catch(() => {});
+            }
+            return current;
+          });
+        }
+
         // Emit conversation:read to clear alarm/unread status immediately
         const socket = getSocket() || connectSocket();
         if (socket?.connected) {
@@ -126,6 +141,14 @@ const AdminSupportPage = () => {
         triggerTabFlash('New support chat message');
       }
       loadConversations().catch(() => {});
+    };
+    const onNewSession = ({ session }) => {
+      if (session) {
+        setActiveSessions((current) => {
+          if (current.some((s) => String(s._id) === String(session._id))) return current;
+          return [session, ...current];
+        });
+      }
     };
     const onAlarmTrigger = ({ conversationId }) => {
       setAlarmIds((current) => new Set(current).add(conversationId));
@@ -155,6 +178,7 @@ const AdminSupportPage = () => {
       if (senderRole === 'investor' && conversationId === selectedIdRef.current) setIsTyping(false);
     };
     socket.on('message:new', onMessage);
+    socket.on('session:new', onNewSession);
     socket.on('alarm:trigger', onAlarmTrigger);
     socket.on('alarm:clear', onAlarmClear);
     socket.on('conversation:read', onRead);
@@ -162,6 +186,7 @@ const AdminSupportPage = () => {
     socket.on('typing:stop', onTypingStop);
     return () => {
       socket.off('message:new', onMessage);
+      socket.off('session:new', onNewSession);
       socket.off('alarm:trigger', onAlarmTrigger);
       socket.off('alarm:clear', onAlarmClear);
       socket.off('conversation:read', onRead);
@@ -170,36 +195,30 @@ const AdminSupportPage = () => {
     };
   }, [loadConversations, loadTickets]);
 
+  // Handle auto scroll
   useEffect(() => {
     const el = chatContainerRef.current;
     if (!el) return;
+
     const lastMsg = messages[messages.length - 1];
     const lastMsgId = lastMsg?._id;
+    const sentByMe = lastMsg && (lastMsg.senderRole === 'admin' || lastMsg.senderRole === 'support_agent');
 
-    // Scroll to bottom if a new message is appended at the bottom, or if no previous last message ID was recorded (first load)
-    const isNewMessageAtBottom = lastMsgId && lastMessageIdRef.current !== lastMsgId;
-
-    if (isNewMessageAtBottom || !lastMessageIdRef.current) {
+    const isNewConvo = lastSelectedIdRef.current !== selectedId;
+    
+    if (isNewConvo || sentByMe || isNearBottom) {
       setTimeout(() => {
-        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+        el.scrollTop = el.scrollHeight;
       }, 50);
       setIsNearBottom(true);
       setShowScrollPill(false);
-    } else if (messages.length > 0) {
+    } else if (messages.length > 0 && lastMsgId && lastMessageIdRef.current !== lastMsgId) {
       setShowScrollPill(true);
     }
-    
-    lastMessageIdRef.current = lastMsgId;
-  }, [messages]);
 
-  useEffect(() => {
-    const el = chatContainerRef.current;
-    if (el) {
-      el.scrollTop = el.scrollHeight;
-    }
-    setIsNearBottom(true);
-    setShowScrollPill(false);
-  }, [selectedId]);
+    lastMessageIdRef.current = lastMsgId;
+    lastSelectedIdRef.current = selectedId;
+  }, [messages, selectedId]);
 
   const openConversation = async (id) => {
     try {
@@ -450,7 +469,18 @@ const AdminSupportPage = () => {
               const overdue = conversation.escalationAvailable;
               return (
                 <button type="button" key={conversation._id} onClick={() => openConversation(conversation._id)} className={`relative w-full border-b border-border-light px-4 py-3 text-left hover:bg-bg-light-alt focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary ${selectedId === conversation._id ? 'bg-bg-light-alt' : ''}`}>
-                  <div className="flex items-center gap-2"><span className={`h-2.5 w-2.5 shrink-0 rounded-full ${ringing ? 'animate-pulse bg-danger motion-reduce:animate-none' : conversation.unreadByAdmin ? 'bg-primary' : 'bg-slate-300'}`} /><p className="truncate text-sm font-semibold">{user?.fullName || user?.username || 'Investor'}</p>{overdue ? <span className="ml-auto rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700">30m+</span> : null}</div>
+                  <div className="flex items-center gap-2">
+                    <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${ringing ? 'animate-pulse bg-danger motion-reduce:animate-none' : conversation.unreadByAdmin ? 'bg-primary' : 'bg-slate-300'}`} />
+                    <p className="truncate text-sm font-semibold">
+                      {conversation.isGuest 
+                        ? conversation.guestName 
+                        : (user?.fullName || user?.username || 'Investor')}
+                    </p>
+                    {conversation.isGuest && (
+                      <span className="rounded bg-slate-100 border border-slate-200 px-1 py-0.5 text-[9px] font-bold text-text-secondary">Guest</span>
+                    )}
+                    {overdue ? <span className="ml-auto rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700">30m+</span> : null}
+                  </div>
                   <p className="mt-1 truncate pl-[18px] text-xs text-text-secondary">{conversation.lastMessagePreview || 'No messages'}</p>
                   {ringing ? <span className="absolute inset-y-2 left-0 w-1 rounded-r bg-danger" aria-hidden="true" /> : null}
                 </button>
@@ -463,8 +493,18 @@ const AdminSupportPage = () => {
               <header className="border-b border-border-light px-5 py-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-sm font-semibold">{(selected.user || selected.userId)?.fullName || 'Investor'}</h2>
-                    <p className="text-xs text-text-secondary">One conversation · {activeSessions.length} session{activeSessions.length !== 1 ? 's' : ''}</p>
+                    <h2 className="text-sm font-semibold">
+                      {selected.isGuest 
+                        ? `${selected.guestName} (Guest)` 
+                        : ((selected.user || selected.userId)?.fullName || 'Investor')}
+                    </h2>
+                    {selected.isGuest ? (
+                      <p className="text-xs text-text-secondary">
+                        Email: {selected.guestEmail} {selected.guestPhone && `· Phone: ${selected.guestPhone}`}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-text-secondary">One conversation · {activeSessions.length} session{activeSessions.length !== 1 ? 's' : ''}</p>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <button

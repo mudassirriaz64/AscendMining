@@ -164,9 +164,9 @@ const AdminWithdrawalsPage = () => {
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
         <div className="flex flex-wrap gap-4 justify-between items-center mb-6">
           <FilterChips
-            filters={statusFilters}
-            activeFilter={status}
-            onFilterChange={handleStatusFilter}
+            options={statusFilters}
+            active={status}
+            onChange={handleStatusFilter}
           />
         </div>
 

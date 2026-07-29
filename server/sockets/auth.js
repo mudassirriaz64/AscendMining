@@ -8,6 +8,10 @@ module.exports = async (socket, next) => {
       || socket.handshake.headers?.authorization?.replace(/^Bearer\s+/i, '');
     if (!token) return next(new Error('Authentication required.'));
     const decoded = verifyAccessToken(token);
+    if (decoded.isGuest) {
+      socket.user = { id: decoded.id, role: 'investor', isGuest: true };
+      return next();
+    }
     if (decoded.role === 'admin' || decoded.role === 'support_agent') {
       const admin = await Admin.findById(decoded.id).select('_id role status');
       if (!admin || admin.status === 'suspended') return next(new Error('Unauthorized.'));

@@ -169,7 +169,7 @@ const rejectWithdrawal = async (req, res, next) => {
         coinSymbol: withdrawal.coinSymbol,
         referenceType: 'Withdrawal',
         referenceId: withdrawal._id,
-        description: `Refund for rejected withdrawal: ${reason}`
+        reason: `Refund for rejected withdrawal: ${reason}`
       });
     }
 

@@ -5,8 +5,27 @@ const conversationSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
-      unique: true, // exactly one Conversation per user (SCHEMA §8a)
+      default: null,
+    },
+    isGuest: {
+      type: Boolean,
+      default: false,
+    },
+    guestId: {
+      type: String,
+      default: null,
+    },
+    guestName: {
+      type: String,
+      default: null,
+    },
+    guestEmail: {
+      type: String,
+      default: null,
+    },
+    guestPhone: {
+      type: String,
+      default: null,
     },
     assignedAgent: {
       type: mongoose.Schema.Types.ObjectId,
@@ -51,7 +70,9 @@ const conversationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Note: userId unique index is already created by unique:true on the field above
+conversationSchema.index({ userId: 1 }, { unique: true, sparse: true, name: 'userId_1_sparse' });
+conversationSchema.index({ guestId: 1 }, { unique: true, sparse: true, name: 'guestId_1_sparse' });
+conversationSchema.index({ isGuest: 1 });
 conversationSchema.index({ awaitingAgentSince: 1 });
 conversationSchema.index({ assignedAgent: 1, lastMessageAt: -1 });
 

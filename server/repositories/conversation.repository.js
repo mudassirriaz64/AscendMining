@@ -2,6 +2,7 @@ const Conversation = require('../models/Conversation');
 require('../models/User');
 
 const findByUserId = (userId) => Conversation.findOne({ userId });
+const findByGuestId = (guestId) => Conversation.findOne({ guestId });
 const findById = (id) => Conversation.findById(id);
 
 // Atomic upsert plus the unique userId index makes concurrent first messages safe.
@@ -47,6 +48,7 @@ const deleteById = (id) => Conversation.findByIdAndDelete(id);
 
 module.exports = {
   findByUserId,
+  findByGuestId,
   findById,
   getOrCreateByUserId,
   updateById,

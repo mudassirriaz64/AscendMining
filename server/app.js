@@ -31,6 +31,9 @@ const supportChatRoutes = require('./routes/supportChat/index');
 const supportTicketRoutes = require('./routes/supportTicket/index');
 const adminSupportChatRoutes = require('./routes/supportChat/admin');
 const adminSupportTicketRoutes = require('./routes/supportTicket/admin');
+const publicServiceRoutes = require('./routes/service.routes');
+const publicFaqRoutes = require('./routes/faq.routes');
+const publicContactRoutes = require('./routes/contact.routes');
 
 const app = express();
 
@@ -79,6 +82,9 @@ app.use('/api/support/conversations', supportChatRoutes);
 app.use('/api/support/tickets', supportTicketRoutes);
 app.use('/api/admin/support/conversations', adminSupportChatRoutes);
 app.use('/api/admin/support/tickets', adminSupportTicketRoutes);
+app.use('/api/services', publicServiceRoutes);
+app.use('/api/faqs', publicFaqRoutes);
+app.use('/api/contact', publicContactRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ success: true, message: 'Server is running.' });

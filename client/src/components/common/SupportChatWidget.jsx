@@ -139,11 +139,21 @@ const SupportChatWidget = () => {
       setAgentsOnline(online);
     };
 
+    const onNewSession = ({ session }) => {
+      if (session) {
+        setSessions((current) => {
+          if (current.some((s) => String(s._id) === String(session._id))) return current;
+          return [session, ...current];
+        });
+      }
+    };
+
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
     socket.on('reconnect_attempt', onReconnectAttempt);
     socket.on('connect_error', onConnectError);
     socket.on('message:new', onMessage);
+    socket.on('session:new', onNewSession);
     socket.on('conversation:read', onRead);
     socket.on('typing:start', onTypingStart);
     socket.on('typing:stop', onTypingStop);
@@ -161,6 +171,7 @@ const SupportChatWidget = () => {
       socket.off('reconnect_attempt', onReconnectAttempt);
       socket.off('connect_error', onConnectError);
       socket.off('message:new', onMessage);
+      socket.off('session:new', onNewSession);
       socket.off('conversation:read', onRead);
       socket.off('typing:start', onTypingStart);
       socket.off('typing:stop', onTypingStop);
@@ -223,7 +234,7 @@ const SupportChatWidget = () => {
 
   const createNewSession = async () => {
     try {
-      const response = await api.post('/support/conversations/sessions');
+      const response = await api.post('/support/conversations/sessions', {});
       const newSession = response.data.data.session;
       setSessions((current) => [newSession, ...current]);
       setActiveSessionId(newSession._id);
@@ -231,6 +242,21 @@ const SupportChatWidget = () => {
       setShowSessions(false);
     } catch {
       toast.error('Could not create session.');
+    }
+  };
+
+  const handleDeleteConversation = async () => {
+    if (!window.confirm('Are you sure you want to delete your entire chat history? This action is irreversible.')) return;
+    try {
+      await api.delete('/support/conversations');
+      setConversation(null);
+      setSessions([]);
+      setMessages([]);
+      setActiveSessionId(null);
+      toast.success('Chat history cleared.');
+      await createNewSession();
+    } catch {
+      toast.error('Failed to delete chat history.');
     }
   };
 
@@ -425,6 +451,14 @@ const SupportChatWidget = () => {
               </div>
             </div>
             <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={handleDeleteConversation}
+                className="rounded-lg p-2 text-white/60 hover:bg-white/10 hover:text-red-400 transition-colors cursor-pointer"
+                title="Delete chat history"
+              >
+                <Trash2 size={16} />
+              </button>
               <button
                 type="button"
                 onClick={createNewSession}
