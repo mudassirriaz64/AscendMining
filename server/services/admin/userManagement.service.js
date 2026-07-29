@@ -162,6 +162,62 @@ const triggerPasswordReset = async (userId, adminId, ip) => {
   return { message: 'Password reset email sent to user.' };
 };
 
+const adjustUserBalance = async (userId, { type, amount, reason }, adminId, ip) => {
+  const user = await userRepository.findById(userId);
+  if (!user) throw new AppError('USER_NOT_FOUND', 'User not found.', 404);
+
+  const parsedAmount = parseFloat(amount);
+  if (isNaN(parsedAmount) || parsedAmount <= 0) {
+    throw new AppError('INVALID_AMOUNT', 'Amount must be a positive number.', 400);
+  }
+
+  if (!['add', 'deduct'].includes(type)) {
+    throw new AppError('INVALID_TYPE', 'Type must be "add" or "deduct".', 400);
+  }
+
+  const beforeBalance = user.walletBalance;
+  let adjustAmount = parsedAmount;
+  if (type === 'deduct') {
+    if (beforeBalance < parsedAmount) {
+      throw new AppError('INSUFFICIENT_BALANCE', 'User balance is insufficient for deduction.', 400);
+    }
+    adjustAmount = -parsedAmount;
+  }
+
+  const afterBalance = beforeBalance + adjustAmount;
+  
+  // Update user
+  await userRepository.updateById(userId, { walletBalance: afterBalance });
+
+// Create Wallet Transaction
+  const WalletTransaction = require('../../models/WalletTransaction');
+  await WalletTransaction.create({
+    userId,
+    currency: 'USD',
+    type: type === 'add' ? 'deposit' : 'withdrawal',
+    amount: adjustAmount,
+    referenceType: 'AdminLog',
+    referenceId: new mongoose.Types.ObjectId(adminId),
+    balanceAfter: afterBalance,
+    description: reason || `Admin balance adjustment: ${type}`,
+    createdBy: adminId,
+  });
+
+  // Log admin action
+  await adminLogRepository.create({
+    actorId: adminId,
+    action: 'wallet_adjustment',
+    targetType: 'User',
+    targetId: userId,
+    beforeState: { walletBalance: beforeBalance },
+    afterState: { walletBalance: afterBalance },
+    reason: reason || `Admin adjusted balance by ${adjustAmount}`,
+    ipAddress: ip,
+  });
+
+  return { message: 'Balance adjusted successfully.', walletBalance: afterBalance };
+};
+
 module.exports = {
   listUsers,
   getUserDetail,
@@ -173,4 +229,5 @@ module.exports = {
   suspendUser,
   reactivateUser,
   triggerPasswordReset,
+  adjustUserBalance,
 };

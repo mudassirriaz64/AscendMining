@@ -167,12 +167,15 @@ const Header = () => {
             </DropdownLink>
           </NavDropdown>
 
-          <NavDropdown label="My Account" isActive={isDropdownActive(['/wallets', '/profile', '/deposits', '/transactions', '/referrals'])}>
+          <NavDropdown label="My Account" isActive={isDropdownActive(['/wallets', '/profile', '/deposit', '/deposits', '/transactions', '/referrals'])}>
             <DropdownLink to="/profile" currentPath={location.pathname} onClick={navigate}>
               Profile Setting
             </DropdownLink>
             <DropdownLink to="/profile/password" currentPath={location.pathname} onClick={navigate}>
               Change Password
+            </DropdownLink>
+            <DropdownLink to="/deposit" currentPath={location.pathname} onClick={navigate}>
+              Deposit / Top Up
             </DropdownLink>
             <DropdownLink to="/wallets" currentPath={location.pathname} onClick={navigate}>
               Wallets

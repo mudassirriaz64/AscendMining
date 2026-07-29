@@ -11,6 +11,7 @@ const adminService = {
   suspendUser: (id, reason) => api.patch(`/admin/users/${id}/suspend`, { reason }),
   reactivateUser: (id) => api.patch(`/admin/users/${id}/reactivate`),
   triggerPasswordReset: (id) => api.post(`/admin/users/${id}/reset-password`),
+  adjustUserBalance: (id, data) => api.post(`/admin/users/${id}/adjust-balance`, data),
 };
 
 export default adminService;

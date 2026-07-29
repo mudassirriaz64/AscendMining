@@ -90,11 +90,17 @@ const AdminDepositsPage = () => {
     },
     {
       key: 'amount',
-      label: 'Amount / Package',
+      label: 'Amount / Type',
       render: (val, row) => (
         <div>
           <p className="font-medium text-text-light-bg">${row.amount.toLocaleString()}</p>
-          {row.packageId && <p className="text-xs text-text-secondary">Plan: {row.packageId.name || 'N/A'}</p>}
+          {row.packageId ? (
+            <p className="text-xs text-text-secondary">Plan: {row.packageId.name || 'N/A'}</p>
+          ) : (
+            <span className="text-[9px] font-black text-[#185adb] bg-blue-50 border border-blue-100 rounded px-1.5 py-0.5 inline-block uppercase tracking-wider mt-0.5">
+              Wallet Top-up
+            </span>
+          )}
         </div>
       ),
     },
@@ -186,7 +192,7 @@ const AdminDepositsPage = () => {
         />
       )}
 
-      <Modal open={!!selectedScreenshot} onClose={() => setSelectedScreenshot(null)} title="Payment Screenshot">
+      <Modal isOpen={!!selectedScreenshot} onClose={() => setSelectedScreenshot(null)} title="Payment Screenshot">
         <div className="p-4 flex justify-center">
           {selectedScreenshot && (
             <img src={selectedScreenshot} alt="Payment Proof" className="max-w-full max-h-[70vh] rounded-lg shadow-sm" />
@@ -197,7 +203,7 @@ const AdminDepositsPage = () => {
         </div>
       </Modal>
 
-      <Modal open={rejectModal.open} onClose={() => setRejectModal({ open: false, depositId: null })} title="Reject Payment">
+      <Modal isOpen={rejectModal.open} onClose={() => setRejectModal({ open: false, depositId: null })} title="Reject Payment">
         <div className="p-6">
           <p className="text-sm text-text-secondary mb-4">
             Please provide a reason for rejecting this payment. The user will see this reason in their dashboard.

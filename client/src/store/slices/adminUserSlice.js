@@ -121,6 +121,18 @@ export const triggerPasswordReset = createAsyncThunk(
   }
 );
 
+export const adjustUserBalance = createAsyncThunk(
+  'admin/adjustUserBalance',
+  async ({ id, type, amount, reason }, { rejectWithValue }) => {
+    try {
+      const response = await adminService.adjustUserBalance(id, { type, amount, reason });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: 'Failed to adjust user balance.' });
+    }
+  }
+);
+
 const adminUserSlice = createSlice({
   name: 'adminUsers',
   initialState: {
@@ -194,7 +206,15 @@ const adminUserSlice = createSlice({
       .addCase(reactivateUser.rejected, (s, a) => { s.error = a.payload; })
 
       .addCase(triggerPasswordReset.fulfilled, (s) => { s.actionSuccess = 'Password reset email sent.'; })
-      .addCase(triggerPasswordReset.rejected, (s, a) => { s.error = a.payload; });
+      .addCase(triggerPasswordReset.rejected, (s, a) => { s.error = a.payload; })
+
+      .addCase(adjustUserBalance.fulfilled, (s, a) => {
+        s.actionSuccess = a.payload.message || 'Balance adjusted successfully.';
+        if (s.userDetail) {
+          s.userDetail.walletBalance = a.payload.data.walletBalance;
+        }
+      })
+      .addCase(adjustUserBalance.rejected, (s, a) => { s.error = a.payload; });
   },
 });
 

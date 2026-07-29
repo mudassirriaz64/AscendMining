@@ -44,9 +44,22 @@ export const purchasePlan = createAsyncThunk(
     try {
       const response = await api.post('/packages/purchase', purchaseData);
       dispatch(fetchDashboardSummary());
-      return response.data.data;
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || { message: 'Failed to submit purchase request.' });
+    }
+  }
+);
+
+export const submitDeposit = createAsyncThunk(
+  'package/submitDeposit',
+  async (depositData, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await api.post('/deposits', depositData);
+      dispatch(fetchDashboardSummary());
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: 'Failed to submit deposit request.' });
     }
   }
 );
@@ -115,6 +128,18 @@ const packageSlice = createSlice({
         state.loading = false;
       })
       .addCase(purchasePlan.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Submit Deposit
+      .addCase(submitDeposit.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(submitDeposit.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(submitDeposit.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

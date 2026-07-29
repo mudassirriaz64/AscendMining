@@ -1,5 +1,4 @@
 const Deposit = require('../../models/Deposit');
-const UserPackage = require('../../models/UserPackage');
 const WalletTransaction = require('../../models/WalletTransaction');
 const AdminLog = require('../../models/AdminLog');
 const Notification = require('../../models/Notification');
@@ -58,13 +57,16 @@ const approveDeposit = async (req, res, next) => {
       return res.status(404).json({ success: false, error: { message: 'User not found', status: 404 } });
     }
 
-    // Process approval
+    // Process approval - ONLY credit wallet balance (no package activation per Option B)
     deposit.status = 'approved';
     deposit.approvedBy = adminId;
     deposit.approvedAt = new Date();
     await deposit.save();
 
-    let walletBalanceAfter = user.walletBalance + deposit.amount;
+    // Credit user's wallet balance
+    const newWalletBalance = user.walletBalance + deposit.amount;
+    user.walletBalance = newWalletBalance;
+    await user.save();
 
     // Create deposit transaction
     await WalletTransaction.create({
@@ -74,51 +76,14 @@ const approveDeposit = async (req, res, next) => {
       amount: deposit.amount,
       referenceType: 'Deposit',
       referenceId: deposit._id,
-      balanceAfter: walletBalanceAfter
+      balanceAfter: newWalletBalance
     });
-
-    if (deposit.packageId) {
-      const userPackage = await UserPackage.findById(deposit.packageId);
-      if (userPackage) {
-        userPackage.status = 'active';
-        userPackage.startDate = new Date();
-        userPackage.isMining = true;
-        // The package cycle starts now
-        userPackage.cycleStartedAt = new Date();
-        userPackage.nextMiningAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // next ROI after 24h
-        
-        // Compute cycle ends at based on duration
-        const cycleEnds = new Date();
-        cycleEnds.setDate(cycleEnds.getDate() + userPackage.durationSnapshot);
-        userPackage.cycleEndsAt = cycleEnds;
-        
-        await userPackage.save();
-
-        // Offset the balance back
-        walletBalanceAfter -= deposit.amount;
-
-        // Create package purchase transaction
-        await WalletTransaction.create({
-          userId: user._id,
-          currency: 'USD',
-          type: 'package_purchase',
-          amount: -deposit.amount,
-          referenceType: 'UserPackage',
-          referenceId: userPackage._id,
-          balanceAfter: walletBalanceAfter
-        });
-      }
-    } else {
-      // Actually update the user's wallet balance if there is no package associated
-      user.walletBalance = walletBalanceAfter;
-      await user.save();
-    }
 
     // Send Notification
     await Notification.create({
       userId: user._id,
       title: 'Deposit Approved',
-      message: `Your deposit of $${deposit.amount.toFixed(2)} has been approved.`,
+      message: `Your deposit of $${deposit.amount.toFixed(2)} has been approved and added to your wallet balance.`,
       type: 'success',
       link: '/deposits'
     });
@@ -129,13 +94,13 @@ const approveDeposit = async (req, res, next) => {
       action: 'deposit_approved',
       targetId: user._id,
       targetType: 'User',
-      details: { depositId: deposit._id, amount: deposit.amount, packageId: deposit.packageId },
+      details: { depositId: deposit._id, amount: deposit.amount },
       ipAddress: req.ip
     });
 
     res.status(200).json({
       success: true,
-      message: 'Deposit approved successfully',
+      message: 'Deposit approved successfully. Wallet balance credited.',
       data: deposit
     });
   } catch (error) {
@@ -164,16 +129,6 @@ const rejectDeposit = async (req, res, next) => {
     deposit.status = 'rejected';
     deposit.rejectionReason = rejectionReason;
     await deposit.save();
-
-    if (deposit.packageId) {
-      const userPackage = await UserPackage.findById(deposit.packageId);
-      if (userPackage) {
-        userPackage.status = 'cancelled';
-        userPackage.cancellationReason = rejectionReason;
-        userPackage.cancelledAt = new Date();
-        await userPackage.save();
-      }
-    }
 
     // Send Notification
     await Notification.create({

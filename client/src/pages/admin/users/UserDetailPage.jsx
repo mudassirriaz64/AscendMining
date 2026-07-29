@@ -1,13 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { ArrowLeft, Mail, Phone, Calendar, Users, Ban, RotateCcw, KeyRound } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, Calendar, Users, Ban, RotateCcw, KeyRound, DollarSign } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
   fetchUserDetail, fetchUserPackages, fetchUserDeposits,
   fetchUserWithdrawals, fetchUserReferrals, fetchUserScreenshots,
   suspendUser, reactivateUser, triggerPasswordReset,
-  clearActionSuccess, clearAdminError, resetUserDetail,
+  clearActionSuccess, clearAdminError, resetUserDetail, adjustUserBalance,
 } from '../../../store/slices/adminUserSlice';
 import StatusBadge from '../../../components/common/StatusBadge';
 import Button from '../../../components/common/Button';
@@ -33,6 +33,10 @@ const UserDetailPage = () => {
   const [suspendModal, setSuspendModal] = useState(false);
   const [suspendReason, setSuspendReason] = useState('');
   const [resetModal, setResetModal] = useState(false);
+  const [balanceModal, setBalanceModal] = useState(false);
+  const [adjustType, setAdjustType] = useState('add');
+  const [adjustAmount, setAdjustAmount] = useState('');
+  const [adjustReason, setAdjustReason] = useState('');
 
   useEffect(() => {
     dispatch(fetchUserDetail(id));
@@ -80,6 +84,22 @@ const UserDetailPage = () => {
   const handleResetPassword = () => {
     dispatch(triggerPasswordReset(id));
     setResetModal(false);
+  };
+
+  const handleAdjustBalance = () => {
+    if (!adjustAmount || parseFloat(adjustAmount) <= 0) {
+      toast.error('Please enter a valid amount.');
+      return;
+    }
+    dispatch(adjustUserBalance({
+      id,
+      type: adjustType,
+      amount: parseFloat(adjustAmount),
+      reason: adjustReason.trim()
+    }));
+    setBalanceModal(false);
+    setAdjustAmount('');
+    setAdjustReason('');
   };
 
   if (loading && !userDetail) return <LoadingSpinner />;
@@ -169,6 +189,9 @@ const UserDetailPage = () => {
               <Button variant="outline" size="sm" onClick={() => setResetModal(true)}>
                 <KeyRound size={14} className="mr-1" /> Reset Password
               </Button>
+              <Button variant="outline" size="sm" onClick={() => setBalanceModal(true)}>
+                <DollarSign size={14} className="mr-1" /> Adjust Balance
+              </Button>
             </div>
           </div>
         </div>
@@ -210,6 +233,80 @@ const UserDetailPage = () => {
           <div className="flex justify-end gap-2">
             <Button variant="ghost" onClick={() => setResetModal(false)}>Cancel</Button>
             <Button variant="primary" onClick={handleResetPassword}>Send Reset Email</Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal isOpen={balanceModal} onClose={() => setBalanceModal(false)} title="Adjust Wallet Balance" size="sm">
+        <div className="space-y-4">
+          <p className="text-sm text-text-secondary">
+            Adjust the wallet balance of <strong>{userDetail.username}</strong>. Current balance: <strong>${(userDetail.walletBalance || 0).toFixed(2)}</strong>.
+          </p>
+
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-semibold text-text-light-bg mb-1">Adjustment Type</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAdjustType('add')}
+                  className={`py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                    adjustType === 'add'
+                      ? 'bg-green-500 border-green-500 text-white font-bold'
+                      : 'bg-white border-border-light text-slate-655 hover:bg-slate-50'
+                  }`}
+                >
+                  Add Funds
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAdjustType('deduct')}
+                  className={`py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                    adjustType === 'deduct'
+                      ? 'bg-red-500 border-red-500 text-white font-bold'
+                      : 'bg-white border-border-light text-slate-655 hover:bg-slate-50'
+                  }`}
+                >
+                  Deduct Funds
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-text-light-bg mb-1">Amount (USD)*</label>
+              <input
+                type="number"
+                min="0.01"
+                step="any"
+                required
+                value={adjustAmount}
+                onChange={(e) => setAdjustAmount(e.target.value)}
+                placeholder="0.00"
+                className="w-full px-3 py-2 border border-border-light rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-text-light-bg mb-1">Reason / Description</label>
+              <textarea
+                value={adjustReason}
+                onChange={(e) => setAdjustReason(e.target.value)}
+                className="w-full px-3 py-2 border border-border-light rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+                rows={2}
+                placeholder="e.g. Manual promotion bonus or corrected error"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2 border-t border-border-light">
+            <Button variant="ghost" onClick={() => setBalanceModal(false)}>Cancel</Button>
+            <Button
+              variant={adjustType === 'add' ? 'primary' : 'danger'}
+              onClick={handleAdjustBalance}
+              disabled={!adjustAmount || parseFloat(adjustAmount) <= 0}
+            >
+              Confirm Adjustment
+            </Button>
           </div>
         </div>
       </Modal>

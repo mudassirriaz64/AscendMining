@@ -133,6 +133,24 @@ const triggerPasswordReset = async (req, res, next) => {
   }
 };
 
+const adjustUserBalance = async (req, res, next) => {
+  try {
+    const result = await userManagementService.adjustUserBalance(
+      req.params.id,
+      req.body,
+      req.user.id,
+      req.ip
+    );
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      data: { walletBalance: result.walletBalance }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   listUsers,
   getUserDetail,
@@ -144,4 +162,5 @@ module.exports = {
   suspendUser,
   reactivateUser,
   triggerPasswordReset,
+  adjustUserBalance,
 };

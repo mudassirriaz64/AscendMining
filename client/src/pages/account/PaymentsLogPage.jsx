@@ -82,8 +82,8 @@ const PaymentsLogPage = () => {
                       <td className="px-6 py-4 font-medium text-[#0a1931]">
                         {formatCurrency(deposit.amount)}
                       </td>
-                      <td className="px-6 py-4 text-slate-600">
-                        {deposit.packageId?.name || 'Manual Deposit'}
+                      <td className="px-6 py-4 text-slate-600 font-semibold">
+                        {deposit.packageId?.name || 'Wallet Top-up'}
                       </td>
                       <td className="px-6 py-4 text-slate-600 capitalize">
                         {deposit.paymentMethod?.name || deposit.method || 'Unknown'}

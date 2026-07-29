@@ -222,8 +222,16 @@ const DashboardPage = () => {
           
           {/* Balance Card */}
           <div className="bg-gradient-to-br from-[#0a2647] to-[#144272] text-white p-6 rounded-2xl border border-white/10 shadow-lg flex flex-col justify-between min-h-[200px] hover:translate-y-[-4px] hover:shadow-2xl transition-all duration-300">
-            <div className="bg-gradient-to-br from-[#facc15] to-[#ca8a04] w-12 h-12 rounded-xl flex items-center justify-center shadow-md">
-              <Wallet className="w-6 h-6 text-[#0a1931]" />
+            <div className="flex justify-between items-start">
+              <div className="bg-gradient-to-br from-[#facc15] to-[#ca8a04] w-12 h-12 rounded-xl flex items-center justify-center shadow-md">
+                <Wallet className="w-6 h-6 text-[#0a1931]" />
+              </div>
+              <button
+                onClick={() => navigate('/deposit')}
+                className="bg-yellow-400 hover:bg-yellow-500 text-[#0a2647] font-black text-[10px] px-3.5 py-1.5 rounded-lg shadow-md transition-all active:scale-95 uppercase tracking-wider cursor-pointer"
+              >
+                Top Up
+              </button>
             </div>
             <div className="mt-6">
               <p className="text-white/60 text-xs font-bold uppercase tracking-wider mb-1">Balance</p>

@@ -115,4 +115,12 @@ router.post(
   userManagementController.triggerPasswordReset
 );
 
+router.post(
+  '/:id/adjust-balance',
+  authMiddleware,
+  requireRole('admin'),
+  validateParams(userIdParamSchema),
+  userManagementController.adjustUserBalance
+);
+
 module.exports = router;
