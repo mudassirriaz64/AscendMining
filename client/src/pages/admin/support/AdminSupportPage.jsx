@@ -50,6 +50,7 @@ const AdminSupportPage = () => {
   const endRef = useRef(null);
   const selectedIdRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const lastMessageIdRef = useRef(null);
 
   const handleScroll = (e) => {
     const el = e.currentTarget;
@@ -166,14 +167,22 @@ const AdminSupportPage = () => {
     const el = chatContainerRef.current;
     if (!el) return;
     const lastMsg = messages[messages.length - 1];
-    const sentByMe = lastMsg && (lastMsg.senderRole === 'admin' || lastMsg.senderRole === 'support_agent');
+    const lastMsgId = lastMsg?._id;
 
-    if (isNearBottom || sentByMe) {
-      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    // Scroll to bottom if a new message is appended at the bottom, or if no previous last message ID was recorded (first load)
+    const isNewMessageAtBottom = lastMsgId && lastMessageIdRef.current !== lastMsgId;
+
+    if (isNewMessageAtBottom || !lastMessageIdRef.current) {
+      setTimeout(() => {
+        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+      }, 50);
+      setIsNearBottom(true);
       setShowScrollPill(false);
-    } else {
+    } else if (messages.length > 0) {
       setShowScrollPill(true);
     }
+    
+    lastMessageIdRef.current = lastMsgId;
   }, [messages]);
 
   useEffect(() => {

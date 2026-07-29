@@ -5,11 +5,17 @@ let socket;
 
 export const connectDashboardSocket = () => {
   if (socket?.connected) return socket;
+  if (socket) {
+    socket.connect();
+    return socket;
+  }
   const serverUrl = import.meta.env.VITE_SOCKET_URL || window.location.origin;
   socket = io(`${serverUrl}/dashboard`, {
     auth: { token: getAccessToken() },
     transports: ['websocket', 'polling'],
     reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionAttempts: 10,
   });
   return socket;
 };
