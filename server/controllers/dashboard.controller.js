@@ -3,6 +3,7 @@ const UserPackage = require('../models/UserPackage');
 const WalletTransaction = require('../models/WalletTransaction');
 const Coin = require('../models/Coin');
 const Deposit = require('../models/Deposit');
+const SystemSetting = require('../models/SystemSetting');
 
 const getDashboardSummary = async (req, res, next) => {
   try {
@@ -105,6 +106,10 @@ const getDashboardSummary = async (req, res, next) => {
       .limit(5)
       .maxTimeMS(10000);
 
+    // Fetch global mining settings
+    let mSettings = await SystemSetting.findOne({ key: 'mining_settings' });
+    const miningSettings = mSettings ? mSettings.value : { timerDuration: 24, isPaused: false, isDisabled: false };
+
     res.status(200).json({
       success: true,
       data: {
@@ -124,6 +129,7 @@ const getDashboardSummary = async (req, res, next) => {
         coins,
         activePackage: isMiningActive ? activePackages[0] : null,
         latestTransactions: transactions,
+        miningSettings,
       },
     });
   } catch (error) {

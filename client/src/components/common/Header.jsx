@@ -1,8 +1,9 @@
-import { useState, useRef } from 'react';
-import { useDispatch } from 'react-redux';
+import { useState, useRef, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LogOut } from 'lucide-react';
+import { LogOut, Bell, Check } from 'lucide-react';
 import { logoutUser } from '../../store/slices/authSlice';
+import { fetchNotifications, markAsRead, markAllAsRead } from '../../store/slices/notificationSlice';
 import Logo from './Logo';
 
 const NavDropdown = ({ label, isActive, children }) => {
@@ -65,6 +66,34 @@ const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const { items: notifications, unreadCount } = useSelector((state) => state.notifications);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const notifRef = useRef(null);
+
+  useEffect(() => {
+    dispatch(fetchNotifications());
+  }, [dispatch]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleNotificationClick = (notification) => {
+    if (!notification.isRead) {
+      dispatch(markAsRead(notification._id));
+    }
+    setShowNotifications(false);
+    if (notification.link) {
+      navigate(notification.link);
+    }
+  };
 
   const handleLogout = () => {
     dispatch(logoutUser());
@@ -157,6 +186,60 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center space-x-4">
+          <div className="relative" ref={notifRef}>
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="p-2 text-white/90 hover:text-yellow-400 transition-colors relative focus:outline-none"
+            >
+              <Bell size={20} />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-[#083358]"></span>
+              )}
+            </button>
+
+            {showNotifications && (
+              <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-slate-100 overflow-hidden z-50 origin-top-right">
+                <div className="bg-slate-50 border-b border-slate-100 p-3 flex items-center justify-between">
+                  <h3 className="text-slate-800 font-bold text-sm">Notifications</h3>
+                  {unreadCount > 0 && (
+                    <button 
+                      onClick={() => dispatch(markAllAsRead())}
+                      className="text-xs text-[#185adb] font-semibold hover:underline"
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+                <div className="max-h-80 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="p-6 text-center text-slate-400 text-sm">
+                      No notifications yet
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-50">
+                      {notifications.map((notif) => (
+                        <div 
+                          key={notif._id}
+                          onClick={() => handleNotificationClick(notif)}
+                          className={`p-3 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 ${!notif.isRead ? 'bg-blue-50/30' : ''}`}
+                        >
+                          <div className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${!notif.isRead ? 'bg-[#185adb]' : 'bg-slate-300'}`} />
+                          <div>
+                            <p className="text-slate-800 text-xs font-bold mb-0.5">{notif.title}</p>
+                            <p className="text-slate-500 text-[11px] leading-relaxed line-clamp-2">{notif.message}</p>
+                            <p className="text-slate-400 text-[9px] mt-1 uppercase font-semibold">
+                              {new Date(notif.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           <button 
             onClick={() => navigate('/dashboard')}
             className="hidden sm:inline-block bg-white/10 hover:bg-white/20 text-white px-4 py-1.5 rounded-lg font-bold text-xs shadow-sm transition-all duration-300 border border-white/20"

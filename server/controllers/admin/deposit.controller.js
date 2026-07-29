@@ -2,6 +2,7 @@ const Deposit = require('../../models/Deposit');
 const UserPackage = require('../../models/UserPackage');
 const WalletTransaction = require('../../models/WalletTransaction');
 const AdminLog = require('../../models/AdminLog');
+const Notification = require('../../models/Notification');
 const User = require('../../models/User');
 
 const getPendingDeposits = async (req, res, next) => {
@@ -113,6 +114,15 @@ const approveDeposit = async (req, res, next) => {
       await user.save();
     }
 
+    // Send Notification
+    await Notification.create({
+      userId: user._id,
+      title: 'Deposit Approved',
+      message: `Your deposit of $${deposit.amount.toFixed(2)} has been approved.`,
+      type: 'success',
+      link: '/deposits'
+    });
+
     // Log admin action
     await AdminLog.create({
       actorId: adminId,
@@ -164,6 +174,15 @@ const rejectDeposit = async (req, res, next) => {
         await userPackage.save();
       }
     }
+
+    // Send Notification
+    await Notification.create({
+      userId: deposit.userId,
+      title: 'Deposit Rejected',
+      message: `Your deposit of $${deposit.amount.toFixed(2)} was rejected. Reason: ${rejectionReason}`,
+      type: 'error',
+      link: '/deposits'
+    });
 
     // Log admin action
     await AdminLog.create({

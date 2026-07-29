@@ -243,6 +243,49 @@ const DashboardPage = () => {
           </div>
         </section>
 
+        {/* ACTIVE PACKAGE DETAILS */}
+        {activePackage && (
+          <section className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden flex flex-col sm:flex-row">
+            <div className="bg-[#0a1931] p-8 text-white sm:w-1/3 flex flex-col justify-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-16 translate-x-16 blur-2xl"></div>
+              <div className="relative z-10">
+                <p className="text-yellow-400 font-bold text-xs uppercase tracking-widest mb-2">Current Plan</p>
+                <h2 className="text-3xl font-black mb-2">{activePackage.packageId?.name || 'Active Plan'}</h2>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-xs font-bold border border-green-500/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+                  Active
+                </span>
+              </div>
+            </div>
+            <div className="p-8 sm:w-2/3 grid grid-cols-2 gap-6 items-center">
+              <div>
+                <p className="text-slate-400 font-bold text-xs uppercase tracking-wider mb-1">Investment Amount</p>
+                <p className="text-2xl font-black text-slate-900 font-mono">
+                  ${activePackage.purchaseAmount?.toFixed(2)}
+                </p>
+              </div>
+              <div>
+                <p className="text-slate-400 font-bold text-xs uppercase tracking-wider mb-1">Daily Profit Rate</p>
+                <p className="text-2xl font-black text-slate-900 font-mono text-green-600">
+                  {activePackage.dailyROISnapshot}%
+                </p>
+              </div>
+              <div>
+                <p className="text-slate-400 font-bold text-xs uppercase tracking-wider mb-1">Started On</p>
+                <p className="text-sm font-bold text-slate-800">
+                  {new Date(activePackage.cycleStartedAt || activePackage.startDate).toLocaleDateString()}
+                </p>
+              </div>
+              <div>
+                <p className="text-slate-400 font-bold text-xs uppercase tracking-wider mb-1">Ends On</p>
+                <p className="text-sm font-bold text-slate-800">
+                  {new Date(activePackage.cycleEndsAt).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* LIVE MINING PROGRESS */}
         <section className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
           <div className="bg-slate-900 p-6 flex items-center border-b border-slate-850">

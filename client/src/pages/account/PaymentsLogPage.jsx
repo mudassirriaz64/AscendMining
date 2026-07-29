@@ -1,14 +1,18 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { ImageIcon } from 'lucide-react';
 import { fetchMyDeposits } from '../../store/slices/dashboardSlice';
 import Header from '../../components/common/Header';
-import PageSkeleton from '../../components/common/PageSkeleton';
+import Modal from '../../components/common/Modal';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 
 const PaymentsLogPage = () => {
   const dispatch = useDispatch();
   const { history: { deposits } } = useSelector((state) => state.dashboard);
   const { data, loading, error } = deposits;
+
+  const [screenshotModalOpen, setScreenshotModalOpen] = useState(false);
+  const [selectedScreenshot, setSelectedScreenshot] = useState(null);
 
   useEffect(() => {
     dispatch(fetchMyDeposits({ page: 1, limit: 100 }));
@@ -52,6 +56,7 @@ const PaymentsLogPage = () => {
                   <th className="px-6 py-4 font-semibold">Amount</th>
                   <th className="px-6 py-4 font-semibold">Package</th>
                   <th className="px-6 py-4 font-semibold">Method</th>
+                  <th className="px-6 py-4 font-semibold text-center">Screenshot</th>
                   <th className="px-6 py-4 font-semibold">Status</th>
                 </tr>
               </thead>
@@ -83,6 +88,22 @@ const PaymentsLogPage = () => {
                       <td className="px-6 py-4 text-slate-600 capitalize">
                         {deposit.paymentMethod?.name || deposit.method || 'Unknown'}
                       </td>
+                      <td className="px-6 py-4 text-center">
+                        {deposit.screenshot ? (
+                          <button 
+                            onClick={() => {
+                              setSelectedScreenshot(deposit.screenshot);
+                              setScreenshotModalOpen(true);
+                            }}
+                            className="p-1.5 rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors inline-flex items-center justify-center"
+                            title="View Screenshot"
+                          >
+                            <ImageIcon size={18} />
+                          </button>
+                        ) : (
+                          <span className="text-slate-400 text-xs">-</span>
+                        )}
+                      </td>
                       <td className="px-6 py-4">
                         {getStatusBadge(deposit.status)}
                       </td>
@@ -93,6 +114,25 @@ const PaymentsLogPage = () => {
             </table>
           </div>
         </div>
+
+        <Modal
+          isOpen={screenshotModalOpen}
+          onClose={() => setScreenshotModalOpen(false)}
+          title="Payment Screenshot"
+          size="lg"
+        >
+          <div className="p-2 flex justify-center">
+            {selectedScreenshot ? (
+              <img 
+                src={selectedScreenshot} 
+                alt="Payment Screenshot" 
+                className="max-w-full max-h-[70vh] rounded-xl object-contain border border-slate-200"
+              />
+            ) : (
+              <div className="text-slate-500 py-12">No screenshot available</div>
+            )}
+          </div>
+        </Modal>
       </main>
     </div>
   );

@@ -3,11 +3,38 @@ const UserPackage = require('../models/UserPackage');
 const WalletTransaction = require('../models/WalletTransaction');
 const Coin = require('../models/Coin');
 const Package = require('../models/Package');
+const SystemSetting = require('../models/SystemSetting');
 
 const claimMiningReward = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const { userPackageId } = req.params;
+
+    // Check global mining settings
+    let settings = await SystemSetting.findOne({ key: 'mining_settings' });
+    const miningSettings = settings ? settings.value : { timerDuration: 24, isPaused: false, isDisabled: false };
+
+    if (miningSettings.isDisabled) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'MINING_DISABLED',
+          message: 'The mining system is currently disabled by the administrator.',
+          status: 400
+        }
+      });
+    }
+
+    if (miningSettings.isPaused) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'MINING_PAUSED',
+          message: 'Mining claims are currently paused by the administrator.',
+          status: 400
+        }
+      });
+    }
 
     const userPackage = await UserPackage.findById(userPackageId);
 
@@ -109,8 +136,9 @@ const claimMiningReward = async (req, res, next) => {
     await user.save();
 
     // Update package timers
+    const timerDurationHours = miningSettings.timerDuration || 24;
     userPackage.lastPayoutAt = now;
-    userPackage.nextMiningAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    userPackage.nextMiningAt = new Date(Date.now() + timerDurationHours * 60 * 60 * 1000);
     userPackage.isMining = true;
     await userPackage.save();
 

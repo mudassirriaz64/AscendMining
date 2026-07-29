@@ -2,6 +2,7 @@ const Withdrawal = require('../../models/Withdrawal');
 const User = require('../../models/User');
 const AdminLog = require('../../models/AdminLog');
 const WalletTransaction = require('../../models/WalletTransaction');
+const Notification = require('../../models/Notification');
 
 const getPendingWithdrawals = async (req, res, next) => {
   try {
@@ -97,6 +98,14 @@ const approveWithdrawal = async (req, res, next) => {
       ipAddress: req.ip
     });
 
+    await Notification.create({
+      userId: withdrawal.userId._id,
+      title: 'Withdrawal Approved',
+      message: `Your withdrawal of ${withdrawal.amount.toFixed(4)} ${withdrawal.coinSymbol} has been approved and sent to your wallet.`,
+      type: 'success',
+      link: '/withdraw/history'
+    });
+
     res.status(200).json({
       success: true,
       message: 'Withdrawal approved successfully.',
@@ -157,6 +166,14 @@ const rejectWithdrawal = async (req, res, next) => {
       targetType: 'User',
       details: { withdrawalId: withdrawal._id, amount: withdrawal.amount, reason },
       ipAddress: req.ip
+    });
+
+    await Notification.create({
+      userId: withdrawal.userId,
+      title: 'Withdrawal Rejected',
+      message: `Your withdrawal of ${withdrawal.amount.toFixed(4)} ${withdrawal.coinSymbol} was rejected and refunded. Reason: ${reason}`,
+      type: 'error',
+      link: '/withdraw/history'
     });
 
     res.status(200).json({

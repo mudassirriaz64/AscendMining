@@ -83,7 +83,7 @@ const MyWithdrawalsPage = () => {
                     <th className="px-6 py-4">Request ID</th>
                     <th className="px-6 py-4">Date & Time</th>
                     <th className="px-6 py-4">Amount</th>
-                    <th className="px-6 py-4">Payout Wallet Address</th>
+                    <th className="px-6 py-4">Payment Method (Coin & Wallet)</th>
                     <th className="px-6 py-4 text-right">Status</th>
                   </tr>
                 </thead>
@@ -102,9 +102,12 @@ const MyWithdrawalsPage = () => {
                         </span>
                       </td>
                       <td className="px-6 py-5">
-                        <span className="text-xs font-mono text-slate-500 select-all block max-w-xs truncate">
-                          {w.walletAddress}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold text-slate-800">{w.coinSymbol}</span>
+                          <span className="text-xs font-mono text-slate-500 select-all block max-w-xs truncate">
+                            {w.walletAddress}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-6 py-5 text-right">
                         <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${getStatusStyle(w.status)}`}>

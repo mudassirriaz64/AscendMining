@@ -34,6 +34,7 @@ const AdminServicesPage = lazy(() => import('./pages/admin/services/AdminService
 const AdminContactMessagesPage = lazy(() => import('./pages/admin/contactMessages/AdminContactMessagesPage'));
 const AdminReferralsPage = lazy(() => import('./pages/admin/referrals/AdminReferralsPage'));
 const AdminDashboardPage = lazy(() => import('./pages/admin/dashboard/AdminDashboardPage'));
+const AdminMiningSettingsPage = lazy(() => import('./pages/admin/mining/MiningSettingsPage'));
 const SupportChatPage = lazy(() => import('./pages/support/SupportChatPage'));
 const SupportTicketsPage = lazy(() => import('./pages/support/SupportTicketsPage'));
 const SupportChatWidget = lazy(() => import('./components/common/SupportChatWidget'));
@@ -158,6 +159,7 @@ const App = () => {
             <Route path="services" element={<AdminServicesPage />} />
             <Route path="contact-messages" element={<AdminContactMessagesPage />} />
             <Route path="referrals" element={<AdminReferralsPage />} />
+            <Route path="mining-settings" element={<AdminMiningSettingsPage />} />
             <Route path="support" element={<AdminSupportPage />} />
           </Route>
 

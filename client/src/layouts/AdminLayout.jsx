@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import {
   LayoutDashboard, Users, Package, Coins, ArrowDownToLine, ArrowUpFromLine,
   UsersRound, FileText, MessageCircle, ShieldCheck, Bell, Search,
-  Menu, X, LogOut, ChevronDown, Volume2, VolumeX,
+  Menu, X, LogOut, ChevronDown, Volume2, VolumeX, ChevronRight, Globe
 } from 'lucide-react';
 import { logoutUser } from '../store/slices/authSlice';
 import { connectSocket } from '../services/socketService';
@@ -20,11 +20,74 @@ const sidebarLinks = [
   { to: '/admin/withdrawals', icon: ArrowUpFromLine, label: 'Withdrawals' },
   { to: '/admin/payment-methods', icon: FileText, label: 'Payment Methods' },
   { to: '/admin/referrals', icon: UsersRound, label: 'Referrals' },
-  { to: '/admin/faqs', icon: FileText, label: 'FAQs' },
-  { to: '/admin/services', icon: FileText, label: 'Services' },
-  { to: '/admin/contact-messages', icon: MessageCircle, label: 'Contact Messages' },
+  { 
+    label: 'Website CMS', 
+    icon: Globe, 
+    children: [
+      { to: '/admin/services', label: 'Services' },
+      { to: '/admin/faqs', label: 'FAQs' },
+      { to: '/admin/contact-messages', label: 'Contact Messages' },
+    ]
+  },
   { to: '/admin/support', icon: MessageCircle, label: 'Support' },
 ];
+
+const SidebarItem = ({ link, setSidebarOpen }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  if (link.children) {
+    return (
+      <div className="flex flex-col">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors text-white/60 hover:bg-white/5 hover:text-white/80 w-full"
+        >
+          <link.icon size={18} />
+          <span className="flex-grow text-left">{link.label}</span>
+          <ChevronRight size={16} className={`transition-transform ${isOpen ? 'rotate-90' : ''}`} />
+        </button>
+        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-64 mt-1' : 'max-h-0'}`}>
+          <div className="flex flex-col gap-1 pl-9 pr-2">
+            {link.children.map((child) => (
+              <NavLink
+                key={child.to}
+                to={child.to}
+                onClick={() => setSidebarOpen(false)}
+                className={({ isActive }) =>
+                  `block px-3 py-2 rounded-lg text-xs transition-colors ${
+                    isActive
+                      ? 'bg-primary/10 text-primary font-semibold'
+                      : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+                  }`
+                }
+              >
+                {child.label}
+              </NavLink>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <NavLink
+      to={link.to}
+      end={link.end}
+      onClick={() => setSidebarOpen(false)}
+      className={({ isActive }) =>
+        `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+          isActive
+            ? 'bg-primary/10 text-primary border-l-2 border-primary'
+            : 'text-white/60 hover:bg-white/5 hover:text-white/80'
+        }`
+      }
+    >
+      <link.icon size={18} />
+      {link.label}
+    </NavLink>
+  );
+};
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -186,22 +249,7 @@ const AdminLayout = () => {
 
         <nav className="px-3 py-4 space-y-1 overflow-y-auto h-[calc(100vh-65px)]">
           {sidebarLinks.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              end={link.end}
-              onClick={() => setSidebarOpen(false)}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                  isActive
-                    ? 'bg-primary/10 text-primary border-l-2 border-primary'
-                    : 'text-white/60 hover:bg-white/5 hover:text-white/80'
-                }`
-              }
-            >
-              <link.icon size={18} />
-              {link.label}
-            </NavLink>
+            <SidebarItem key={link.label} link={link} setSidebarOpen={setSidebarOpen} />
           ))}
         </nav>
       </aside>
