@@ -3,12 +3,19 @@ const User = require('../models/User');
 const submitKYC = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const { documentType, documentImage } = req.body;
+    const { documentType, documentImage, fullName, dateOfBirth, documentNumber, address, city } = req.body;
 
     if (!documentType || !documentImage) {
       return res.status(400).json({
         success: false,
         error: { message: 'Document type and document image are required.' }
+      });
+    }
+
+    if (!fullName || !dateOfBirth || !documentNumber) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Full name, date of birth, and document number are required.' }
       });
     }
 
@@ -56,6 +63,7 @@ const submitKYC = async (req, res, next) => {
     user.kycStatus = 'pending';
     user.kycDocumentType = documentType;
     user.kycDocumentUrl = kycUrl;
+    user.kycPersonalInfo = { fullName, dateOfBirth, documentNumber, address: address || null, city: city || null };
     user.kycRejectionReason = null;
     await user.save();
 

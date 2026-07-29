@@ -35,9 +35,26 @@ const NavDropdown = ({ label, isActive, children }) => {
           <path d="M19 9l-7 7-7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </span>
-      <div className={`absolute left-0 mt-1 w-48 bg-white text-slate-800 rounded-lg shadow-xl py-2 border border-slate-100 transition-all duration-150 origin-top ${
-        open ? 'opacity-100 scale-y-100 visible' : 'opacity-0 scale-y-0 invisible'
-      }`}>
+      <div
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: '100%',
+          marginTop: '8px',
+          minWidth: '180px',
+          backgroundColor: 'white',
+          borderRadius: '8px',
+          boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+          border: '1px solid #f1f5f9',
+          paddingTop: '8px',
+          paddingBottom: '8px',
+          zIndex: 9999,
+          opacity: open ? 1 : 0,
+          transform: open ? 'translateY(0)' : 'translateY(-8px)',
+          pointerEvents: open ? 'auto' : 'none',
+          transition: 'opacity 0.15s ease, transform 0.15s ease',
+        }}
+      >
         {children}
       </div>
     </div>

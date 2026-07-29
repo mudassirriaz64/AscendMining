@@ -101,6 +101,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    kycPersonalInfo: {
+      fullName: { type: String, default: null },
+      dateOfBirth: { type: String, default: null },
+      documentNumber: { type: String, default: null },
+      address: { type: String, default: null },
+      city: { type: String, default: null },
+    },
     kycRejectionReason: {
       type: String,
       default: null,

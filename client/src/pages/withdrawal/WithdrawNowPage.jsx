@@ -13,6 +13,7 @@ import Logo from '../../components/common/Logo';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageSkeleton from '../../components/common/PageSkeleton';
 import Header from '../../components/common/Header';
+import Button from '../../components/common/Button';
 
 const WithdrawNowPage = () => {
   const dispatch = useDispatch();
@@ -29,6 +30,8 @@ const WithdrawNowPage = () => {
     loading: withdrawalLoading, 
     error: withdrawalError 
   } = useSelector((state) => state.withdrawal);
+
+  const { user } = useSelector((state) => state.auth);
 
   const [selectedCoin, setSelectedCoin] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);

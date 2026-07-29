@@ -5,6 +5,7 @@ import {
   ShieldCheck, Upload, AlertCircle, FileText, CheckCircle2, Clock, ShieldAlert, ArrowLeft
 } from 'lucide-react';
 import { submitKYC, clearKYCStatus } from '../../store/slices/kycSlice';
+import { checkAuth } from '../../store/slices/authSlice';
 import Header from '../../components/common/Header';
 import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
@@ -19,6 +20,19 @@ const KYCPage = () => {
   const [documentType, setDocumentType] = useState('cnic');
   const [documentImage, setDocumentImage] = useState('');
   const [imagePreview, setImagePreview] = useState('');
+  const [personalInfo, setPersonalInfo] = useState({
+    fullName: '',
+    dateOfBirth: '',
+    documentNumber: '',
+    address: '',
+    city: '',
+  });
+
+  // Always fetch fresh user profile on mount so KYC status is up-to-date
+  // (admin may have approved/rejected while user was logged in)
+  useEffect(() => {
+    dispatch(checkAuth());
+  }, [dispatch]);
 
   useEffect(() => {
     if (success) {
@@ -26,6 +40,7 @@ const KYCPage = () => {
       dispatch(clearKYCStatus());
       setDocumentImage('');
       setImagePreview('');
+      setPersonalInfo({ fullName: '', dateOfBirth: '', documentNumber: '', address: '', city: '' });
     }
     if (error) {
       toast.error(error);
@@ -52,11 +67,15 @@ const KYCPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!personalInfo.fullName || !personalInfo.dateOfBirth || !personalInfo.documentNumber) {
+      toast.error('Please fill in Full Name, Date of Birth, and Document Number.');
+      return;
+    }
     if (!documentImage) {
       toast.error('Please upload your document image.');
       return;
     }
-    dispatch(submitKYC({ documentType, documentImage }));
+    dispatch(submitKYC({ documentType, documentImage, ...personalInfo }));
   };
 
   const status = user?.kycStatus || 'none';
@@ -124,6 +143,43 @@ const KYCPage = () => {
           </div>
         )}
 
+        {/* SUBMITTED DETAILS — shown when pending or approved */}
+        {(status === 'pending' || status === 'approved') && user?.kycPersonalInfo && (
+          <div className="bg-white rounded-2xl shadow-md border border-slate-100 p-6 space-y-4">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-3">
+              Your Submission Details
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              {[
+                { label: 'Full Name',       value: user.kycPersonalInfo.fullName },
+                { label: 'Date of Birth',   value: user.kycPersonalInfo.dateOfBirth },
+                { label: 'Document Number', value: user.kycPersonalInfo.documentNumber },
+                { label: 'City',            value: user.kycPersonalInfo.city },
+              ].map(({ label, value }) => value ? (
+                <div key={label} className="space-y-0.5">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{label}</p>
+                  <p className="font-semibold text-slate-800">{value}</p>
+                </div>
+              ) : null)}
+              {user.kycPersonalInfo.address && (
+                <div className="col-span-full space-y-0.5">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Address</p>
+                  <p className="font-semibold text-slate-800">{user.kycPersonalInfo.address}</p>
+                </div>
+              )}
+              <div className="col-span-full space-y-0.5">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Document Type</p>
+                <p className="font-semibold text-slate-800 capitalize">
+                  {user.kycDocumentType === 'cnic' ? 'National ID / CNIC' 
+                    : user.kycDocumentType === 'driver_license' ? 'Driver License'
+                    : user.kycDocumentType === 'passport' ? 'Passport'
+                    : user.kycDocumentType}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {(status === 'none' || status === 'rejected') && (
           <div className="space-y-6">
             
@@ -143,6 +199,69 @@ const KYCPage = () => {
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 
+                {/* PERSONAL INFORMATION */}
+                <div className="space-y-4 border-b border-slate-100 pb-6">
+                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Personal Information</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-semibold text-slate-600">Full Name*</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="As it appears on your document"
+                        value={personalInfo.fullName}
+                        onChange={(e) => setPersonalInfo(p => ({ ...p, fullName: e.target.value }))}
+                        className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-[#185adb] transition"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-semibold text-slate-600">Date of Birth*</label>
+                      <input
+                        type="date"
+                        required
+                        value={personalInfo.dateOfBirth}
+                        onChange={(e) => setPersonalInfo(p => ({ ...p, dateOfBirth: e.target.value }))}
+                        className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-[#185adb] transition"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-semibold text-slate-600">
+                        {documentType === 'cnic' ? 'CNIC Number' : documentType === 'driver_license' ? 'License Number' : 'Passport Number'}*
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder={documentType === 'cnic' ? '12345-1234567-1' : 'Document number'}
+                        value={personalInfo.documentNumber}
+                        onChange={(e) => setPersonalInfo(p => ({ ...p, documentNumber: e.target.value }))}
+                        className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-[#185adb] transition"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-semibold text-slate-600">City</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Lahore"
+                        value={personalInfo.city}
+                        onChange={(e) => setPersonalInfo(p => ({ ...p, city: e.target.value }))}
+                        className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-[#185adb] transition"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-slate-600">Residential Address</label>
+                    <textarea
+                      placeholder="Street, area, district..."
+                      rows={2}
+                      value={personalInfo.address}
+                      onChange={(e) => setPersonalInfo(p => ({ ...p, address: e.target.value }))}
+                      className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-[#185adb] transition resize-none"
+                    />
+                  </div>
+                </div>
+
                 {/* DOCUMENT TYPE */}
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Document Type</label>

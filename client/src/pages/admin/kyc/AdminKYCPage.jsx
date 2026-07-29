@@ -189,6 +189,32 @@ const AdminKYCPage = () => {
               </div>
             </div>
             
+            {/* PERSONAL INFO */}
+            {selectedReq.kycPersonalInfo && (
+              <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 space-y-3">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Submitted Personal Information</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
+                  {[
+                    { label: 'Full Name', value: selectedReq.kycPersonalInfo.fullName },
+                    { label: 'Date of Birth', value: selectedReq.kycPersonalInfo.dateOfBirth },
+                    { label: 'Document Number', value: selectedReq.kycPersonalInfo.documentNumber },
+                    { label: 'City', value: selectedReq.kycPersonalInfo.city },
+                  ].map(({ label, value }) => value ? (
+                    <div key={label}>
+                      <p className="text-[10px] text-slate-400 uppercase tracking-wide">{label}</p>
+                      <p className="font-semibold text-slate-800 mt-0.5">{value}</p>
+                    </div>
+                  ) : null)}
+                  {selectedReq.kycPersonalInfo.address && (
+                    <div className="col-span-2">
+                      <p className="text-[10px] text-slate-400 uppercase tracking-wide">Address</p>
+                      <p className="font-semibold text-slate-800 mt-0.5">{selectedReq.kycPersonalInfo.address}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="border border-slate-200 rounded-2xl bg-slate-900 overflow-hidden flex items-center justify-center p-2 min-h-[300px] max-h-[500px]">
               {selectedReq.kycDocumentUrl ? (
                 <img 

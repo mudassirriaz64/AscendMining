@@ -19,6 +19,7 @@ import DepositHistoryTab from './tabs/DepositHistoryTab';
 import WithdrawalHistoryTab from './tabs/WithdrawalHistoryTab';
 import ReferralHistoryTab from './tabs/ReferralHistoryTab';
 import PaymentScreenshotsTab from './tabs/PaymentScreenshotsTab';
+import KYCHistoryTab from './tabs/KYCHistoryTab';
 
 const UserDetailPage = () => {
   const { id } = useParams();
@@ -109,6 +110,11 @@ const UserDetailPage = () => {
       key: 'screenshots',
       label: 'Payment Screenshots',
       content: <PaymentScreenshotsTab data={userScreenshots} loading={tabLoading} onLoad={loadTab} />,
+    },
+    {
+      key: 'kyc',
+      label: 'KYC History',
+      content: <KYCHistoryTab userDetail={userDetail} />,
     },
   ];
 
