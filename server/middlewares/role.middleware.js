@@ -11,6 +11,17 @@ const requireRole = (...allowedRoles) => {
       });
     }
 
+    if (req.user.isGuest && !req.baseUrl.startsWith('/api/support/conversations')) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Guest access is restricted to support chat.',
+          status: 403,
+        },
+      });
+    }
+
     if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,

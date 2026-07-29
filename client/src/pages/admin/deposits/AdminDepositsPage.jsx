@@ -95,7 +95,7 @@ const AdminDepositsPage = () => {
         <div>
           <p className="font-medium text-text-light-bg">${row.amount.toLocaleString()}</p>
           {row.packageId ? (
-            <p className="text-xs text-text-secondary">Plan: {row.packageId.name || 'N/A'}</p>
+            <p className="text-xs text-text-secondary">Plan: {row.packageId.packageId?.name || row.packageId.name || 'N/A'}</p>
           ) : (
             <span className="text-[9px] font-black text-[#185adb] bg-blue-50 border border-blue-100 rounded px-1.5 py-0.5 inline-block uppercase tracking-wider mt-0.5">
               Wallet Top-up

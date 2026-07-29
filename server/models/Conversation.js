@@ -5,7 +5,6 @@ const conversationSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      default: null,
     },
     isGuest: {
       type: Boolean,
@@ -13,7 +12,6 @@ const conversationSchema = new mongoose.Schema(
     },
     guestId: {
       type: String,
-      default: null,
     },
     guestName: {
       type: String,
@@ -70,8 +68,14 @@ const conversationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-conversationSchema.index({ userId: 1 }, { unique: true, sparse: true, name: 'userId_1_sparse' });
-conversationSchema.index({ guestId: 1 }, { unique: true, sparse: true, name: 'guestId_1_sparse' });
+conversationSchema.index(
+  { userId: 1 },
+  { unique: true, partialFilterExpression: { userId: { $type: 'objectId' } }, name: 'userId_1_partial' }
+);
+conversationSchema.index(
+  { guestId: 1 },
+  { unique: true, partialFilterExpression: { guestId: { $type: 'string' } }, name: 'guestId_1_partial' }
+);
 conversationSchema.index({ isGuest: 1 });
 conversationSchema.index({ awaitingAgentSince: 1 });
 conversationSchema.index({ assignedAgent: 1, lastMessageAt: -1 });

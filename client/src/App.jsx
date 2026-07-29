@@ -38,6 +38,7 @@ const AdminReferralsPage = lazy(() => import('./pages/admin/referrals/AdminRefer
 const AdminDashboardPage = lazy(() => import('./pages/admin/dashboard/AdminDashboardPage'));
 const AdminMiningSettingsPage = lazy(() => import('./pages/admin/mining/MiningSettingsPage'));
 const AdminKYCPage = lazy(() => import('./pages/admin/kyc/AdminKYCPage'));
+const AdminAuditLogsPage = lazy(() => import('./pages/admin/auditLogs/AuditLogsPage'));
 const SupportChatPage = lazy(() => import('./pages/support/SupportChatPage'));
 const SupportTicketsPage = lazy(() => import('./pages/support/SupportTicketsPage'));
 const SupportChatWidget = lazy(() => import('./components/common/SupportChatWidget'));
@@ -81,6 +82,9 @@ const TitleHandler = () => {
     } else {
       document.title = `Client Dashboard | ${siteName}`;
     }
+
+    // Reset window scroll position to top on navigation
+    window.scrollTo(0, 0);
   }, [location.pathname]);
 
   return null;
@@ -204,6 +208,7 @@ const App = () => {
             <Route path="referrals" element={<AdminReferralsPage />} />
             <Route path="mining-settings" element={<AdminMiningSettingsPage />} />
             <Route path="kyc" element={<AdminKYCPage />} />
+            <Route path="audit-logs" element={<AdminAuditLogsPage />} />
             <Route path="support" element={<AdminSupportPage />} />
           </Route>
 

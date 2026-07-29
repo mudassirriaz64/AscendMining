@@ -89,6 +89,14 @@ const PackageFormModal = ({ isOpen, onClose, pkg }) => {
     }
   };
 
+  const displayedCoins = allCoins.filter((coin) => {
+    if (coin.isActive) return true;
+    if (isEditing && pkg.coins?.some((c) => (typeof c === 'string' ? c : c._id) === coin._id)) {
+      return true;
+    }
+    return false;
+  });
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? 'Edit Package' : 'Create New Package'} size="lg">
       <ErrorMessage message={error} className="mb-4" />
@@ -132,10 +140,10 @@ const PackageFormModal = ({ isOpen, onClose, pkg }) => {
           </label>
           {errors.coins?.message && <p className="text-xs text-danger mb-2">{errors.coins.message}</p>}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-3 bg-bg-light-alt rounded-lg border border-border-light">
-            {allCoins.length === 0 && (
-              <p className="text-xs text-text-secondary col-span-3 text-center py-2">No coins available. Create coins first.</p>
+            {displayedCoins.length === 0 && (
+              <p className="text-xs text-text-secondary col-span-3 text-center py-2">No active coins available.</p>
             )}
-            {allCoins.map((coin) => (
+            {displayedCoins.map((coin) => (
               <label
                 key={coin._id}
                 className={`flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer transition-all ${

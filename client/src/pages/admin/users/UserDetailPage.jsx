@@ -33,6 +33,7 @@ const UserDetailPage = () => {
   const [suspendModal, setSuspendModal] = useState(false);
   const [suspendReason, setSuspendReason] = useState('');
   const [resetModal, setResetModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
   const [balanceModal, setBalanceModal] = useState(false);
   const [adjustType, setAdjustType] = useState('add');
   const [adjustAmount, setAdjustAmount] = useState('');
@@ -82,8 +83,13 @@ const UserDetailPage = () => {
   };
 
   const handleResetPassword = () => {
-    dispatch(triggerPasswordReset(id));
+    if (!newPassword || newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters.');
+      return;
+    }
+    dispatch(triggerPasswordReset({ id, newPassword }));
     setResetModal(false);
+    setNewPassword('');
   };
 
   const handleAdjustBalance = () => {
@@ -186,7 +192,7 @@ const UserDetailPage = () => {
                   <Ban size={14} className="mr-1" /> Suspend
                 </Button>
               )}
-              <Button variant="outline" size="sm" onClick={() => setResetModal(true)}>
+              <Button variant="outline" size="sm" onClick={() => { setResetModal(true); setNewPassword(''); }}>
                 <KeyRound size={14} className="mr-1" /> Reset Password
               </Button>
               <Button variant="outline" size="sm" onClick={() => setBalanceModal(true)}>
@@ -228,11 +234,24 @@ const UserDetailPage = () => {
       <Modal isOpen={resetModal} onClose={() => setResetModal(false)} title="Reset Password" size="sm">
         <div className="space-y-4">
           <p className="text-sm text-text-secondary">
-            This will send a password reset email to <strong>{userDetail.email}</strong>.
+            Set a new password directly for <strong>{userDetail.username}</strong> ({userDetail.email}).
           </p>
-          <div className="flex justify-end gap-2">
+          <div>
+            <label className="block text-xs font-semibold text-text-light-bg mb-1">New Password (min 6 chars)*</label>
+            <input
+              type="password"
+              required
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Enter new password"
+              className="w-full px-3 py-2 border border-border-light rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white text-text-light-bg"
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2 border-t border-border-light">
             <Button variant="ghost" onClick={() => setResetModal(false)}>Cancel</Button>
-            <Button variant="primary" onClick={handleResetPassword}>Send Reset Email</Button>
+            <Button variant="primary" onClick={handleResetPassword} disabled={!newPassword || newPassword.length < 6}>
+              Reset Password
+            </Button>
           </div>
         </div>
       </Modal>

@@ -1,125 +1,10 @@
-const User = require('../models/User');
-const Coin = require('../models/Coin');
-const Withdrawal = require('../models/Withdrawal');
-const WalletTransaction = require('../models/WalletTransaction');
+const withdrawalService = require('../services/withdrawal.service');
 const { emitWithdrawalUpdate, emitAdminUpdate, emitMiningUpdate } = require('../utils/dashboardEvents');
 
 const requestWithdrawal = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const { coinSymbol, amount } = req.body;
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: { message: 'User not found.' },
-      });
-    }
-
-    if (user.kycStatus !== 'approved') {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'KYC_REQUIRED',
-          message: 'Please complete your KYC verification first to withdraw funds.',
-          status: 403,
-        },
-      });
-    }
-
-    if (!coinSymbol || !amount || isNaN(amount) || amount <= 0) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'INVALID_INPUT',
-          message: 'Please provide a valid coin symbol and amount.',
-          status: 400,
-        },
-      });
-    }
-
-    // 1. Validate the coin exists and is active
-    const coin = await Coin.findOne({ symbol: coinSymbol, isActive: true });
-    if (!coin) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'COIN_NOT_SUPPORTED',
-          message: `The coin ${coinSymbol} is not currently supported or active for withdrawals.`,
-          status: 400,
-        },
-      });
-    }
-
-    // 2. Validate amount is within limits
-    if (amount < coin.minWithdrawal || amount > coin.maxWithdrawal) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'LIMIT_VIOLATION',
-          message: `Withdrawal amount must be between ${coin.minWithdrawal} ${coinSymbol} and ${coin.maxWithdrawal} ${coinSymbol}.`,
-          status: 400,
-        },
-      });
-    }
-
-    // 3. Validate user has wallet address set
-    if (!user.walletAddresses) {
-      user.walletAddresses = new Map();
-    }
-    const walletAddress = user.walletAddresses.get(coinSymbol);
-    if (!walletAddress || !walletAddress.trim()) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'ADDRESS_NOT_CONFIGURED',
-          message: `Please configure your ${coinSymbol} wallet address in account settings first.`,
-          status: 400,
-        },
-      });
-    }
-
-    // 4. Validate sufficient balance
-    if (!user.miningBalances) {
-      user.miningBalances = new Map();
-    }
-    const balance = user.miningBalances.get(coinSymbol) || 0;
-    if (balance < amount) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'INSUFFICIENT_BALANCE',
-          message: `Insufficient ${coinSymbol} balance. Available: ${balance.toFixed(8)} ${coinSymbol}.`,
-          status: 400,
-        },
-      });
-    }
-
-    // 5. Deduct balance and save
-    user.miningBalances.set(coinSymbol, balance - amount);
-    await user.save();
-
-    // 6. Create withdrawal request
-    const withdrawal = await Withdrawal.create({
-      userId,
-      coinSymbol,
-      amount,
-      walletAddress,
-      status: 'pending',
-    });
-
-    // 7. Create Wallet transaction logs
-    await WalletTransaction.create({
-      userId,
-      type: 'withdrawal',
-      amount: -amount,
-      coinSymbol,
-      referenceType: 'Withdrawal',
-      referenceId: withdrawal._id,
-      balanceAfter: user.miningBalances.get(coinSymbol),
-      reason: `Withdrawal request for ${amount} ${coinSymbol}`,
-    });
+    const withdrawal = await withdrawalService.requestWithdrawal(userId, req.body);
 
     // Emit real-time events for new withdrawal
     emitMiningUpdate(req.app, userId, {
@@ -127,19 +12,19 @@ const requestWithdrawal = async (req, res, next) => {
     });
     emitWithdrawalUpdate(req.app, userId, {
       _id: withdrawal._id,
-      coinSymbol,
-      amount,
+      coinSymbol: withdrawal.coinSymbol,
+      amount: withdrawal.amount,
       status: 'pending',
-      walletAddress,
+      walletAddress: withdrawal.walletAddress,
       createdAt: withdrawal.createdAt,
     });
     emitAdminUpdate(req.app, 'admin:withdrawal:new', {
       _id: withdrawal._id,
       userId,
-      coinSymbol,
-      amount,
+      coinSymbol: withdrawal.coinSymbol,
+      amount: withdrawal.amount,
       status: 'pending',
-      walletAddress,
+      walletAddress: withdrawal.walletAddress,
       createdAt: withdrawal.createdAt,
     });
 
@@ -148,7 +33,6 @@ const requestWithdrawal = async (req, res, next) => {
       message: 'Withdrawal request submitted successfully and is pending admin approval.',
       data: {
         withdrawal,
-        miningBalances: Object.fromEntries(user.miningBalances),
       },
     });
   } catch (error) {
@@ -159,7 +43,7 @@ const requestWithdrawal = async (req, res, next) => {
 const listWithdrawals = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const withdrawals = await Withdrawal.find({ userId }).sort({ createdAt: -1 });
+    const withdrawals = await withdrawalService.listWithdrawals(userId);
 
     res.status(200).json({
       success: true,

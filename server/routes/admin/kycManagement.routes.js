@@ -3,11 +3,13 @@ const router = express.Router();
 const kycManagementController = require('../../controllers/admin/kycManagement.controller');
 const auth = require('../../middlewares/auth.middleware');
 const requireRole = require('../../middlewares/role.middleware');
+const validate = require('../../middlewares/validate.middleware');
+const { rejectKYCSchema } = require('../../validators/admin/kyc.validator');
 
 router.use(auth, requireRole('admin'));
 
 router.get('/', kycManagementController.getPendingKYC);
 router.put('/:userId/approve', kycManagementController.approveKYC);
-router.put('/:userId/reject', kycManagementController.rejectKYC);
+router.put('/:userId/reject', validate(rejectKYCSchema), kycManagementController.rejectKYC);
 
 module.exports = router;

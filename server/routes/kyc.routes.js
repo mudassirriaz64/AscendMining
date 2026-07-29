@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const kycController = require('../controllers/kyc.controller');
-const auth = require('../middlewares/auth.middleware');
+const authMiddleware = require('../middlewares/auth.middleware');
+const validate = require('../middlewares/validate.middleware');
+const { submitKYCSchema } = require('../validators/kyc.validator');
 
-router.use(auth);
-
-router.post('/submit', kycController.submitKYC);
-router.get('/status', kycController.getKYCStatus);
+router.post('/submit', authMiddleware, validate(submitKYCSchema), kycController.submitKYC);
+router.get('/status', authMiddleware, kycController.getKYCStatus);
 
 module.exports = router;

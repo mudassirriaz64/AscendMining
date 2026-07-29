@@ -144,9 +144,16 @@ const reactivateUser = async (userId, adminId, ip) => {
   return { message: 'User reactivated successfully.' };
 };
 
-const triggerPasswordReset = async (userId, adminId, ip) => {
+const triggerPasswordReset = async (userId, { newPassword }, adminId, ip) => {
   const user = await userRepository.findById(userId);
   if (!user) throw new AppError('USER_NOT_FOUND', 'User not found.', 404);
+
+  if (!newPassword || newPassword.length < 6) {
+    throw new AppError('INVALID_PASSWORD', 'Password must be at least 6 characters.', 400);
+  }
+
+  user.passwordHash = newPassword;
+  await user.save();
 
   await adminLogRepository.create({
     actorId: adminId,
@@ -155,11 +162,11 @@ const triggerPasswordReset = async (userId, adminId, ip) => {
     targetId: userId,
     beforeState: null,
     afterState: null,
-    reason: 'Admin-triggered password reset',
+    reason: 'Admin-reset user password directly',
     ipAddress: ip,
   });
 
-  return { message: 'Password reset email sent to user.' };
+  return { message: 'Password reset successfully.' };
 };
 
 const adjustUserBalance = async (userId, { type, amount, reason }, adminId, ip) => {

@@ -1,4 +1,5 @@
 const Service = require('../../models/Service');
+const AdminLog = require('../../models/AdminLog');
 
 const getAllServices = async (req, res, next) => {
   try {
@@ -24,6 +25,16 @@ const createService = async (req, res, next) => {
       order: order || 0,
     });
 
+    await AdminLog.create({
+      actorId: req.user.id,
+      action: 'service_created',
+      targetType: 'Service',
+      targetId: newService._id,
+      beforeState: null,
+      afterState: newService.toJSON(),
+      ipAddress: req.ip,
+    });
+
     res.status(201).json({
       success: true,
       message: 'Service created successfully',
@@ -39,15 +50,27 @@ const updateService = async (req, res, next) => {
     const { id } = req.params;
     const { title, description, icon, isActive, order } = req.body;
 
+    const original = await Service.findById(id);
+    if (!original) {
+      return res.status(404).json({ success: false, error: { message: 'Service not found' } });
+    }
+    const beforeState = original.toJSON();
+
     const service = await Service.findByIdAndUpdate(
       id,
       { title, description, icon, isActive, order },
       { new: true, runValidators: true }
     );
 
-    if (!service) {
-      return res.status(404).json({ success: false, error: { message: 'Service not found' } });
-    }
+    await AdminLog.create({
+      actorId: req.user.id,
+      action: 'service_updated',
+      targetType: 'Service',
+      targetId: service._id,
+      beforeState,
+      afterState: service.toJSON(),
+      ipAddress: req.ip,
+    });
 
     res.status(200).json({
       success: true,
@@ -62,11 +85,24 @@ const updateService = async (req, res, next) => {
 const deleteService = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const service = await Service.findByIdAndDelete(id);
 
+    const service = await Service.findById(id);
     if (!service) {
       return res.status(404).json({ success: false, error: { message: 'Service not found' } });
     }
+    const beforeState = service.toJSON();
+
+    await Service.findByIdAndDelete(id);
+
+    await AdminLog.create({
+      actorId: req.user.id,
+      action: 'service_deleted',
+      targetType: 'Service',
+      targetId: id,
+      beforeState,
+      afterState: null,
+      ipAddress: req.ip,
+    });
 
     res.status(200).json({
       success: true,

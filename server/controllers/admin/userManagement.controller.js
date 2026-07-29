@@ -122,6 +122,7 @@ const triggerPasswordReset = async (req, res, next) => {
   try {
     const result = await userManagementService.triggerPasswordReset(
       req.params.id,
+      req.body,
       req.user.id,
       req.ip
     );

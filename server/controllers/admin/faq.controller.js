@@ -1,4 +1,5 @@
 const FAQ = require('../../models/FAQ');
+const AdminLog = require('../../models/AdminLog');
 
 const getAllFAQs = async (req, res, next) => {
   try {
@@ -23,6 +24,16 @@ const createFAQ = async (req, res, next) => {
       order: order || 0,
     });
 
+    await AdminLog.create({
+      actorId: req.user.id,
+      action: 'faq_created',
+      targetType: 'FAQ',
+      targetId: newFAQ._id,
+      beforeState: null,
+      afterState: newFAQ.toJSON(),
+      ipAddress: req.ip,
+    });
+
     res.status(201).json({
       success: true,
       message: 'FAQ created successfully',
@@ -38,15 +49,27 @@ const updateFAQ = async (req, res, next) => {
     const { id } = req.params;
     const { question, answer, isActive, order } = req.body;
 
+    const original = await FAQ.findById(id);
+    if (!original) {
+      return res.status(404).json({ success: false, error: { message: 'FAQ not found' } });
+    }
+    const beforeState = original.toJSON();
+
     const faq = await FAQ.findByIdAndUpdate(
       id,
       { question, answer, isActive, order },
       { new: true, runValidators: true }
     );
 
-    if (!faq) {
-      return res.status(404).json({ success: false, error: { message: 'FAQ not found' } });
-    }
+    await AdminLog.create({
+      actorId: req.user.id,
+      action: 'faq_updated',
+      targetType: 'FAQ',
+      targetId: faq._id,
+      beforeState,
+      afterState: faq.toJSON(),
+      ipAddress: req.ip,
+    });
 
     res.status(200).json({
       success: true,
@@ -61,11 +84,24 @@ const updateFAQ = async (req, res, next) => {
 const deleteFAQ = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const faq = await FAQ.findByIdAndDelete(id);
 
+    const faq = await FAQ.findById(id);
     if (!faq) {
       return res.status(404).json({ success: false, error: { message: 'FAQ not found' } });
     }
+    const beforeState = faq.toJSON();
+
+    await FAQ.findByIdAndDelete(id);
+
+    await AdminLog.create({
+      actorId: req.user.id,
+      action: 'faq_deleted',
+      targetType: 'FAQ',
+      targetId: id,
+      beforeState,
+      afterState: null,
+      ipAddress: req.ip,
+    });
 
     res.status(200).json({
       success: true,

@@ -214,10 +214,25 @@ const adminDeleteSession = async (req, res, next) => {
 const closeSession = async (req, res, next) => {
   try {
     req.body = req.body || {};
-    const conversation = await supportChatService.getConversationByUserId(req.user.id);
-    if (!conversation) return res.status(404).json({ success: false, error: { message: 'Conversation not found.' } });
-    const session = await supportChatService.closeSession(req.params.sessionId, req.user.id, req.body.reason || 'user_close');
-    res.json({ success: true, data: { session } });
+    let conversationId;
+    if (req.user.isGuest) {
+      const Conversation = require('../models/Conversation');
+      const conversation = await Conversation.findOne({ guestId: req.user.id });
+      if (!conversation) return res.status(404).json({ success: false, error: { message: 'Conversation not found.' } });
+      conversationId = conversation._id;
+    } else {
+      const conversation = await supportChatService.getConversationByUserId(req.user.id);
+      if (!conversation) return res.status(404).json({ success: false, error: { message: 'Conversation not found.' } });
+      conversationId = conversation._id;
+    }
+
+    const session = await require('../repositories/conversationSession.repository').findById(req.params.sessionId);
+    if (!session || session.conversationId.toString() !== conversationId.toString()) {
+      return res.status(403).json({ success: false, error: { message: 'Forbidden.' } });
+    }
+
+    const closedSession = await supportChatService.closeSession(req.params.sessionId, req.user.id, req.body.reason || 'user_close');
+    res.json({ success: true, data: { session: closedSession } });
   } catch (error) { next(error); }
 };
 
@@ -261,10 +276,23 @@ const uploadAttachment = async (req, res, next) => {
 
     const messageId = new mongoose.Types.ObjectId();
     const originalFilename = req.file.originalname;
-    const folder = `support-conversations/${conversationId}`;
+    const folder = `ascendxmining/support-conversations/${conversationId}`;
     const filename = `${messageId}-${originalFilename}`;
 
-    const uploadResult = await uploadToCloudinary(req.file.buffer, folder, filename);
+    let uploadBuffer = req.file.buffer;
+    if (req.file.mimetype.startsWith('image/')) {
+      try {
+        const sharp = require('sharp');
+        uploadBuffer = await sharp(req.file.buffer)
+          .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
+          .jpeg({ quality: 80 })
+          .toBuffer();
+      } catch (sharpError) {
+        console.warn('[Sharp] Chat image compression failed, using original buffer', sharpError);
+      }
+    }
+
+    const uploadResult = await uploadToCloudinary(uploadBuffer, folder, filename);
     const attachmentType = req.file.mimetype.startsWith('image/') ? 'image' : 'document';
 
     res.status(200).json({

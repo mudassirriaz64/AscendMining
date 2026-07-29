@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { ArrowUpRight } from 'lucide-react';
+import WalletAddressCell from '../../../components/common/WalletAddressCell';
 import toast from 'react-hot-toast';
 import { fetchAdminWithdrawals, approveAdminWithdrawal, rejectAdminWithdrawal, clearAdminWithdrawalError, clearAdminWithdrawalSuccess } from '../../../store/slices/adminWithdrawalSlice';
 import FilterChips from '../../../components/common/FilterChips';
@@ -99,11 +100,7 @@ const AdminWithdrawalsPage = () => {
     {
       key: 'walletAddress',
       label: 'Destination Wallet',
-      render: (_, row) => (
-        <p className="font-mono text-xs text-slate-600 bg-slate-100 p-2 rounded-lg max-w-[200px] truncate" title={row.walletAddress}>
-          {row.walletAddress}
-        </p>
-      ),
+      render: (_, row) => <WalletAddressCell address={row.walletAddress} />,
     },
     {
       key: 'requestedAt',

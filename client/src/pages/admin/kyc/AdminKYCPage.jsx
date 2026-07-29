@@ -100,6 +100,22 @@ const AdminKYCPage = () => {
       )
     },
     {
+      key: 'kycPersonalInfo',
+      label: 'Submitted Details',
+      render: (val) => (
+        <div className="text-xs text-text-secondary space-y-1">
+          {val?.fullName && <p><span className="font-semibold text-text-light-bg">Name:</span> {val.fullName}</p>}
+          {val?.documentNumber && <p><span className="font-semibold text-text-light-bg">Doc #:</span> {val.documentNumber}</p>}
+          {val?.dateOfBirth && <p><span className="font-semibold text-text-light-bg">DOB:</span> {val.dateOfBirth}</p>}
+          {(val?.city || val?.address) && (
+            <p className="truncate max-w-[200px]" title={`${val.address || ''}${val.city ? ', ' + val.city : ''}`}>
+              <span className="font-semibold text-text-light-bg">Loc:</span> {val.address || ''}{val.city ? ` (${val.city})` : ''}
+            </p>
+          )}
+        </div>
+      )
+    },
+    {
       key: 'updatedAt',
       label: 'Submitted At',
       render: (val) => <span className="text-text-secondary">{new Date(val).toLocaleString()}</span>

@@ -1,32 +1,17 @@
-const Withdrawal = require('../../models/Withdrawal');
-const User = require('../../models/User');
-const AdminLog = require('../../models/AdminLog');
-const WalletTransaction = require('../../models/WalletTransaction');
-const Notification = require('../../models/Notification');
+const withdrawalService = require('../../services/withdrawal.service');
 const { emitWithdrawalStatusChange, emitAdminUpdate, emitMiningUpdate } = require('../../utils/dashboardEvents');
 
 const getPendingWithdrawals = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
-    const skip = (page - 1) * limit;
-
-    const withdrawals = await Withdrawal.find({ status: 'pending' })
-      .populate('userId', 'username email fullName')
-      .sort({ requestedAt: 1 })
-      .skip(skip)
-      .limit(limit);
-
-    const total = await Withdrawal.countDocuments({ status: 'pending' });
-
+    const result = await withdrawalService.getPendingWithdrawals(req.query);
     res.status(200).json({
       success: true,
       data: {
-        withdrawals,
+        withdrawals: result.withdrawals,
         pagination: {
-          total,
-          page,
-          pages: Math.ceil(total / limit),
+          total: result.total,
+          page: result.page,
+          pages: Math.ceil(result.total / result.limit),
         },
       },
     });
@@ -37,32 +22,16 @@ const getPendingWithdrawals = async (req, res, next) => {
 
 const getAllWithdrawals = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
-    const skip = (page - 1) * limit;
-    
-    // allow filtering by status
-    const filter = {};
-    if (req.query.status) {
-      filter.status = req.query.status;
-    }
-
-    const withdrawals = await Withdrawal.find(filter)
-      .populate('userId', 'username email fullName')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    const total = await Withdrawal.countDocuments(filter);
-
+    const { page = 1, limit = 20, status } = req.query;
+    const result = await withdrawalService.getAllWithdrawals({ page, limit, status });
     res.status(200).json({
       success: true,
       data: {
-        withdrawals,
+        withdrawals: result.withdrawals,
         pagination: {
-          total,
-          page,
-          pages: Math.ceil(total / limit),
+          total: result.total,
+          page: result.page,
+          pages: Math.ceil(result.total / result.limit),
         },
       },
     });
@@ -75,49 +44,21 @@ const approveWithdrawal = async (req, res, next) => {
   try {
     const { id } = req.params;
     const adminId = req.user.id;
+    const ip = req.ip;
 
-    const withdrawal = await Withdrawal.findById(id).populate('userId', 'username email');
-    if (!withdrawal) {
-      return res.status(404).json({ success: false, error: { message: 'Withdrawal not found' } });
-    }
-
-    if (withdrawal.status !== 'pending') {
-      return res.status(400).json({ success: false, error: { message: `Withdrawal is already ${withdrawal.status}` } });
-    }
-
-    withdrawal.status = 'approved';
-    withdrawal.approvedAt = new Date();
-    withdrawal.approvedBy = adminId;
-    await withdrawal.save();
-
-    await AdminLog.create({
-      actorId: adminId,
-      action: 'withdrawal_approved',
-      targetId: withdrawal.userId._id,
-      targetType: 'User',
-      details: { withdrawalId: withdrawal._id, amount: withdrawal.amount, coin: withdrawal.coinSymbol },
-      ipAddress: req.ip
-    });
-
-    await Notification.create({
-      userId: withdrawal.userId._id,
-      title: 'Withdrawal Approved',
-      message: `Your withdrawal of ${withdrawal.amount.toFixed(4)} ${withdrawal.coinSymbol} has been approved and sent to your wallet.`,
-      type: 'success',
-      link: '/withdraw/history'
-    });
+    const { withdrawal } = await withdrawalService.approveWithdrawal(id, adminId, ip);
 
     // Emit real-time withdrawal status change
-    emitWithdrawalStatusChange(req.app, withdrawal.userId._id, {
+    emitWithdrawalStatusChange(req.app, withdrawal.userId, {
       _id: withdrawal._id,
-      status: 'approved',
+      status: 'completed',
       amount: withdrawal.amount,
       coinSymbol: withdrawal.coinSymbol,
     });
     emitAdminUpdate(req.app, 'admin:withdrawal:approved', {
       _id: withdrawal._id,
-      userId: withdrawal.userId._id,
-      status: 'approved',
+      userId: withdrawal.userId,
+      status: 'completed',
     });
 
     res.status(200).json({
@@ -133,65 +74,14 @@ const approveWithdrawal = async (req, res, next) => {
 const rejectWithdrawal = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { reason } = req.body;
+    const { rejectionReason } = req.body;
     const adminId = req.user.id;
+    const ip = req.ip;
 
-    if (!reason) {
-      return res.status(400).json({ success: false, error: { message: 'Rejection reason is required' } });
-    }
+    const { withdrawal } = await withdrawalService.rejectWithdrawal(id, rejectionReason, adminId, ip);
 
-    const withdrawal = await Withdrawal.findById(id);
-    if (!withdrawal) {
-      return res.status(404).json({ success: false, error: { message: 'Withdrawal not found' } });
-    }
-
-    if (withdrawal.status !== 'pending') {
-      return res.status(400).json({ success: false, error: { message: `Withdrawal is already ${withdrawal.status}` } });
-    }
-
-    // Refund the user's balance
-    const user = await User.findById(withdrawal.userId);
-    if (user) {
-      if (!user.miningBalances) user.miningBalances = new Map();
-      const currentBal = user.miningBalances.get(withdrawal.coinSymbol) || 0;
-      user.miningBalances.set(withdrawal.coinSymbol, currentBal + withdrawal.amount);
-      await user.save();
-
-      emitMiningUpdate(req.app, withdrawal.userId, {
-        miningStatus: { hashRate: 0 },
-      });
-      
-      // Log the refund transaction
-      await WalletTransaction.create({
-        userId: user._id,
-        type: 'withdrawal_refund',
-        amount: withdrawal.amount,
-        coinSymbol: withdrawal.coinSymbol,
-        referenceType: 'Withdrawal',
-        referenceId: withdrawal._id,
-        reason: `Refund for rejected withdrawal: ${reason}`
-      });
-    }
-
-    withdrawal.status = 'rejected';
-    withdrawal.rejectionReason = reason;
-    await withdrawal.save();
-
-    await AdminLog.create({
-      actorId: adminId,
-      action: 'withdrawal_rejected',
-      targetId: withdrawal.userId,
-      targetType: 'User',
-      details: { withdrawalId: withdrawal._id, amount: withdrawal.amount, reason },
-      ipAddress: req.ip
-    });
-
-    await Notification.create({
-      userId: withdrawal.userId,
-      title: 'Withdrawal Rejected',
-      message: `Your withdrawal of ${withdrawal.amount.toFixed(4)} ${withdrawal.coinSymbol} was rejected and refunded. Reason: ${reason}`,
-      type: 'error',
-      link: '/withdraw/history'
+    emitMiningUpdate(req.app, withdrawal.userId, {
+      miningStatus: { hashRate: 0 },
     });
 
     // Emit real-time withdrawal status change
@@ -200,7 +90,7 @@ const rejectWithdrawal = async (req, res, next) => {
       status: 'rejected',
       amount: withdrawal.amount,
       coinSymbol: withdrawal.coinSymbol,
-      rejectionReason: reason,
+      rejectionReason,
     });
     emitAdminUpdate(req.app, 'admin:withdrawal:rejected', {
       _id: withdrawal._id,

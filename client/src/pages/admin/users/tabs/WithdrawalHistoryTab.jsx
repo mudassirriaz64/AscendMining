@@ -5,6 +5,7 @@ import StatusBadge from '../../../../components/common/StatusBadge';
 import EmptyState from '../../../../components/common/EmptyState';
 import LoadingSpinner from '../../../../components/common/LoadingSpinner';
 import { ArrowUpFromLine } from 'lucide-react';
+import WalletAddressCell from '../../../../components/common/WalletAddressCell';
 
 const WithdrawalHistoryTab = ({ data, loading, onLoad }) => {
   useEffect(() => {
@@ -23,7 +24,7 @@ const WithdrawalHistoryTab = ({ data, loading, onLoad }) => {
     {
       key: 'walletAddress',
       label: 'Destination',
-      render: (val) => <span className="text-xs font-mono truncate max-w-[120px] block" title={val}>{val}</span>,
+      render: (_, row) => <WalletAddressCell address={row.walletAddress} maxWidth="120px" />,
     },
     {
       key: 'status',

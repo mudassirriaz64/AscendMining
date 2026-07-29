@@ -111,12 +111,12 @@ export const reactivateUser = createAsyncThunk(
 
 export const triggerPasswordReset = createAsyncThunk(
   'admin/triggerPasswordReset',
-  async (id, { rejectWithValue }) => {
+  async ({ id, newPassword }, { rejectWithValue }) => {
     try {
-      const response = await adminService.triggerPasswordReset(id);
+      const response = await adminService.triggerPasswordReset(id, { newPassword });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || { message: 'Failed to trigger password reset.' });
+      return rejectWithValue(error.response?.data || { message: 'Failed to reset password.' });
     }
   }
 );
@@ -205,7 +205,7 @@ const adminUserSlice = createSlice({
       .addCase(reactivateUser.fulfilled, (s) => { s.actionSuccess = 'User reactivated successfully.'; })
       .addCase(reactivateUser.rejected, (s, a) => { s.error = a.payload; })
 
-      .addCase(triggerPasswordReset.fulfilled, (s) => { s.actionSuccess = 'Password reset email sent.'; })
+      .addCase(triggerPasswordReset.fulfilled, (s) => { s.actionSuccess = 'Password reset successfully.'; })
       .addCase(triggerPasswordReset.rejected, (s, a) => { s.error = a.payload; })
 
       .addCase(adjustUserBalance.fulfilled, (s, a) => {

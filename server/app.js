@@ -18,6 +18,7 @@ const adminDashboardRoutes = require('./routes/admin/dashboardManagement.routes'
 const adminMiningSettingsRoutes = require('./routes/admin/miningSettings.routes');
 const adminUserPackageRoutes = require('./routes/admin/userPackageManagement.routes');
 const adminKycRoutes = require('./routes/admin/kycManagement.routes');
+const adminLogRoutes = require('./routes/admin/adminLog.routes');
 const kycRoutes = require('./routes/kyc.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const miningRoutes = require('./routes/mining.routes');
@@ -69,6 +70,7 @@ app.use('/api/admin/dashboard', adminDashboardRoutes);
 app.use('/api/admin/mining-settings', adminMiningSettingsRoutes);
 app.use('/api/admin/user-packages', adminUserPackageRoutes);
 app.use('/api/admin/kyc', adminKycRoutes);
+app.use('/api/admin/logs', adminLogRoutes);
 app.use('/api/kyc', kycRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/mining', miningRoutes);

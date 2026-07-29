@@ -135,6 +135,16 @@ const sendMessage = async ({
 
   if (activeSessionId) {
     const session = await sessionRepo.findById(activeSessionId);
+    if (!session) {
+      const error = new Error('Session not found.');
+      error.statusCode = 404;
+      throw error;
+    }
+    if (session.conversationId.toString() !== conversationId.toString()) {
+      const error = new Error('Forbidden.');
+      error.statusCode = 403;
+      throw error;
+    }
     sessionIsClosed = isSessionClosed(session);
   } else {
     const latest = await sessionRepo.findLatestActiveSession(conversationId);

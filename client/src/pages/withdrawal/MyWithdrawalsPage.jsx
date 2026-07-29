@@ -10,6 +10,7 @@ import Logo from '../../components/common/Logo';
 import StatusBadge from '../../components/common/StatusBadge';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageSkeleton from '../../components/common/PageSkeleton';
+import WalletAddressCell from '../../components/common/WalletAddressCell';
 import Header from '../../components/common/Header';
 
 const MyWithdrawalsPage = () => {
@@ -132,9 +133,7 @@ const MyWithdrawalsPage = () => {
                       <td className="px-6 py-5">
                         <div className="flex flex-col">
                           <span className="text-xs font-bold text-slate-800">{w.coinSymbol}</span>
-                          <span className="text-xs font-mono text-slate-500 select-all block max-w-xs truncate">
-                            {w.walletAddress}
-                          </span>
+                          <WalletAddressCell address={w.walletAddress} maxWidth="200px" />
                         </div>
                       </td>
                       <td className="px-6 py-5 text-right">
