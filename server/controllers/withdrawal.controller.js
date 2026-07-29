@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Coin = require('../models/Coin');
 const Withdrawal = require('../models/Withdrawal');
 const WalletTransaction = require('../models/WalletTransaction');
+const { emitWithdrawalUpdate, emitAdminUpdate, emitMiningUpdate } = require('../utils/dashboardEvents');
 
 const requestWithdrawal = async (req, res, next) => {
   try {
@@ -118,6 +119,28 @@ const requestWithdrawal = async (req, res, next) => {
       referenceId: withdrawal._id,
       balanceAfter: user.miningBalances.get(coinSymbol),
       reason: `Withdrawal request for ${amount} ${coinSymbol}`,
+    });
+
+    // Emit real-time events for new withdrawal
+    emitMiningUpdate(req.app, userId, {
+      miningStatus: { hashRate: 0 },
+    });
+    emitWithdrawalUpdate(req.app, userId, {
+      _id: withdrawal._id,
+      coinSymbol,
+      amount,
+      status: 'pending',
+      walletAddress,
+      createdAt: withdrawal.createdAt,
+    });
+    emitAdminUpdate(req.app, 'admin:withdrawal:new', {
+      _id: withdrawal._id,
+      userId,
+      coinSymbol,
+      amount,
+      status: 'pending',
+      walletAddress,
+      createdAt: withdrawal.createdAt,
     });
 
     res.status(201).json({

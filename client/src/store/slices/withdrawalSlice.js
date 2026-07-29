@@ -51,6 +51,19 @@ const withdrawalSlice = createSlice({
     clearWithdrawalError: (state) => {
       state.error = null;
     },
+    updateWithdrawalStatus: (state, action) => {
+      const updated = action.payload;
+      const idx = state.withdrawals.findIndex((w) => w._id === updated._id);
+      if (idx !== -1) {
+        state.withdrawals[idx] = { ...state.withdrawals[idx], ...updated };
+      }
+    },
+    addWithdrawal: (state, action) => {
+      const withdrawal = action.payload;
+      if (withdrawal && withdrawal._id && !state.withdrawals.some((w) => w._id === withdrawal._id)) {
+        state.withdrawals = [withdrawal, ...state.withdrawals];
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -94,5 +107,5 @@ const withdrawalSlice = createSlice({
   },
 });
 
-export const { clearWithdrawalError } = withdrawalSlice.actions;
+export const { clearWithdrawalError, updateWithdrawalStatus, addWithdrawal } = withdrawalSlice.actions;
 export default withdrawalSlice.reducer;

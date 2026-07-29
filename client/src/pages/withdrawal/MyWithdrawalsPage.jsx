@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { Clock, CheckCircle, AlertCircle, XCircle, LogOut } from 'lucide-react';
-import { fetchWithdrawals } from '../../store/slices/withdrawalSlice';
+import { fetchWithdrawals, updateWithdrawalStatus, addWithdrawal } from '../../store/slices/withdrawalSlice';
 import { logoutUser } from '../../store/slices/authSlice';
+import { connectDashboardSocket, getDashboardSocket } from '../../services/dashboardSocket';
 import Logo from '../../components/common/Logo';
 import StatusBadge from '../../components/common/StatusBadge';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -18,6 +20,32 @@ const MyWithdrawalsPage = () => {
 
   useEffect(() => {
     dispatch(fetchWithdrawals());
+  }, [dispatch]);
+
+  useEffect(() => {
+    const socket = connectDashboardSocket();
+
+    const onWithdrawalUpdate = (data) => {
+      dispatch(addWithdrawal(data));
+      toast.success(`Withdrawal of ${data.amount} ${data.coinSymbol} submitted.`);
+    };
+
+    const onWithdrawalStatusChange = (data) => {
+      dispatch(updateWithdrawalStatus(data));
+      if (data.status === 'approved' || data.status === 'completed') {
+        toast.success(`Withdrawal ${data.amount} ${data.coinSymbol} approved!`);
+      } else if (data.status === 'rejected') {
+        toast.error(`Withdrawal ${data.amount} ${data.coinSymbol} rejected. ${data.rejectionReason || ''}`);
+      }
+    };
+
+    socket.on('withdrawal:update', onWithdrawalUpdate);
+    socket.on('withdrawal:status:change', onWithdrawalStatusChange);
+
+    return () => {
+      socket.off('withdrawal:update', onWithdrawalUpdate);
+      socket.off('withdrawal:status:change', onWithdrawalStatusChange);
+    };
   }, [dispatch]);
 
   const handleLogout = async () => {

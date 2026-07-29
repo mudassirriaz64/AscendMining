@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import toast from 'react-hot-toast';
 import { ImageIcon } from 'lucide-react';
-import { fetchMyDeposits } from '../../store/slices/dashboardSlice';
+import { fetchMyDeposits, updateDepositInHistory } from '../../store/slices/dashboardSlice';
+import { connectDashboardSocket, getDashboardSocket } from '../../services/dashboardSocket';
 import Header from '../../components/common/Header';
 import Modal from '../../components/common/Modal';
 import { formatCurrency, formatDate } from '../../utils/formatters';
@@ -16,6 +18,25 @@ const PaymentsLogPage = () => {
 
   useEffect(() => {
     dispatch(fetchMyDeposits({ page: 1, limit: 100 }));
+  }, [dispatch]);
+
+  useEffect(() => {
+    const socket = connectDashboardSocket();
+
+    const onDepositStatusChange = (data) => {
+      dispatch(updateDepositInHistory(data));
+      if (data.status === 'approved') {
+        toast.success(`Deposit $${data.amount?.toFixed?.(2) || ''} approved!`);
+      } else if (data.status === 'rejected') {
+        toast.error(`Deposit $${data.amount?.toFixed?.(2) || ''} rejected. ${data.rejectionReason || ''}`);
+      }
+    };
+
+    socket.on('deposit:status:change', onDepositStatusChange);
+
+    return () => {
+      socket.off('deposit:status:change', onDepositStatusChange);
+    };
   }, [dispatch]);
 
   const getStatusBadge = (status) => {

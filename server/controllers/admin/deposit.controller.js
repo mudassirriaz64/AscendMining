@@ -3,6 +3,7 @@ const WalletTransaction = require('../../models/WalletTransaction');
 const AdminLog = require('../../models/AdminLog');
 const Notification = require('../../models/Notification');
 const User = require('../../models/User');
+const { emitDepositStatusChange, emitBalanceUpdate, emitTransactionUpdate } = require('../../utils/dashboardEvents');
 
 const getPendingDeposits = async (req, res, next) => {
   try {
@@ -98,6 +99,23 @@ const approveDeposit = async (req, res, next) => {
       ipAddress: req.ip
     });
 
+    // Emit real-time deposit status change
+    emitDepositStatusChange(req.app, user._id, {
+      _id: deposit._id,
+      status: 'approved',
+      amount: deposit.amount,
+      approvedAt: deposit.approvedAt,
+    });
+    emitBalanceUpdate(req.app, user._id, { walletBalance: newWalletBalance });
+    emitTransactionUpdate(req.app, user._id, {
+      _id: deposit._id,
+      type: 'deposit',
+      amount: deposit.amount,
+      currency: 'USD',
+      balanceAfter: newWalletBalance,
+      createdAt: new Date(),
+    });
+
     res.status(200).json({
       success: true,
       message: 'Deposit approved successfully. Wallet balance credited.',
@@ -147,6 +165,14 @@ const rejectDeposit = async (req, res, next) => {
       targetType: 'User',
       details: { depositId: deposit._id, amount: deposit.amount, reason: rejectionReason },
       ipAddress: req.ip
+    });
+
+    // Emit real-time deposit status change
+    emitDepositStatusChange(req.app, deposit.userId, {
+      _id: deposit._id,
+      status: 'rejected',
+      amount: deposit.amount,
+      rejectionReason,
     });
 
     res.status(200).json({

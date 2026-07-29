@@ -98,6 +98,31 @@ const dashboardSlice = createSlice({
     clearDashboardError: (state) => {
       state.error = null;
     },
+    updateBalance: (state, action) => {
+      const { walletBalance, referralBalance, miningBalances } = action.payload;
+      if (walletBalance !== undefined) state.balances.walletBalance = walletBalance;
+      if (referralBalance !== undefined) state.balances.referralBalance = referralBalance;
+      if (miningBalances) state.balances.miningBalances = { ...state.balances.miningBalances, ...miningBalances };
+    },
+    updateMiningStatus: (state, action) => {
+      const { miningStatus, activePackage, miningSettings } = action.payload;
+      if (miningStatus) state.miningStatus = { ...state.miningStatus, ...miningStatus };
+      if (activePackage !== undefined) state.activePackage = activePackage;
+      if (miningSettings) state.miningSettings = { ...state.miningSettings, ...miningSettings };
+    },
+    addTransaction: (state, action) => {
+      const tx = action.payload;
+      if (tx && tx._id && !state.latestTransactions.some((t) => t._id === tx._id)) {
+        state.latestTransactions = [tx, ...state.latestTransactions].slice(0, 5);
+      }
+    },
+    updateDepositInHistory: (state, action) => {
+      const updated = action.payload;
+      const idx = state.history.deposits.data.findIndex((d) => d._id === updated._id);
+      if (idx !== -1) {
+        state.history.deposits.data[idx] = { ...state.history.deposits.data[idx], ...updated };
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -179,5 +204,11 @@ const dashboardSlice = createSlice({
   },
 });
 
-export const { clearDashboardError } = dashboardSlice.actions;
+export const {
+  clearDashboardError,
+  updateBalance,
+  updateMiningStatus,
+  addTransaction,
+  updateDepositInHistory,
+} = dashboardSlice.actions;
 export default dashboardSlice.reducer;

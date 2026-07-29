@@ -2,6 +2,7 @@ const Package = require('../models/Package');
 const UserPackage = require('../models/UserPackage');
 const Deposit = require('../models/Deposit');
 const PaymentMethod = require('../models/PaymentMethod');
+const { emitBalanceUpdate, emitMiningUpdate, emitTransactionUpdate } = require('../utils/dashboardEvents');
 
 const listPackages = async (req, res, next) => {
   try {
@@ -105,6 +106,31 @@ const purchasePackage = async (req, res, next) => {
       referenceType: 'UserPackage',
       referenceId: userPackage._id,
       balanceAfter: user.walletBalance,
+    });
+
+    // Emit real-time updates for balance, mining, and transaction
+    const app = req.app;
+    emitBalanceUpdate(app, userId, { walletBalance: user.walletBalance });
+    emitMiningUpdate(app, userId, {
+      activePackage: {
+        _id: userPackage._id,
+        packageId: { name: pkg.name, _id: pkg._id },
+        purchaseAmount: pkg.price,
+        dailyROISnapshot: pkg.dailyROI,
+        startDate,
+        cycleStartedAt: startDate,
+        cycleEndsAt: cycleEnds,
+        nextMiningAt: userPackage.nextMiningAt,
+      },
+      miningStatus: { status: 'active', progressPercent: 0, hashRate: pkg.hashRate },
+    });
+    emitTransactionUpdate(app, userId, {
+      _id: transaction._id,
+      type: 'package_purchase',
+      amount: -pkg.price,
+      currency: 'USD',
+      balanceAfter: user.walletBalance,
+      createdAt: new Date(),
     });
 
     res.status(201).json({

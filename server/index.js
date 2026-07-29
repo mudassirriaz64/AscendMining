@@ -6,6 +6,7 @@ const connectDB = require('./config/db');
 const seedAdmin = require('./utils/seedAdmin');
 const deduplicateConversations = require('./utils/deduplicateConversations');
 const initSupportChatSocket = require('./sockets/supportChat');
+const initDashboardSocket = require('./sockets/dashboard');
 const { startSlaCron } = require('./jobs/supportSlaCheck.cron');
 
 const PORT = process.env.PORT || 5000;
@@ -37,6 +38,10 @@ const startServer = async () => {
   // Initialize support chat socket namespace
   const supportNamespace = initSupportChatSocket(io);
   app.set('supportNamespace', supportNamespace);
+
+  // Initialize dashboard socket namespace
+  const dashboardNamespace = initDashboardSocket(io);
+  app.set('dashboardNamespace', dashboardNamespace);
 
   // Start SLA cron (checks every 60s for conversations unanswered > 30 min)
   startSlaCron();

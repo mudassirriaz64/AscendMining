@@ -1,4 +1,4 @@
-const socketAuth = require('../../auth');
+const socketAuth = require('../auth');
 
 const initDashboardSocket = (io) => {
   const namespace = io.of('/dashboard');

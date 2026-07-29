@@ -3,6 +3,7 @@ const User = require('../../models/User');
 const AdminLog = require('../../models/AdminLog');
 const WalletTransaction = require('../../models/WalletTransaction');
 const Notification = require('../../models/Notification');
+const { emitWithdrawalStatusChange, emitAdminUpdate, emitMiningUpdate } = require('../../utils/dashboardEvents');
 
 const getPendingWithdrawals = async (req, res, next) => {
   try {
@@ -106,6 +107,19 @@ const approveWithdrawal = async (req, res, next) => {
       link: '/withdraw/history'
     });
 
+    // Emit real-time withdrawal status change
+    emitWithdrawalStatusChange(req.app, withdrawal.userId._id, {
+      _id: withdrawal._id,
+      status: 'approved',
+      amount: withdrawal.amount,
+      coinSymbol: withdrawal.coinSymbol,
+    });
+    emitAdminUpdate(req.app, 'admin:withdrawal:approved', {
+      _id: withdrawal._id,
+      userId: withdrawal.userId._id,
+      status: 'approved',
+    });
+
     res.status(200).json({
       success: true,
       message: 'Withdrawal approved successfully.',
@@ -142,6 +156,10 @@ const rejectWithdrawal = async (req, res, next) => {
       const currentBal = user.miningBalances.get(withdrawal.coinSymbol) || 0;
       user.miningBalances.set(withdrawal.coinSymbol, currentBal + withdrawal.amount);
       await user.save();
+
+      emitMiningUpdate(req.app, withdrawal.userId, {
+        miningStatus: { hashRate: 0 },
+      });
       
       // Log the refund transaction
       await WalletTransaction.create({
@@ -174,6 +192,20 @@ const rejectWithdrawal = async (req, res, next) => {
       message: `Your withdrawal of ${withdrawal.amount.toFixed(4)} ${withdrawal.coinSymbol} was rejected and refunded. Reason: ${reason}`,
       type: 'error',
       link: '/withdraw/history'
+    });
+
+    // Emit real-time withdrawal status change
+    emitWithdrawalStatusChange(req.app, withdrawal.userId, {
+      _id: withdrawal._id,
+      status: 'rejected',
+      amount: withdrawal.amount,
+      coinSymbol: withdrawal.coinSymbol,
+      rejectionReason: reason,
+    });
+    emitAdminUpdate(req.app, 'admin:withdrawal:rejected', {
+      _id: withdrawal._id,
+      userId: withdrawal.userId,
+      status: 'rejected',
     });
 
     res.status(200).json({

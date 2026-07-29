@@ -1,4 +1,5 @@
 const userManagementService = require('../../services/admin/userManagement.service');
+const { emitBalanceUpdate } = require('../../utils/dashboardEvents');
 
 const listUsers = async (req, res, next) => {
   try {
@@ -141,6 +142,7 @@ const adjustUserBalance = async (req, res, next) => {
       req.user.id,
       req.ip
     );
+    emitBalanceUpdate(req.app, req.params.id, { walletBalance: result.walletBalance });
     res.status(200).json({
       success: true,
       message: result.message,

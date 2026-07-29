@@ -4,6 +4,7 @@ const WalletTransaction = require('../models/WalletTransaction');
 const Coin = require('../models/Coin');
 const Package = require('../models/Package');
 const SystemSetting = require('../models/SystemSetting');
+const { emitMiningUpdate, emitTransactionUpdate } = require('../utils/dashboardEvents');
 
 const claimMiningReward = async (req, res, next) => {
   try {
@@ -141,6 +142,28 @@ const claimMiningReward = async (req, res, next) => {
     userPackage.nextMiningAt = new Date(Date.now() + timerDurationHours * 60 * 60 * 1000);
     userPackage.isMining = true;
     await userPackage.save();
+
+    // Emit real-time mining update
+    emitMiningUpdate(req.app, userId, {
+      miningStatus: { progressPercent: 0 },
+      activePackage: {
+        _id: userPackage._id,
+        lastPayoutAt: userPackage.lastPayoutAt,
+        nextMiningAt: userPackage.nextMiningAt,
+        isMining: true,
+      },
+    });
+
+    const now2 = new Date();
+    payoutResults.forEach((pr) => {
+      emitTransactionUpdate(req.app, userId, {
+        type: 'mining_payout',
+        amount: pr.amountClaimed,
+        coinSymbol: pr.coinSymbol,
+        balanceAfter: user.miningBalances.get(pr.coinSymbol),
+        createdAt: now2,
+      });
+    });
 
     res.status(200).json({
       success: true,

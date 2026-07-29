@@ -6,8 +6,9 @@ import {
   Wallet, Gift, Cpu, Copy, Check, LogOut, 
   ExternalLink, Clock, TrendingUp, ShieldAlert, RefreshCw
 } from 'lucide-react';
-import { fetchDashboardSummary, claimMiningPayout } from '../../store/slices/dashboardSlice';
+import { fetchDashboardSummary, claimMiningPayout, updateBalance, updateMiningStatus, addTransaction } from '../../store/slices/dashboardSlice';
 import { logoutUser } from '../../store/slices/authSlice';
+import { connectDashboardSocket, getDashboardSocket, disconnectDashboardSocket } from '../../services/dashboardSocket';
 import Logo from '../../components/common/Logo';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageSkeleton from '../../components/common/PageSkeleton';
@@ -40,6 +41,35 @@ const DashboardPage = () => {
   useEffect(() => {
     loadDashboard();
   }, [loadDashboard]);
+
+  useEffect(() => {
+    const socket = connectDashboardSocket();
+    socket.emit('subscribe:balance');
+    socket.emit('subscribe:mining');
+
+    const onBalanceUpdate = (data) => {
+      dispatch(updateBalance(data));
+    };
+    const onMiningUpdate = (data) => {
+      dispatch(updateMiningStatus(data));
+    };
+    const onTransactionUpdate = (data) => {
+      dispatch(addTransaction(data));
+    };
+
+    socket.on('balance:update', onBalanceUpdate);
+    socket.on('mining:update', onMiningUpdate);
+    socket.on('transaction:update', onTransactionUpdate);
+
+    return () => {
+      socket.off('balance:update', onBalanceUpdate);
+      socket.off('mining:update', onMiningUpdate);
+      socket.off('transaction:update', onTransactionUpdate);
+      socket.emit('unsubscribe:balance');
+      socket.emit('unsubscribe:mining');
+      disconnectDashboardSocket();
+    };
+  }, [dispatch]);
 
   useEffect(() => {
     if (!activePackage || !activePackage.nextMiningAt) {
