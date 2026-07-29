@@ -159,6 +159,54 @@ const DashboardPage = () => {
       {/* MAIN CONTAINER */}
       <main className="max-w-7xl w-full mx-auto px-6 py-10 flex-grow space-y-10">
         
+        {user?.kycStatus === 'rejected' && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3 text-red-800 text-xs font-medium shadow-sm">
+            <ShieldAlert size={18} className="text-red-500 flex-shrink-0" />
+            <div className="flex-grow">
+              <p className="font-bold">Identity Verification Rejected</p>
+              <p className="text-red-600 mt-0.5 font-semibold">Reason: {user.kycRejectionReason || 'Invalid document photo.'}</p>
+            </div>
+            <button 
+              onClick={() => navigate('/kyc')}
+              className="bg-red-100 hover:bg-red-200 text-red-800 font-bold px-3 py-1.5 rounded-lg border border-red-200 cursor-pointer"
+            >
+              Re-submit KYC
+            </button>
+          </div>
+        )}
+
+        {user?.kycStatus === 'none' && (
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-center gap-3 text-blue-800 text-xs font-medium shadow-sm">
+            <ShieldAlert size={18} className="text-blue-500 flex-shrink-0" />
+            <div className="flex-grow">
+              <p className="font-bold">Identity Verification Required</p>
+              <p className="text-blue-600 mt-0.5">Please complete your KYC identity verification to unlock cash withdrawals.</p>
+            </div>
+            <button 
+              onClick={() => navigate('/kyc')}
+              className="bg-blue-100 hover:bg-blue-200 text-[#185adb] font-bold px-3 py-1.5 rounded-lg border border-blue-200 cursor-pointer"
+            >
+              Verify Now
+            </button>
+          </div>
+        )}
+
+        {user?.kycStatus === 'pending' && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 flex items-center gap-3 text-yellow-800 text-xs font-medium shadow-sm">
+            <Clock size={18} className="text-yellow-600 flex-shrink-0 animate-pulse" />
+            <div className="flex-grow">
+              <p className="font-bold">KYC Review In Progress</p>
+              <p className="text-yellow-600 mt-0.5">Your identity documents have been submitted and are pending admin review.</p>
+            </div>
+            <button 
+              onClick={() => navigate('/kyc')}
+              className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-bold px-3 py-1.5 rounded-lg border border-yellow-200 cursor-pointer"
+            >
+              Check Status
+            </button>
+          </div>
+        )}
+
         {miningSettings?.isPaused && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3 text-amber-800 text-xs font-medium shadow-sm">
             <ShieldAlert size={18} className="text-amber-500 flex-shrink-0" />

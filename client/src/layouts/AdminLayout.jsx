@@ -14,6 +14,7 @@ import Logo from '../components/common/Logo';
 const sidebarLinks = [
   { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/admin/users', icon: Users, label: 'Users' },
+  { to: '/admin/kyc', icon: ShieldCheck, label: 'KYC Verifications' },
   { to: '/admin/coins', icon: Coins, label: 'Coins' },
   { to: '/admin/packages', icon: Package, label: 'Packages' },
   { to: '/admin/mining-settings', icon: Settings, label: 'Mining Settings' },

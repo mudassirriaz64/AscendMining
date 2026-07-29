@@ -94,7 +94,7 @@ const AdminDepositsPage = () => {
       render: (val, row) => (
         <div>
           <p className="font-medium text-text-light-bg">${row.amount.toLocaleString()}</p>
-          {row.packageId && <p className="text-xs text-text-secondary">Plan: {row.packageId.title || 'N/A'}</p>}
+          {row.packageId && <p className="text-xs text-text-secondary">Plan: {row.packageId.name || 'N/A'}</p>}
         </div>
       ),
     },

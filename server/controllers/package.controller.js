@@ -76,13 +76,36 @@ const purchasePackage = async (req, res, next) => {
       isMining: false,
     });
 
-    // 4. Create Deposit document (pending status) referencing the user package
+    // 4. Upload screenshot to Cloudinary
+    let screenshotUrl = screenshot;
+    if (screenshot && screenshot.startsWith('data:image/')) {
+      try {
+        const cloudinary = require('../config/cloudinary');
+        const uploadResult = await cloudinary.uploader.upload(screenshot, {
+          folder: `ascend-mining/users/${userId}/deposits`,
+          resource_type: 'image',
+        });
+        screenshotUrl = uploadResult.secure_url;
+      } catch (uploadError) {
+        console.error('Cloudinary upload error:', uploadError);
+        return res.status(500).json({
+          success: false,
+          error: {
+            code: 'UPLOAD_FAILED',
+            message: 'Failed to upload payment proof to Cloudinary. Please try again.',
+            status: 500,
+          },
+        });
+      }
+    }
+
+    // 5. Create Deposit document (pending status) referencing the user package
     const deposit = await Deposit.create({
       userId,
       packageId: userPackage._id,
       paymentMethod: pm._id,
       amount: pkg.price,
-      screenshot, // Can store base64 string directly
+      screenshot: screenshotUrl,
       senderHolderName: senderHolderName || null,
       senderPhone: senderPhone || null,
       senderBankName: senderBankName || null,

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { 
   Wallet, Cpu, Clock, AlertTriangle, CheckCircle, 
-  ArrowRight, X, Info, LogOut
+  ArrowRight, X, Info, LogOut, ShieldAlert
 } from 'lucide-react';
 import { fetchDashboardSummary } from '../../store/slices/dashboardSlice';
 import { requestWithdrawal, clearWithdrawalError } from '../../store/slices/withdrawalSlice';
@@ -105,6 +105,8 @@ const WithdrawNowPage = () => {
     return <PageSkeleton />;
   }
 
+  const kycStatus = user?.kycStatus || 'none';
+
   return (
     <div className="min-h-screen flex flex-col bg-[#f0f2f5] font-sans antialiased text-slate-800">
       
@@ -120,16 +122,43 @@ const WithdrawNowPage = () => {
           <p className="text-xs text-slate-500 mt-1 font-medium">Select a coin below to request your payout directly to your wallet address.</p>
         </div>
 
-        {/* COIN WALLET CARDS LIST */}
-        <section className="space-y-6">
-          {!coins || coins.length === 0 ? (
-            <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center text-slate-400 font-medium text-sm">
-              No active mining coins available.
+        {kycStatus !== 'approved' ? (
+          <div className="bg-white rounded-2xl shadow-md border border-slate-200 p-10 text-center max-w-lg mx-auto space-y-6 my-10">
+            <div className="bg-amber-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto text-amber-500">
+              <ShieldAlert size={36} />
             </div>
-          ) : (
-            coins.map((coin) => {
-              const balance = balances.miningBalances?.[coin.symbol] || 0;
-              const address = walletAddresses?.[coin.symbol] || '';
+            <div className="space-y-2">
+              <h2 className="text-lg font-bold text-slate-950">KYC Verification Required</h2>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                In order to request withdrawals, you must complete your Identity Verification (KYC) first. 
+                {kycStatus === 'pending' && ' Your documents are currently under review by our administration. Please wait for approval.'}
+                {kycStatus === 'rejected' && ' Your previous submission was rejected. Please review feedback and re-submit.'}
+                {kycStatus === 'none' && ' Please upload CNIC, passport, or driver license to verify your identity.'}
+              </p>
+            </div>
+            <div className="pt-2">
+              {kycStatus === 'pending' ? (
+                <Button onClick={() => navigate('/kyc')} className="bg-blue-50 hover:bg-blue-100 text-[#185adb] font-bold text-xs px-6 py-2.5 rounded-xl cursor-pointer">
+                  Check Verification Status
+                </Button>
+              ) : (
+                <Button onClick={() => navigate('/kyc')} className="bg-[#185adb] hover:bg-[#1242a3] text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-md cursor-pointer">
+                  Verify Identity (KYC)
+                </Button>
+              )}
+            </div>
+          </div>
+        ) : (
+          /* COIN WALLET CARDS LIST */
+          <section className="space-y-6">
+            {!coins || coins.length === 0 ? (
+              <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center text-slate-400 font-medium text-sm">
+                No active mining coins available.
+              </div>
+            ) : (
+              coins.map((coin) => {
+                const balance = balances.miningBalances?.[coin.symbol] || 0;
+                const address = walletAddresses?.[coin.symbol] || '';
 
               return (
                 <div 
@@ -195,6 +224,7 @@ const WithdrawNowPage = () => {
             })
           )}
         </section>
+        )}
 
       </main>
 

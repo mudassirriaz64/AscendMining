@@ -34,9 +34,28 @@ const submitKYC = async (req, res, next) => {
       });
     }
 
+    // Upload KYC image to Cloudinary
+    let kycUrl = documentImage;
+    if (documentImage && documentImage.startsWith('data:image/')) {
+      try {
+        const cloudinary = require('../config/cloudinary');
+        const uploadResult = await cloudinary.uploader.upload(documentImage, {
+          folder: `ascend-mining/users/${userId}/kyc`,
+          resource_type: 'image',
+        });
+        kycUrl = uploadResult.secure_url;
+      } catch (uploadError) {
+        console.error('Cloudinary upload error:', uploadError);
+        return res.status(500).json({
+          success: false,
+          error: { message: 'Failed to upload verification documents to Cloudinary. Please try again.' }
+        });
+      }
+    }
+
     user.kycStatus = 'pending';
     user.kycDocumentType = documentType;
-    user.kycDocumentUrl = documentImage;
+    user.kycDocumentUrl = kycUrl;
     user.kycRejectionReason = null;
     await user.save();
 
