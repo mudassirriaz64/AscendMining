@@ -120,7 +120,7 @@ const claimMiningReward = async (req, res, next) => {
       user.miningBalances.set(coin.symbol, currentBalance + coinProfit);
 
       // Create a payout transaction for each coin
-      await WalletTransaction.create({
+      const walletTx = await WalletTransaction.create({
         userId,
         type: 'mining_payout',
         amount: coinProfit,
@@ -131,7 +131,12 @@ const claimMiningReward = async (req, res, next) => {
         reason: `Daily return amount for the plan ${planName}`,
       });
 
-      payoutResults.push({ coinSymbol: coin.symbol, amountClaimed: coinProfit });
+      payoutResults.push({ 
+        coinSymbol: coin.symbol, 
+        amountClaimed: coinProfit,
+        txId: walletTx._id,
+        reason: walletTx.reason || `Daily return amount for the plan ${planName}`
+      });
     }
 
     await user.save();
@@ -143,7 +148,10 @@ const claimMiningReward = async (req, res, next) => {
     userPackage.isMining = true;
     await userPackage.save();
 
-    // Emit real-time mining update
+    // Emit real-time updates to dashboard
+    const { emitBalanceUpdate } = require('../utils/dashboardEvents');
+    emitBalanceUpdate(req.app, userId, { miningBalances: Object.fromEntries(user.miningBalances) });
+
     emitMiningUpdate(req.app, userId, {
       miningStatus: { progressPercent: 0 },
       activePackage: {
@@ -157,10 +165,12 @@ const claimMiningReward = async (req, res, next) => {
     const now2 = new Date();
     payoutResults.forEach((pr) => {
       emitTransactionUpdate(req.app, userId, {
+        _id: pr.txId,
         type: 'mining_payout',
         amount: pr.amountClaimed,
         coinSymbol: pr.coinSymbol,
         balanceAfter: user.miningBalances.get(pr.coinSymbol),
+        reason: pr.reason,
         createdAt: now2,
       });
     });

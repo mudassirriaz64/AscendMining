@@ -189,9 +189,9 @@ const adjustUserBalance = async (userId, { type, amount, reason }, adminId, ip) 
   // Update user
   await userRepository.updateById(userId, { walletBalance: afterBalance });
 
-// Create Wallet Transaction
+  // Create Wallet Transaction
   const WalletTransaction = require('../../models/WalletTransaction');
-  await WalletTransaction.create({
+  const transaction = await WalletTransaction.create({
     userId,
     currency: 'USD',
     type: type === 'add' ? 'deposit' : 'withdrawal',
@@ -215,7 +215,7 @@ const adjustUserBalance = async (userId, { type, amount, reason }, adminId, ip) 
     ipAddress: ip,
   });
 
-  return { message: 'Balance adjusted successfully.', walletBalance: afterBalance };
+  return { message: 'Balance adjusted successfully.', walletBalance: afterBalance, transaction };
 };
 
 module.exports = {

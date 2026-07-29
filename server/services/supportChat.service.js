@@ -184,7 +184,18 @@ const sendMessage = async ({
     unreadByAdmin: isInvestor,
     unreadByUser: !isInvestor,
   };
-  if (!isInvestor) update.awaitingAgentSince = null;
+  if (!isInvestor) {
+    update.awaitingAgentSince = null;
+    try {
+      const SupportTicket = require('../models/SupportTicket');
+      await SupportTicket.updateMany(
+        { conversationId, status: 'open' },
+        { $set: { status: 'in_progress' } }
+      );
+    } catch (err) {
+      console.error('[SLA] Failed to update associated ticket status:', err);
+    }
+  }
 
   if (isInvestor) {
     update.hiddenFromAdmin = false;
@@ -266,6 +277,17 @@ const getMySessionMessages = async (userId, sessionId, { page = 1, limit = 100 }
 const markConversationOpened = async (conversationId, byAgentId) => {
   const conversation = await conversationRepo.findById(conversationId);
   if (!conversation) return null;
+
+  try {
+    const SupportTicket = require('../models/SupportTicket');
+    await SupportTicket.updateMany(
+      { conversationId, status: 'open' },
+      { $set: { status: 'in_progress' } }
+    );
+  } catch (err) {
+    console.error('[SLA] Failed to update ticket status on open:', err);
+  }
+
   const [updated] = await Promise.all([
     conversationRepo.updateById(conversationId, {
       awaitingAgentSince: null,

@@ -81,7 +81,14 @@ const AdminSupportPage = () => {
   const loadConversations = useCallback(async () => {
     try {
       const response = await api.get('/admin/support/conversations');
-      setConversations(response.data.data.conversations || []);
+      const convos = response.data.data.conversations || [];
+      setConversations(convos);
+
+      // Sync alarmIds with currently overdue conversations
+      const overdueIds = convos
+        .filter((c) => c.escalationAvailable)
+        .map((c) => c._id);
+      setAlarmIds(new Set(overdueIds));
     } catch (e) {
       console.warn('Failed to load support conversations:', e);
     }
@@ -332,6 +339,21 @@ const AdminSupportPage = () => {
     } catch { toast.error('Failed to delete session.'); }
   };
 
+  const handleCloseSession = async (sessionId) => {
+    if (!window.confirm('Are you sure you want to close this session?')) return;
+    try {
+      await api.patch(`/admin/support/conversations/sessions/${sessionId}/close`);
+      setActiveSessions((current) => current.map((s) => s._id === sessionId ? { ...s, closedAt: new Date(), closeReason: 'admin' } : s));
+      if (selectedId) {
+        const response = await api.get(`/admin/support/conversations/${selectedId}`);
+        setMessages(response.data.data.messages || []);
+      }
+      toast.success('Session closed.');
+    } catch {
+      toast.error('Failed to close session.');
+    }
+  };
+
   const handleCreateSession = async () => {
     const title = window.prompt("Enter a title for the new session (optional):");
     if (title === null) return;
@@ -488,11 +510,21 @@ const AdminSupportPage = () => {
                         <div className="flex items-center gap-2 text-xs text-text-secondary">
                           <span className="font-medium">{item.session?.title || 'Unknown session'}</span>
                           {sessionDate && <span>({sessionDate})</span>}
-                          {isClosed && <span className="text-slate-400">— Closed {closedAtStr}</span>}
+                           {isClosed && <span className="text-slate-400">— Closed {closedAtStr}</span>}
+                          {!isClosed && (
+                            <button
+                              type="button"
+                              onClick={() => handleCloseSession(item.sessionId)}
+                              className="text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer text-[10px] font-bold bg-slate-100 px-2 py-0.5 rounded ml-1"
+                              title="Close session"
+                            >
+                              Close
+                            </button>
+                          )}
                           <button
                             type="button"
                             onClick={() => deleteSession(item.sessionId)}
-                            className="text-slate-300 hover:text-red-500 transition-colors cursor-pointer p-0.5"
+                            className="text-slate-300 hover:text-red-500 transition-colors cursor-pointer p-0.5 ml-1"
                             title="Delete session"
                           >
                             <Trash2 size={12} />

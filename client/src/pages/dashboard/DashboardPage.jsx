@@ -504,7 +504,7 @@ const DashboardPage = () => {
             <h2 className="text-xl font-black text-slate-950 uppercase tracking-tight">
               Latest <span className="text-yellow-500">Transactions</span>
             </h2>
-            <span className="text-xs font-bold text-[#185adb] hover:underline cursor-pointer">View All →</span>
+            <span onClick={() => navigate('/transactions')} className="text-xs font-bold text-[#185adb] hover:underline cursor-pointer">View All →</span>
           </div>
           
           <div className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">

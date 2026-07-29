@@ -142,7 +142,14 @@ const adjustUserBalance = async (req, res, next) => {
       req.user.id,
       req.ip
     );
+
+    // Emit real-time dashboard events
+    const { emitBalanceUpdate, emitTransactionUpdate } = require('../../utils/dashboardEvents');
     emitBalanceUpdate(req.app, req.params.id, { walletBalance: result.walletBalance });
+    if (result.transaction) {
+      emitTransactionUpdate(req.app, req.params.id, result.transaction);
+    }
+
     res.status(200).json({
       success: true,
       message: result.message,
