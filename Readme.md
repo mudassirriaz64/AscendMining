@@ -34,24 +34,81 @@
 
 ---
 
-## Project Structure
+## Project Structure & Folder Details
 
-```
-client/                       # React app
-server/
-  controllers/                 # Thin request handlers
-  services/                    # Business logic — the only layer enforcing business rules
-  repositories/                # Mongoose query layer — only layer touching models directly
-  middlewares/                 # auth, role guard, validation, rate limiting, uploads, error handling
-  validators/                  # Request validation schemas
-  routes/                      # Express routers
-  models/                      # Mongoose schemas (matches SCHEMA.md)
-  sockets/                     # Socket.io event handlers (real-time chat, admin alerts)
-  jobs/                        # Background jobs — mining payout cron, wallet reconciliation, SLA checks
-  utils/
-  config/
-  uploads/                     # Local temp storage before Cloudinary push (not committed)
-```
+The repository follows a clean, decoupled architectural design separating client concerns (React SPA) from backend logic (Node/Express REST API & Sockets). Below is the comprehensive walk-through of the codebase folder-by-folder:
+
+---
+
+### 📂 Client Layer (`/client`)
+The frontend is a React application built with **Vite** and **Tailwind CSS**. It is organized into clean, modular folders inside the `src/` directory:
+
+*   **`src/assets/`** — Static asset repository. Holds theme images, default placeholders, branding graphics, and custom icons.
+*   **`src/components/common/`** — Reusable, atomic UI components.
+    *   `Button.jsx` / `InputField.jsx` / `SelectField.jsx` — Standardized form inputs designed to reflect the gold-yellow on dark-blue theme system.
+    *   `DataTable.jsx` / `Pagination.jsx` — Power user directories, lists, and transaction history grids.
+    *   `Header.jsx` / `PublicHeader.jsx` / `PublicFooter.jsx` — Global navigation layouts for authenticated dashboards and marketing views.
+    *   `Modal.jsx` / `ConfirmModal.jsx` / `PromptModal.jsx` — Overlay dialogues for approvals, confirmations, and parameter inputs.
+    *   `SupportChatWidget.jsx` — Sticky bottom-right live chat interface accessible to logged-in users and guests. Supports image/document/video attachments and displays upload boundaries dynamically.
+*   **`src/hooks/`** — Shared React hooks. Holds viewport dimensions watchers, interval polls, and socket subscription handlers.
+*   **`src/layouts/`** — High-level layout wrappers.
+    *   `AdminLayout.jsx` — The side-navigation structure of the admin dashboard, housing the global user search bar, sidebar toggles, and metric highlights.
+    *   `PublicLayout.jsx` — Theme wrapper for all landing pages.
+*   **`src/pages/`** — Page views mapped directly to client-side routing:
+    *   `pages/public/` — Landing Page, About, Services, FAQs, and Contact pages.
+    *   `pages/auth/` — Login, Signup (referral-linked), and Password Reset modules.
+    *   `pages/dashboard/` — Main investor account overview displaying metrics, charts, and activity feeds.
+    *   `pages/mining/` — Packages listing and mining console pages where users trigger active cycles.
+    *   `pages/account/` — User Profile, Wallet Addresses, and KYC Verification page (supports 20MB document proof uploads).
+    *   `pages/withdrawal/` — Withdrawals list and "Withdraw Now" request pages.
+    *   `pages/support/` — Large chat console (`SupportChatPage.jsx`) displaying full conversations.
+    *   `pages/admin/` — Admin management dashboards (RBAC restricted):
+        *   `admin/dashboard/` — Redesigned live metrics board with dynamic SVG trend charts.
+        *   `admin/users/` — Detailed registry page with server-side filters.
+        *   `admin/deposits/` / `admin/withdrawals/` — Admin queues for manual confirmation.
+        *   `admin/kyc/` — Review panel for user document proofs.
+        *   `admin/support/` — Agent ticketing dashboard mapping alerts, online tags, and SLAs.
+*   **`src/services/`** — Network communication configurations.
+    *   `api.js` — Axios client configured with interceptors to automatically retrieve tokens and refresh credentials dynamically.
+    *   `socketService.js` — Socket.io setup connecting the live support chat.
+*   **`src/store/`** — Redux Toolkit central state manager.
+    *   `store.js` — State container config.
+    *   `store/slices/` — Individual slices (e.g., `authSlice`, `dashboardSlice`, `supportChatSlice`, `adminUserSlice`) keeping API bindings separated.
+*   **`src/styles/`** — Global CSS files.
+*   **`src/utils/`** — Front-end utility handlers.
+    *   `date.js` — Formatters for dates, relative times, and clock displays.
+    *   `browser.js` — Helper methods like favicon flashes or title alerts.
+    *   `videoCompressor.js` — Client-side compressor that downsamples large video attachments to WebM containers.
+
+---
+
+### 📂 Server Layer (`/server`)
+The backend is a Node.js API built using Express. It is structured into strict architectural layers to segregate data access, business logic, routing, validation, and real-time socket events:
+
+*   **`config/`** — Initial boot files.
+    *   `db.js` — Database connectors matching the MongoDB Atlas connection schema.
+*   **`models/`** — Mongoose models representing database schemas (see `SCHEMA.md`):
+    *   `User.js` — User model containing wallet values, KYC indicators, and reference hashes.
+    *   `Conversation.js` / `ConversationMessage.js` / `ConversationSession.js` — Support chat structures.
+    *   `WalletTransaction.js` — Ledger for financial audit trails.
+    *   `Deposit.js` / `Withdrawal.js` / `SupportTicket.js` / `UserPackage.js` — Core functional records.
+*   **`repositories/`** — Mongoose query layer. The **only** layer authorized to interact with MongoDB collections directly, keeping controllers/services database-agnostic.
+*   **`services/`** — The business logic engine. This layer holds the authoritative rules (such as KYC checks, package activation limits, and referral chain calculations).
+*   **`controllers/`** — Thin controllers parsing parameters and returning standard REST responses. Divided into user domains and admin directories (`controllers/admin/`).
+*   **`middlewares/`** — Request filters.
+    *   `auth.middleware.js` — JWT parser extracting user ids.
+    *   `role.middleware.js` — Route filters restricting access based on user role.
+    *   `upload.middleware.js` — File parser supporting 200MB payloads and video formats.
+*   **`validators/`** — Zod/Express request input schemas ensuring only validated data flows into services.
+*   **`routes/`** — Express routers mounting endpoints and mapping controller paths.
+*   **`sockets/`** — Sockets namespace directories.
+    *   `supportChat/` — Support sockets capturing typing events, message deliveries, and admin alarm alerts.
+    *   `dashboard/` — Sockets serving stats updates.
+*   **`jobs/`** — Background cron jobs.
+    *   `supportSlaCheck.cron.js` — Automated checks monitoring active conversations.
+*   **`utils/`** — Shared helpers (e.g., seeding setups, conversation deduplicators, email templates).
+
+---
 
 ---
 
