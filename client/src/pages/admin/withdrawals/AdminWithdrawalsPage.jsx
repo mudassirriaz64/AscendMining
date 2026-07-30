@@ -12,7 +12,7 @@ import Button from '../../../components/common/Button';
 import Modal from '../../../components/common/Modal';
 import ConfirmModal from '../../../components/common/ConfirmModal';
 import { formatDate } from '../../../utils/formatters';
-import usePolling from '../../../hooks/usePolling';
+import { connectDashboardSocket } from '../../../services/dashboardSocket';
 
 const statusFilters = [
   { value: 'pending', label: 'Pending' },
@@ -40,7 +40,25 @@ const AdminWithdrawalsPage = () => {
     loadWithdrawals();
   }, [loadWithdrawals]);
 
-  usePolling(loadWithdrawals, 30000);
+  useEffect(() => {
+    const socket = connectDashboardSocket();
+    
+    const handleNewWithdrawal = () => {
+      loadWithdrawals();
+    };
+
+    socket.on('admin:withdrawal:new', handleNewWithdrawal);
+    socket.on('admin:withdrawal:status', handleNewWithdrawal);
+    socket.on('admin:withdrawal:approved', handleNewWithdrawal);
+    socket.on('admin:withdrawal:rejected', handleNewWithdrawal);
+
+    return () => {
+      socket.off('admin:withdrawal:new', handleNewWithdrawal);
+      socket.off('admin:withdrawal:status', handleNewWithdrawal);
+      socket.off('admin:withdrawal:approved', handleNewWithdrawal);
+      socket.off('admin:withdrawal:rejected', handleNewWithdrawal);
+    };
+  }, [loadWithdrawals]);
 
   useEffect(() => {
     if (actionSuccess) {

@@ -11,7 +11,7 @@ import StatusBadge from '../../../components/common/StatusBadge';
 import Button from '../../../components/common/Button';
 import Modal from '../../../components/common/Modal';
 import ConfirmModal from '../../../components/common/ConfirmModal';
-import usePolling from '../../../hooks/usePolling';
+import { connectDashboardSocket } from '../../../services/dashboardSocket';
 
 const statusFilters = [
   { value: 'pending', label: 'Pending' },
@@ -40,7 +40,21 @@ const AdminDepositsPage = () => {
     loadDeposits();
   }, [loadDeposits]);
 
-  usePolling(loadDeposits, 30000);
+  useEffect(() => {
+    const socket = connectDashboardSocket();
+    
+    const handleNewDeposit = () => {
+      loadDeposits();
+    };
+
+    socket.on('admin:deposit:status', handleNewDeposit);
+    socket.on('admin:deposit:new', handleNewDeposit);
+
+    return () => {
+      socket.off('admin:deposit:status', handleNewDeposit);
+      socket.off('admin:deposit:new', handleNewDeposit);
+    };
+  }, [loadDeposits]);
 
   useEffect(() => {
     if (actionSuccess) {

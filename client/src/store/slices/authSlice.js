@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import authService from '../../services/authService';
 import { getAccessToken, setTokens, clearTokens } from '../../services/tokenStorage';
+import { disconnectDashboardSocket } from '../../services/dashboardSocket';
+import { disconnectSocket } from '../../services/socketService';
 
 export const register = createAsyncThunk(
   'auth/register',
@@ -96,6 +98,8 @@ export const logoutUser = createAsyncThunk(
     try {
       await authService.logout();
       clearTokens();
+      disconnectDashboardSocket();
+      disconnectSocket();
       return true;
     } catch (error) {
       return rejectWithValue(error.response?.data || { message: 'Logout failed.' });
@@ -121,6 +125,14 @@ const authSlice = createSlice({
     clearAuthState: (state) => {
       state.user = null;
       state.loading = false;
+    },
+    updateUserKycStatus: (state, action) => {
+      const { kycStatus, kycRejectionReason, status } = action.payload;
+      if (state.user) {
+        if (kycStatus !== undefined) state.user.kycStatus = kycStatus;
+        if (kycRejectionReason !== undefined) state.user.kycRejectionReason = kycRejectionReason;
+        if (status !== undefined) state.user.status = status;
+      }
     },
   },
   extraReducers: (builder) => {
@@ -204,5 +216,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError, setUser, clearAuthState } = authSlice.actions;
+export const { clearError, setUser, clearAuthState, updateUserKycStatus } = authSlice.actions;
 export default authSlice.reducer;

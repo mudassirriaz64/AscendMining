@@ -1,5 +1,5 @@
 const withdrawalService = require('../../services/withdrawal.service');
-const { emitWithdrawalStatusChange, emitAdminUpdate, emitMiningUpdate } = require('../../utils/dashboardEvents');
+const { emitWithdrawalStatusChange, emitAdminUpdate, emitMiningUpdate, emitTransactionUpdate, emitBalanceUpdate } = require('../../utils/dashboardEvents');
 
 const getPendingWithdrawals = async (req, res, next) => {
   try {
@@ -46,7 +46,7 @@ const approveWithdrawal = async (req, res, next) => {
     const adminId = req.user.id;
     const ip = req.ip;
 
-    const { withdrawal } = await withdrawalService.approveWithdrawal(id, adminId, ip);
+    const { withdrawal, tx } = await withdrawalService.approveWithdrawal(id, adminId, ip);
 
     // Emit real-time withdrawal status change
     emitWithdrawalStatusChange(req.app, withdrawal.userId, {
@@ -55,6 +55,7 @@ const approveWithdrawal = async (req, res, next) => {
       amount: withdrawal.amount,
       coinSymbol: withdrawal.coinSymbol,
     });
+    emitTransactionUpdate(req.app, withdrawal.userId, tx.toJSON());
     emitAdminUpdate(req.app, 'admin:withdrawal:approved', {
       _id: withdrawal._id,
       userId: withdrawal.userId,
@@ -78,11 +79,7 @@ const rejectWithdrawal = async (req, res, next) => {
     const adminId = req.user.id;
     const ip = req.ip;
 
-    const { withdrawal } = await withdrawalService.rejectWithdrawal(id, rejectionReason, adminId, ip);
-
-    emitMiningUpdate(req.app, withdrawal.userId, {
-      miningStatus: { hashRate: 0 },
-    });
+    const { withdrawal, tx, user } = await withdrawalService.rejectWithdrawal(id, rejectionReason, adminId, ip);
 
     // Emit real-time withdrawal status change
     emitWithdrawalStatusChange(req.app, withdrawal.userId, {
@@ -92,6 +89,8 @@ const rejectWithdrawal = async (req, res, next) => {
       coinSymbol: withdrawal.coinSymbol,
       rejectionReason,
     });
+    emitBalanceUpdate(req.app, withdrawal.userId, { miningBalances: Object.fromEntries(user.miningBalances) });
+    emitTransactionUpdate(req.app, withdrawal.userId, tx.toJSON());
     emitAdminUpdate(req.app, 'admin:withdrawal:rejected', {
       _id: withdrawal._id,
       userId: withdrawal.userId,

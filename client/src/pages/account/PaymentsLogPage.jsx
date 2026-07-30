@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import { ImageIcon } from 'lucide-react';
-import { fetchMyDeposits, updateDepositInHistory } from '../../store/slices/dashboardSlice';
-import { connectDashboardSocket, getDashboardSocket } from '../../services/dashboardSocket';
+import { fetchMyDeposits, updateDepositInHistory, updateBalance } from '../../store/slices/dashboardSlice';
+import { connectDashboardSocket, disconnectDashboardSocket } from '../../services/dashboardSocket';
 import Header from '../../components/common/Header';
 import Modal from '../../components/common/Modal';
 import { formatCurrency, formatDate } from '../../utils/formatters';
@@ -32,10 +32,17 @@ const PaymentsLogPage = () => {
       }
     };
 
+    const onBalanceUpdate = (balanceData) => {
+      dispatch(updateBalance(balanceData));
+    };
+
     socket.on('deposit:status:change', onDepositStatusChange);
+    socket.on('balance:update', onBalanceUpdate);
 
     return () => {
       socket.off('deposit:status:change', onDepositStatusChange);
+      socket.off('balance:update', onBalanceUpdate);
+      disconnectDashboardSocket();
     };
   }, [dispatch]);
 

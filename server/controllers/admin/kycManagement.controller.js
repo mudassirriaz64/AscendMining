@@ -29,6 +29,9 @@ exports.approveKYC = async (req, res, next) => {
 
     const user = await kycService.approveKYC(userId, adminId, ip);
 
+    const { emitUserStatusChange } = require('../../utils/dashboardEvents');
+    emitUserStatusChange(req.app, userId, { kycStatus: 'approved', status: user.status });
+
     res.status(200).json({
       success: true,
       message: 'KYC verified and approved successfully.',
@@ -47,6 +50,9 @@ exports.rejectKYC = async (req, res, next) => {
     const ip = req.ip;
 
     const user = await kycService.rejectKYC(userId, reason, adminId, ip);
+
+    const { emitUserStatusChange } = require('../../utils/dashboardEvents');
+    emitUserStatusChange(req.app, userId, { kycStatus: 'rejected', kycRejectionReason: reason, status: user.status });
 
     res.status(200).json({
       success: true,

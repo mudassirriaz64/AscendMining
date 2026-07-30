@@ -8,19 +8,235 @@ import {
   ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { fetchDashboardSummary, claimMiningPayout, updateBalance, updateMiningStatus, addTransaction } from '../../store/slices/dashboardSlice';
-import { logoutUser } from '../../store/slices/authSlice';
+import { logoutUser, updateUserKycStatus } from '../../store/slices/authSlice';
 import { connectDashboardSocket, disconnectDashboardSocket } from '../../services/dashboardSocket';
 import Logo from '../../components/common/Logo';
 import PageSkeleton from '../../components/common/PageSkeleton';
 import Header from '../../components/common/Header';
 import TransactionsTable from '../../components/common/TransactionsTable';
 
+const ActivePackageCard = ({ pkg }) => {
+  const dispatch = useDispatch();
+  const [timeLeft, setTimeLeft] = useState('');
+  const [isReadyToClaim, setIsReadyToClaim] = useState(false);
+  const [progressPercent, setProgressPercent] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const { balances, miningSettings } = useSelector((state) => state.dashboard);
+
+  useEffect(() => {
+    if (!pkg || !pkg.nextMiningAt) {
+      setTimeLeft('');
+      setIsReadyToClaim(false);
+      setProgressPercent(0);
+      return;
+    }
+
+    const updateTimer = () => {
+      const nextTime = new Date(pkg.nextMiningAt).getTime();
+      const now = Date.now();
+      const difference = nextTime - now;
+      const durationMs = 24 * 60 * 60 * 1000;
+      const elapsedMs = Math.max(0, durationMs - difference);
+      const computedPercent = Math.min(100, Math.floor((elapsedMs / durationMs) * 100));
+      setProgressPercent(computedPercent);
+
+      if (difference <= 0) {
+        setTimeLeft('00:00:00');
+        setIsReadyToClaim(true);
+      } else {
+        const hours = Math.floor(difference / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        const formatted = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        setTimeLeft(formatted);
+        setIsReadyToClaim(false);
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [pkg]);
+
+  const handleClaim = async () => {
+    try {
+      setLoading(true);
+      const res = await dispatch(claimMiningPayout(pkg._id));
+      if (!res.error) {
+        toast.success('Mining reward claimed successfully!');
+      } else {
+        toast.error(res.payload?.error?.message || 'Failed to claim reward.');
+      }
+    } catch (err) {
+      toast.error('Failed to claim reward.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getEstTodayForCoins = () => {
+    const coins = pkg.packageId?.coins || [];
+    if (coins.length === 0) return '0.0000 TX';
+    return coins.map((coin) => {
+      const coinRate = coin.usdRate || 1.0;
+      const usdProfit = pkg.purchaseAmount * (pkg.dailyROISnapshot / 100);
+      const coinProfit = usdProfit / coinRate;
+      return `${coinProfit.toFixed(4)} ${coin.symbol}`;
+    }).join(' + ');
+  };
+
+  const getTotalMinedForCoins = () => {
+    const coins = pkg.packageId?.coins || [];
+    if (coins.length === 0) return '0.0000 TX';
+    return coins.map((coin) => {
+      const balance = balances.miningBalances?.[coin.symbol] || 0;
+      return `${balance.toFixed(4)} ${coin.symbol}`;
+    }).join(' + ');
+  };
+
+  const hashRate = pkg.hashRateSnapshot || pkg.packageId?.hashRate || 0;
+
+  return (
+    <div className="space-y-4">
+      {/* 1. Plan Details card */}
+      <div className="bg-white rounded-xl shadow-sm border border-outline-variant overflow-hidden flex flex-col md:flex-row">
+        <div className="md:w-1/4 bg-on-secondary-fixed p-5 flex flex-col justify-center gap-1.5 min-h-[120px] md:min-h-0">
+          <p className="font-label-caps text-[10px] text-primary-fixed-dim uppercase tracking-wider">Active Track</p>
+          <h3 className="font-heading text-2xl text-white font-extrabold leading-none tracking-tight truncate">
+            {pkg.packageId?.name || 'Mining Plan'}
+          </h3>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-brand-teal/20 text-brand-teal rounded-full w-fit border border-brand-teal/30">
+            <div className="w-1.5 h-1.5 bg-brand-teal rounded-full animate-pulse"></div>
+            <span className="text-[10px] font-bold uppercase tracking-wider">Active</span>
+          </div>
+        </div>
+        <div className="flex-grow p-5 grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
+          <div className="space-y-0.5">
+            <p className="font-label-caps text-[10px] text-on-surface-variant uppercase">Investment</p>
+            <p className="text-sm font-bold text-on-surface font-mono">
+              ${(pkg.purchaseAmount || 0).toFixed(2)}
+            </p>
+          </div>
+          <div className="space-y-0.5">
+            <p className="font-label-caps text-[10px] text-on-surface-variant uppercase">ROI Rate</p>
+            <p className="text-sm font-bold text-primary font-mono">
+              {pkg.dailyROISnapshot || '0.00'}%
+            </p>
+          </div>
+          <div className="space-y-0.5">
+            <p className="font-label-caps text-[10px] text-on-surface-variant uppercase">Started On</p>
+            <p className="text-xs text-on-surface font-semibold">
+              {new Date(pkg.cycleStartedAt || pkg.startDate).toLocaleDateString()}
+            </p>
+          </div>
+          <div className="space-y-0.5">
+            <p className="font-label-caps text-[10px] text-on-surface-variant uppercase">Ends On</p>
+            <p className="text-xs text-on-surface font-semibold">
+              {pkg.cycleEndsAt ? new Date(pkg.cycleEndsAt).toLocaleDateString() : '-'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Live Mining Progress panel */}
+      <div className="bg-white rounded-xl shadow-sm border border-outline-variant overflow-hidden">
+        <div className="bg-on-secondary-fixed p-4 px-card-padding flex items-center gap-3">
+          <div className="bg-primary-container p-1.5 rounded shadow-[0_0_12px_rgba(62,205,190,0.5)] border border-brand-teal/40">
+            <Cpu className="w-5 h-5 text-on-primary-fixed" />
+          </div>
+          <h2 className="text-white font-headline-md text-headline-md">Live Mining Progress - {pkg.packageId?.name}</h2>
+        </div>
+        
+        <div className="p-card-padding space-y-8">
+          {/* Progress Header */}
+          <div className="flex justify-between items-end">
+            <div className="flex items-center gap-3">
+              <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">Current Engine Status:</span>
+              {miningSettings?.isPaused ? (
+                <span className="text-amber-500 font-bold text-sm tracking-wide">PAUSED</span>
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-brand-teal animate-pulse"></span>
+                  <span className="text-[#1e786b] font-bold text-sm tracking-wide uppercase">Active</span>
+                </div>
+              )}
+            </div>
+            <span className="bg-surface-container-high text-on-surface-variant px-3 py-1 rounded-lg text-xs font-bold">
+              {progressPercent}% Complete
+            </span>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="relative w-full h-4 bg-surface-container-low rounded-full overflow-hidden border border-outline-variant/30">
+            <div 
+              className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-primary-container rounded-full transition-all duration-1000 ease-in-out" 
+              style={{ width: `${progressPercent}%` }}
+            >
+              <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.15)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.15)_50%,rgba(255,255,255,0.15)_75%,transparent_75%,transparent)] bg-[length:1rem_1rem] animate-progress"></div>
+            </div>
+          </div>
+
+          {/* Mining Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+            <div className="bg-surface-container-lowest border border-outline-variant/30 p-6 rounded-xl text-center space-y-1 hover:border-primary/50 transition-colors">
+              <p className="font-data-lg text-data-lg text-on-surface font-mono">
+                {getEstTodayForCoins()}
+              </p>
+              <p className="font-label-caps text-[10px] text-on-surface-variant uppercase font-bold mt-1">Est. Today</p>
+            </div>
+            <div className="bg-surface-container-lowest border border-outline-variant/30 p-6 rounded-xl text-center space-y-1 hover:border-primary/50 transition-colors">
+              <p className="font-data-lg text-data-lg text-on-surface font-mono">
+                {getTotalMinedForCoins()}
+              </p>
+              <p className="font-label-caps text-[10px] text-on-surface-variant uppercase font-bold mt-1">Total Mined</p>
+            </div>
+            <div className="bg-surface-container-lowest border border-outline-variant/30 p-6 rounded-xl text-center space-y-1 hover:border-primary/50 transition-colors">
+              <p className="font-data-lg text-data-lg text-on-surface font-mono">
+                {hashRate.toFixed(2)} MH/S
+              </p>
+              <p className="font-label-caps text-[10px] text-on-surface-variant uppercase font-bold mt-1">Hash Rate</p>
+            </div>
+          </div>
+
+          {/* Claim Action Row */}
+          <div className="bg-surface-container-low p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex flex-col">
+              <h4 className="font-headline-md text-headline-md text-on-surface font-bold">Claim Daily Mining Payout</h4>
+              <p className="text-sm text-on-surface-variant">Claim your package profit once every 24 hours.</p>
+            </div>
+            <div className="flex items-center gap-4 w-full md:w-auto justify-end">
+              {timeLeft && !isReadyToClaim && (
+                <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-lg border border-outline-variant font-mono text-xs text-on-surface-variant font-bold shadow-sm">
+                  <Clock size={14} className="animate-pulse text-primary" />
+                  {timeLeft}
+                </div>
+              )}
+              <button 
+                onClick={handleClaim}
+                disabled={!isReadyToClaim || loading || miningSettings?.isPaused}
+                className={`px-8 py-3 rounded-lg font-bold border transition-all text-sm w-full md:w-auto text-center cursor-pointer
+                  ${isReadyToClaim && !miningSettings?.isPaused
+                    ? 'bg-primary-container text-on-primary-fixed border-outline-variant/10 hover:brightness-110 shadow-sm'
+                    : 'bg-surface-dim text-on-surface-variant/40 border-outline-variant/20 cursor-not-allowed'
+                  }`}
+              >
+                {miningSettings?.isPaused ? 'Mining Paused' : 'Claim Reward'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const DashboardPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
-  const [timeLeft, setTimeLeft] = useState('');
-  const [isReadyToClaim, setIsReadyToClaim] = useState(false);
   const [copied, setCopied] = useState(false);
   const { user } = useSelector((state) => state.auth);
   const { 
@@ -28,7 +244,7 @@ const DashboardPage = () => {
     referralLink, 
     miningStatus, 
     coins,
-    activePackage,
+    activePackages,
     latestTransactions,
     miningSettings, 
     loading, 
@@ -37,7 +253,16 @@ const DashboardPage = () => {
 
   const [activeCoinIndex, setActiveCoinIndex] = useState(0);
   const currentCoin = coins[activeCoinIndex];
-  const hasActivePlan = Boolean(activePackage?.packageId?.name);
+  const hasActivePlan = activePackages && activePackages.length > 0;
+
+  const groupedPackages = activePackages ? activePackages.reduce((acc, pkg) => {
+    const planName = pkg.packageId?.name || 'Mining Plan';
+    if (!acc[planName]) {
+      acc[planName] = [];
+    }
+    acc[planName].push(pkg);
+    return acc;
+  }, {}) : {};
 
   const loadDashboard = useCallback(() => {
     dispatch(fetchDashboardSummary());
@@ -61,52 +286,35 @@ const DashboardPage = () => {
     const onTransactionUpdate = (data) => {
       dispatch(addTransaction(data));
     };
+    const onUserStatusChange = (data) => {
+      dispatch(updateUserKycStatus(data));
+      loadDashboard();
+    };
+    const onRealtimeChange = () => {
+      loadDashboard();
+    };
 
     socket.on('balance:update', onBalanceUpdate);
     socket.on('mining:update', onMiningUpdate);
     socket.on('transaction:update', onTransactionUpdate);
+    socket.on('user:status:change', onUserStatusChange);
+    socket.on('deposit:status:change', onRealtimeChange);
+    socket.on('withdrawal:status:change', onRealtimeChange);
+    socket.on('withdrawal:update', onRealtimeChange);
 
     return () => {
       socket.off('balance:update', onBalanceUpdate);
       socket.off('mining:update', onMiningUpdate);
       socket.off('transaction:update', onTransactionUpdate);
+      socket.off('user:status:change', onUserStatusChange);
+      socket.off('deposit:status:change', onRealtimeChange);
+      socket.off('withdrawal:status:change', onRealtimeChange);
+      socket.off('withdrawal:update', onRealtimeChange);
       socket.emit('unsubscribe:balance');
       socket.emit('unsubscribe:mining');
       disconnectDashboardSocket();
     };
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (!activePackage || !activePackage.nextMiningAt) {
-      setTimeLeft('');
-      setIsReadyToClaim(false);
-      return;
-    }
-
-    const updateTimer = () => {
-      const nextTime = new Date(activePackage.nextMiningAt).getTime();
-      const now = Date.now();
-      const difference = nextTime - now;
-
-      if (difference <= 0) {
-        setTimeLeft('00:00:00');
-        setIsReadyToClaim(true);
-      } else {
-        const hours = Math.floor(difference / (1000 * 60 * 60));
-        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-
-        const formatted = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        setTimeLeft(formatted);
-        setIsReadyToClaim(false);
-      }
-    };
-
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-
-    return () => clearInterval(interval);
-  }, [activePackage]);
+  }, [dispatch, loadDashboard]);
 
   const handleClaimReward = async () => {
     if (!activePackage?._id) return;
@@ -376,152 +584,40 @@ const DashboardPage = () => {
           </div>
         </section>
 
-        {/* Current Plan Card */}
-        <section className="bg-white rounded-xl shadow-sm border border-outline-variant overflow-hidden">
-          <div className="flex flex-col md:flex-row">
-            <div className="md:w-1/4 bg-on-secondary-fixed p-card-padding flex flex-col justify-center gap-2 min-h-[160px]">
-              <p className="font-label-caps text-label-caps text-primary-fixed-dim uppercase">Current Plan</p>
-              <h3 className="font-heading text-4xl text-white font-extrabold leading-tight tracking-tight">
-                {activePackage?.packageId?.name || 'No Active Plan'}
-              </h3>
-              {hasActivePlan ? (
-                <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-brand-teal/20 text-brand-teal rounded-full w-fit border border-brand-teal/30">
-                  <div className="w-2 h-2 bg-brand-teal rounded-full animate-pulse"></div>
-                  <span className="text-xs font-bold uppercase tracking-widest">Active</span>
-                </div>
-              ) : (
-                <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-slate-500/20 text-slate-400 rounded-full w-fit border border-slate-500/30">
-                  <span className="text-xs font-bold uppercase tracking-widest">Inactive</span>
-                </div>
-              )}
-            </div>
-            {hasActivePlan && (
-            <div className="flex-grow p-card-padding grid grid-cols-2 md:grid-cols-4 gap-6 items-center">
-              <div className="space-y-1">
-                <p className="font-label-caps text-label-caps text-on-surface-variant uppercase">Investment Amount</p>
-                <p className="font-headline-md text-headline-md text-on-surface font-mono">
-                  ${(activePackage.purchaseAmount || 0).toFixed(2)}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="font-label-caps text-label-caps text-on-surface-variant uppercase">Daily Profit Rate</p>
-                <p className="font-headline-md text-headline-md text-primary font-mono">
-                  {activePackage.dailyROISnapshot || '0.00'}%
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="font-label-caps text-label-caps text-on-surface-variant uppercase">Started On</p>
-                <p className="font-body-lg text-body-lg text-on-surface">
-                  {new Date(activePackage.cycleStartedAt || activePackage.startDate).toLocaleDateString()}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="font-label-caps text-label-caps text-on-surface-variant uppercase">Ends On</p>
-                <p className="font-body-lg text-body-lg text-on-surface">
-                  {activePackage.cycleEndsAt ? new Date(activePackage.cycleEndsAt).toLocaleDateString() : '-'}
-                </p>
-              </div>
-            </div>
+        {/* Active Mining Plans */}
+        <section className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="font-heading text-xl font-extrabold uppercase tracking-wider text-on-surface">
+              Active Plans
+            </h2>
+            {activePackages && activePackages.length > 0 && (
+              <span className="bg-primary-container/20 text-primary-container px-3 py-1 rounded-full text-xs font-bold uppercase border border-primary-container/30">
+                {activePackages.length} Plan{activePackages.length > 1 ? 's' : ''} Running
+              </span>
             )}
           </div>
+          {activePackages && activePackages.length > 0 ? (
+            <div className="flex flex-col gap-10">
+              {activePackages.map((pkg) => (
+                <ActivePackageCard key={pkg._id} pkg={pkg} />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white border border-outline-variant rounded-xl p-8 text-center flex flex-col items-center justify-center gap-4">
+              <Cpu className="w-12 h-12 text-slate-300 animate-pulse" />
+              <div>
+                <p className="font-heading text-base font-bold text-on-surface">No Active Mining Plans</p>
+                <p className="text-xs text-on-surface-variant mt-1">Start cloud mining packages to earn high-yield payouts.</p>
+              </div>
+              <button
+                onClick={() => navigate('/mining/plans')}
+                className="bg-primary-container text-on-primary-fixed hover:brightness-110 font-bold px-6 py-3 rounded-xl cursor-pointer text-xs"
+              >
+                Purchase Plan
+              </button>
+            </div>
+          )}
         </section>
-
-        {/* Live Mining Progress Card */}
-        {!miningSettings?.isDisabled && hasActivePlan && (
-          <section className="bg-white rounded-xl shadow-sm border border-outline-variant overflow-hidden">
-            <div className="bg-on-secondary-fixed p-4 px-card-padding flex items-center gap-3">
-              <div className="bg-primary-container p-1.5 rounded shadow-[0_0_12px_rgba(62,205,190,0.5)] border border-brand-teal/40">
-                <Cpu className="w-5 h-5 text-on-primary-fixed" />
-              </div>
-              <h2 className="text-white font-headline-md text-headline-md">Live Mining Progress</h2>
-            </div>
-            
-            <div className="p-card-padding space-y-8">
-              {/* Progress Header */}
-              <div className="flex justify-between items-end">
-                <div className="flex items-center gap-3">
-                  <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">Current Engine Status:</span>
-                  {miningSettings?.isPaused ? (
-                    <span className="text-amber-500 font-bold text-sm tracking-wide">PAUSED</span>
-                  ) : (
-                    <div className="flex items-center gap-1.5">
-                      {miningStatus.status === 'active' && (
-                        <span className="w-2 h-2 rounded-full bg-brand-teal animate-pulse"></span>
-                      )}
-                      <span className={`${miningStatus.status === 'active' ? 'text-[#1e786b] font-bold' : 'text-slate-500'} font-bold text-sm tracking-wide uppercase`}>
-                        {miningStatus.status === 'active' ? 'Active' : 'Inactive'}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <span className="bg-surface-container-high text-on-surface-variant px-3 py-1 rounded-lg text-xs font-bold">
-                  {miningStatus.progressPercent}% Complete
-                </span>
-              </div>
-
-              {/* Progress Bar */}
-              <div className="relative w-full h-4 bg-surface-container-low rounded-full overflow-hidden border border-outline-variant/30">
-                <div 
-                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-primary-container rounded-full transition-all duration-1000 ease-in-out" 
-                  style={{ width: `${miningStatus.progressPercent}%` }}
-                >
-                  <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.15)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.15)_50%,rgba(255,255,255,0.15)_75%,transparent_75%,transparent)] bg-[length:1rem_1rem] animate-progress"></div>
-                </div>
-              </div>
-
-              {/* Mining Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-                <div className="bg-surface-container-lowest border border-outline-variant/30 p-6 rounded-xl text-center space-y-1 hover:border-primary/50 transition-colors">
-                  <p className="font-data-lg text-data-lg text-on-surface font-mono">
-                    {(miningStatus.estToday?.['TX'] || 0).toFixed(4)}
-                  </p>
-                  <p className="font-label-caps text-[10px] text-on-surface-variant uppercase">Est. Today (TX)</p>
-                </div>
-                <div className="bg-surface-container-lowest border border-outline-variant/30 p-6 rounded-xl text-center space-y-1 hover:border-primary/50 transition-colors">
-                  <p className="font-data-lg text-data-lg text-on-surface font-mono">
-                    {(balances.miningBalances?.['TX'] || 0).toFixed(4)}
-                  </p>
-                  <p className="font-label-caps text-[10px] text-on-surface-variant uppercase">Total Mined (TX)</p>
-                </div>
-                <div className="bg-surface-container-lowest border border-outline-variant/30 p-6 rounded-xl text-center space-y-1 hover:border-primary/50 transition-colors">
-                  <p className="font-data-lg text-data-lg text-on-surface font-mono">
-                    {miningStatus.hashRate.toFixed(2)} MH/S
-                  </p>
-                  <p className="font-label-caps text-[10px] text-on-surface-variant uppercase">Hash Rate</p>
-                </div>
-              </div>
-
-              {/* Claim Action Row */}
-              {hasActivePlan && (
-                <div className="bg-surface-container-low p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
-                  <div className="flex flex-col">
-                    <h4 className="font-headline-md text-headline-md text-on-surface font-bold">Claim Daily Mining Payout</h4>
-                    <p className="text-sm text-on-surface-variant">Claim your package profit once every 24 hours. Value-based conversion applies automatically.</p>
-                  </div>
-                  <div className="flex items-center gap-4 w-full md:w-auto justify-end">
-                    {timeLeft && !isReadyToClaim && (
-                      <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-lg border border-outline-variant font-mono text-xs text-on-surface-variant font-bold">
-                        <Clock size={14} className="animate-pulse text-primary" />
-                        {timeLeft}
-                      </div>
-                    )}
-                    <button 
-                      onClick={handleClaimReward}
-                      disabled={!isReadyToClaim || loading || miningSettings?.isPaused}
-                      className={`px-8 py-3 rounded-lg font-bold border transition-all text-sm w-full md:w-auto text-center cursor-pointer
-                        ${isReadyToClaim && !miningSettings?.isPaused
-                          ? 'bg-primary-container text-on-primary-fixed border-outline-variant/10 hover:brightness-110 shadow-sm'
-                          : 'bg-surface-dim text-on-surface-variant/40 border-outline-variant/20 cursor-not-allowed'
-                        }`}
-                    >
-                      {miningSettings?.isPaused ? 'Mining Paused' : 'Claim Reward'}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </section>
-        )}
 
         {/* Latest Transactions Table */}
         <section className="bg-white rounded-xl shadow-sm border border-outline-variant overflow-hidden">

@@ -68,6 +68,13 @@ const emitWithdrawalStatusChange = (app, userId, data) => {
   }
 };
 
+const emitGlobalMiningSettingsUpdate = (app, miningSettings) => {
+  const ns = getDashboardNamespace(app);
+  if (ns) {
+    ns.emit('mining:update', { miningSettings });
+  }
+};
+
 module.exports = {
   emitBalanceUpdate,
   emitMiningUpdate,
@@ -78,4 +85,5 @@ module.exports = {
   emitWithdrawalUpdate,
   emitAdminUpdate,
   emitWithdrawalStatusChange,
+  emitGlobalMiningSettingsUpdate,
 };

@@ -9,7 +9,7 @@ import Button from '../../../components/common/Button';
 import InputField from '../../../components/common/InputField';
 import ConfirmModal from '../../../components/common/ConfirmModal';
 import toast from 'react-hot-toast';
-import usePolling from '../../../hooks/usePolling';
+import { connectDashboardSocket } from '../../../services/dashboardSocket';
 
 const AdminKYCPage = () => {
   const dispatch = useDispatch();
@@ -35,7 +35,19 @@ const AdminKYCPage = () => {
     loadRequests();
   }, [dispatch, page]);
 
-  usePolling(loadRequests, 30000);
+  useEffect(() => {
+    const socket = connectDashboardSocket();
+    
+    const handleStatusChange = () => {
+      loadRequests();
+    };
+
+    socket.on('admin:user:status', handleStatusChange);
+
+    return () => {
+      socket.off('admin:user:status', handleStatusChange);
+    };
+  }, []);
 
   useEffect(() => {
     if (success) {

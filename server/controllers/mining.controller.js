@@ -152,14 +152,14 @@ const claimMiningReward = async (req, res, next) => {
     const { emitBalanceUpdate } = require('../utils/dashboardEvents');
     emitBalanceUpdate(req.app, userId, { miningBalances: Object.fromEntries(user.miningBalances) });
 
+    const activePackages = await UserPackage.find({ userId, status: 'active' }).populate({
+      path: 'packageId',
+      populate: { path: 'coins', model: 'Coin' }
+    });
+
     emitMiningUpdate(req.app, userId, {
       miningStatus: { progressPercent: 0 },
-      activePackage: {
-        _id: userPackage._id,
-        lastPayoutAt: userPackage.lastPayoutAt,
-        nextMiningAt: userPackage.nextMiningAt,
-        isMining: true,
-      },
+      activePackages,
     });
 
     const now2 = new Date();

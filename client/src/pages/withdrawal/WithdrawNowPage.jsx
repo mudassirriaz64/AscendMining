@@ -6,9 +6,10 @@ import {
   Wallet, Cpu, Clock, AlertTriangle, CheckCircle, 
   ArrowRight, X, Info, LogOut, ShieldAlert
 } from 'lucide-react';
-import { fetchDashboardSummary } from '../../store/slices/dashboardSlice';
+import { fetchDashboardSummary, updateBalance } from '../../store/slices/dashboardSlice';
 import { requestWithdrawal, clearWithdrawalError } from '../../store/slices/withdrawalSlice';
 import { logoutUser } from '../../store/slices/authSlice';
+import { connectDashboardSocket, disconnectDashboardSocket } from '../../services/dashboardSocket';
 import Logo from '../../components/common/Logo';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageSkeleton from '../../components/common/PageSkeleton';
@@ -39,6 +40,29 @@ const WithdrawNowPage = () => {
 
   useEffect(() => {
     dispatch(fetchDashboardSummary());
+  }, [dispatch]);
+
+  useEffect(() => {
+    const socket = connectDashboardSocket();
+    
+    const onBalanceUpdate = (data) => {
+      dispatch(updateBalance(data));
+    };
+
+    const onWithdrawalUpdate = () => {
+      dispatch(fetchDashboardSummary());
+    };
+
+    socket.on('balance:update', onBalanceUpdate);
+    socket.on('withdrawal:status:change', onWithdrawalUpdate);
+    socket.on('withdrawal:update', onWithdrawalUpdate);
+
+    return () => {
+      socket.off('balance:update', onBalanceUpdate);
+      socket.off('withdrawal:status:change', onWithdrawalUpdate);
+      socket.off('withdrawal:update', onWithdrawalUpdate);
+      disconnectDashboardSocket();
+    };
   }, [dispatch]);
 
   const handleLogout = async () => {

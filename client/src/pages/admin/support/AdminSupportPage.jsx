@@ -122,6 +122,29 @@ const AdminSupportPage = () => {
       if (!msg || !msg._id) return;
       const convo = data?.conversation;
       const targetConvoId = convo?._id || msg?.conversationId;
+
+      setConversations((current) => {
+        return current.map((c) => {
+          if (String(c._id) === String(targetConvoId)) {
+            let preview = '';
+            if (msg.body) {
+              preview = msg.body.startsWith('[SYSTEM]') ? msg.body.replace('[SYSTEM] ', '') : msg.body;
+            } else if (msg.attachmentUrl) {
+              preview = msg.attachmentType === 'image' ? '📷 Photo' : '📄 Document';
+            }
+            return {
+              ...c,
+              lastMessagePreview: preview,
+              lastMessageAt: msg.sentAt || msg.createdAt,
+              unreadByAdmin: ['investor', 'guest'].includes(msg.senderRole) && String(targetConvoId) !== String(selectedIdRef.current)
+                ? true
+                : c.unreadByAdmin
+            };
+          }
+          return c;
+        }).sort((a, b) => new Date(b.lastMessageAt || b.createdAt) - new Date(a.lastMessageAt || a.createdAt));
+      });
+
       if (targetConvoId && String(targetConvoId) === String(selectedIdRef.current)) {
         setMessages((current) => current.some((item) => item._id === msg._id) ? current : [...current, msg]);
         
@@ -276,6 +299,28 @@ const AdminSupportPage = () => {
           setReply('');
           setPendingAttachment(null);
           if (inputRef.current) inputRef.current.style.height = 'auto';
+          
+          if (result.data?.message) {
+            const msg = result.data.message;
+            setMessages((current) => current.some((item) => item._id === msg._id) ? current : [...current, msg]);
+            
+            setConversations((current) => {
+              return current.map((c) => {
+                if (String(c._id) === String(selectedId)) {
+                  let preview = msg.body || '';
+                  if (msg.attachmentUrl) {
+                    preview = msg.attachmentType === 'image' ? '📷 Photo' : '📄 Document';
+                  }
+                  return {
+                    ...c,
+                    lastMessagePreview: preview,
+                    lastMessageAt: msg.sentAt || msg.createdAt,
+                  };
+                }
+                return c;
+              }).sort((a, b) => new Date(b.lastMessageAt || b.createdAt) - new Date(a.lastMessageAt || a.createdAt));
+            });
+          }
         } else {
           toast.error(result?.message || 'Reply could not be sent.');
         }
@@ -284,7 +329,26 @@ const AdminSupportPage = () => {
     }
     try {
       const response = await api.post('/support/conversations/message', payload);
-      setMessages((current) => [...current, response.data.data.message]);
+      const msg = response.data.data.message;
+      setMessages((current) => [...current, msg]);
+      
+      setConversations((current) => {
+        return current.map((c) => {
+          if (String(c._id) === String(selectedId)) {
+            let preview = msg.body || '';
+            if (msg.attachmentUrl) {
+              preview = msg.attachmentType === 'image' ? '📷 Photo' : '📄 Document';
+            }
+            return {
+              ...c,
+              lastMessagePreview: preview,
+              lastMessageAt: msg.sentAt || msg.createdAt,
+            };
+          }
+          return c;
+        }).sort((a, b) => new Date(b.lastMessageAt || b.createdAt) - new Date(a.lastMessageAt || a.createdAt));
+      });
+
       setReply('');
       setPendingAttachment(null);
       if (inputRef.current) inputRef.current.style.height = 'auto';
@@ -440,8 +504,8 @@ const AdminSupportPage = () => {
   }
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <div className="flex flex-col h-[calc(100vh-112px)] lg:h-[calc(100vh-128px)] min-h-0 space-y-4">
+      <div className="flex flex-wrap items-end justify-between gap-4 shrink-0">
         <div><h1 className="text-2xl font-semibold">Support</h1><p className="mt-1 text-sm text-text-secondary">Live investor conversations and escalated tickets.</p></div>
         <div className="flex rounded-xl bg-white p-1 ring-1 ring-border-light" role="tablist">
           <button type="button" role="tab" aria-selected={view === 'conversations'} onClick={() => setView('conversations')} className={`rounded-lg px-3 py-2 text-sm font-medium ${view === 'conversations' ? 'bg-bg-dark text-white' : 'text-text-secondary'}`}><MessageCircle className="mr-1.5 inline" size={15} />Conversations</button>
@@ -450,7 +514,7 @@ const AdminSupportPage = () => {
       </div>
 
       {alarmIds.size > 0 && !alarmDismissed && (
-        <div className="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-xl px-5 py-3 flex items-center justify-between animate-pulse">
+        <div className="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-xl px-5 py-3 flex items-center justify-between animate-pulse shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center">
               <AlertTriangle size={18} className="text-red-600" />
@@ -474,35 +538,37 @@ const AdminSupportPage = () => {
       )}
 
       {view === 'conversations' ? (
-        <div className="flex min-h-[620px] flex-col overflow-hidden rounded-xl bg-white ring-1 ring-border-light lg:flex-row">
-          <aside className="max-h-72 w-full overflow-y-auto border-b border-border-light lg:max-h-none lg:w-80 lg:border-b-0 lg:border-r">
-            <div className="border-b border-border-light px-4 py-3 text-xs font-semibold text-text-secondary">Urgent first · {conversations.length} conversations</div>
-            {conversations.map((conversation) => {
-              const user = conversation.user || conversation.userId;
-              const ringing = Boolean(conversation.awaitingAgentSince);
-              const overdue = conversation.escalationAvailable;
-              return (
-                <button type="button" key={conversation._id} onClick={() => openConversation(conversation._id)} className={`relative w-full border-b border-border-light px-4 py-3 text-left hover:bg-bg-light-alt focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary ${selectedId === conversation._id ? 'bg-bg-light-alt' : ''}`}>
-                  <div className="flex items-center gap-2">
-                    <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${ringing ? 'animate-pulse bg-danger motion-reduce:animate-none' : conversation.unreadByAdmin ? 'bg-primary' : 'bg-slate-300'}`} />
-                    <p className="truncate text-sm font-semibold">
-                      {conversation.isGuest 
-                        ? conversation.guestName 
-                        : (user?.fullName || user?.username || 'Investor')}
-                    </p>
-                    {conversation.isGuest && (
-                      <span className="rounded bg-slate-100 border border-slate-200 px-1 py-0.5 text-[9px] font-bold text-text-secondary">Guest</span>
-                    )}
-                    {overdue ? <span className="ml-auto rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700">30m+</span> : null}
-                  </div>
-                  <p className="mt-1 truncate pl-[18px] text-xs text-text-secondary">{conversation.lastMessagePreview || 'No messages'}</p>
-                  {ringing ? <span className="absolute inset-y-2 left-0 w-1 rounded-r bg-danger" aria-hidden="true" /> : null}
-                </button>
-              );
-            })}
+        <div className="flex flex-1 flex-col overflow-hidden rounded-xl bg-white ring-1 ring-border-light lg:flex-row min-h-0">
+          <aside className="max-h-72 w-full border-b border-border-light lg:max-h-none lg:w-80 lg:border-b-0 lg:border-r lg:h-full flex flex-col min-h-0 shrink-0">
+            <div className="border-b border-border-light px-4 py-3 text-xs font-semibold text-text-secondary shrink-0">Urgent first · {conversations.length} conversations</div>
+            <div className="flex-grow overflow-y-auto divide-y divide-border-light">
+              {conversations.map((conversation) => {
+                const user = conversation.user || conversation.userId;
+                const ringing = Boolean(conversation.awaitingAgentSince);
+                const overdue = conversation.escalationAvailable;
+                return (
+                  <button type="button" key={conversation._id} onClick={() => openConversation(conversation._id)} className={`relative w-full border-b border-border-light px-4 py-3 text-left hover:bg-bg-light-alt focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary ${selectedId === conversation._id ? 'bg-bg-light-alt' : ''}`}>
+                    <div className="flex items-center gap-2">
+                      <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${ringing ? 'animate-pulse bg-danger motion-reduce:animate-none' : conversation.unreadByAdmin ? 'bg-primary' : 'bg-slate-300'}`} />
+                      <p className="truncate text-sm font-semibold">
+                        {conversation.isGuest 
+                          ? conversation.guestName 
+                          : (user?.fullName || user?.username || 'Investor')}
+                      </p>
+                      {conversation.isGuest && (
+                        <span className="rounded bg-slate-100 border border-slate-200 px-1 py-0.5 text-[9px] font-bold text-text-secondary">Guest</span>
+                      )}
+                      {overdue ? <span className="ml-auto rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700">30m+</span> : null}
+                    </div>
+                    <p className="mt-1 truncate pl-[18px] text-xs text-text-secondary">{conversation.lastMessagePreview || 'No messages'}</p>
+                    {ringing ? <span className="absolute inset-y-2 left-0 w-1 rounded-r bg-danger" aria-hidden="true" /> : null}
+                  </button>
+                );
+              })}
+            </div>
           </aside>
 
-          <section className="flex min-h-[460px] flex-1 flex-col relative">
+          <section className="flex flex-1 flex-col relative h-full min-h-0">
             {selected ? <>
               <header className="border-b border-border-light px-5 py-3">
                 <div className="flex items-center justify-between">

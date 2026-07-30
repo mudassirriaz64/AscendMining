@@ -79,7 +79,7 @@ const dashboardSlice = createSlice({
       estToday: {},
       hashRate: 0,
     },
-    activePackage: null,
+    activePackages: [],
     latestTransactions: [],
     miningSettings: {
       timerDuration: 24,
@@ -105,9 +105,9 @@ const dashboardSlice = createSlice({
       if (miningBalances) state.balances.miningBalances = { ...state.balances.miningBalances, ...miningBalances };
     },
     updateMiningStatus: (state, action) => {
-      const { miningStatus, activePackage, miningSettings } = action.payload;
+      const { miningStatus, activePackages, miningSettings } = action.payload;
       if (miningStatus) state.miningStatus = { ...state.miningStatus, ...miningStatus };
-      if (activePackage !== undefined) state.activePackage = activePackage;
+      if (activePackages !== undefined) state.activePackages = activePackages;
       if (miningSettings) state.miningSettings = { ...state.miningSettings, ...miningSettings };
     },
     addTransaction: (state, action) => {
@@ -137,7 +137,7 @@ const dashboardSlice = createSlice({
         state.coins = action.payload.coins;
         state.referralLink = action.payload.referralLink;
         state.miningStatus = action.payload.miningStatus;
-        state.activePackage = action.payload.activePackage;
+        state.activePackages = action.payload.activePackages || [];
         state.latestTransactions = action.payload.latestTransactions;
         state.miningSettings = action.payload.miningSettings || { timerDuration: 24, isPaused: false, isDisabled: false };
       })
