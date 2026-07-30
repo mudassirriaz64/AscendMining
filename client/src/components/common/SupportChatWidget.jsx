@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertCircle, Headphones, Send, X, Plus, Trash2, ChevronDown, RefreshCw, Paperclip, FileText, Image as ImageIcon, Download, Loader2 } from 'lucide-react';
+import ConfirmModal from './ConfirmModal';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 import { connectSocket, getSocket } from '../../services/socketService';
@@ -32,6 +33,8 @@ const SupportChatWidget = () => {
   const [uploading, setUploading] = useState(false);
   const [pendingAttachment, setPendingAttachment] = useState(null);
   const [enlargedImage, setEnlargedImage] = useState(null);
+  const [confirmDeleteConvo, setConfirmDeleteConvo] = useState(false);
+  const [confirmDeleteSession, setConfirmDeleteSession] = useState({ open: false, id: null });
 
   const chatContainerRef = useRef(null);
   const inputRef = useRef(null);
@@ -245,8 +248,11 @@ const SupportChatWidget = () => {
     }
   };
 
-  const handleDeleteConversation = async () => {
-    if (!window.confirm('Are you sure you want to delete your entire chat history? This action is irreversible.')) return;
+  const handleDeleteConversation = () => {
+    setConfirmDeleteConvo(true);
+  };
+
+  const executeDeleteConversation = async () => {
     try {
       await api.delete('/support/conversations');
       setConversation(null);
@@ -271,8 +277,11 @@ const SupportChatWidget = () => {
     }
   };
 
-  const deleteSession = async (sessionId) => {
-    if (!window.confirm('Delete this session and all its messages?')) return;
+  const deleteSession = (sessionId) => {
+    setConfirmDeleteSession({ open: true, id: sessionId });
+  };
+
+  const executeDeleteSession = async (sessionId) => {
     try {
       await api.delete(`/support/conversations/sessions/${sessionId}`);
       setSessions((current) => current.filter((s) => s._id !== sessionId));
@@ -683,7 +692,7 @@ const SupportChatWidget = () => {
                 className="min-h-10 flex-1 resize-none rounded-xl border border-border-light px-3 py-2 text-sm outline-none placeholder:text-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/25 cursor-pointer max-h-24 overflow-y-auto"
                 style={{ height: 'auto' }}
               />
-              <button type="button" aria-label="Send message" disabled={(!body.trim() && !pendingAttachment) || sending || uploading} onClick={send} className="grid h-10 w-10 place-items-center rounded-xl bg-primary text-bg-dark hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 cursor-pointer shrink-0 mb-0.5"><Send size={17} /></button>
+              <button type="button" aria-label="Send message" disabled={(!body.trim() && !pendingAttachment) || sending || uploading} onClick={send} className="grid h-10 w-10 place-items-center rounded-xl bg-primary-container text-on-primary-fixed hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primary-container/20 disabled:opacity-50 cursor-pointer shrink-0 mb-0.5"><Send size={17} /></button>
             </div>
             {body.length > 400 && (
               <span className="text-[10px] text-slate-400 self-end px-1 absolute bottom-0.5 right-14">
@@ -716,11 +725,29 @@ const SupportChatWidget = () => {
           )}
         </>
       ) : (
-        <button type="button" onClick={() => setOpen(true)} aria-label="Talk to Agent" className="relative grid h-14 w-14 place-items-center rounded-full bg-primary text-bg-dark shadow-lg transition-transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary/30 motion-reduce:transform-none cursor-pointer">
+        <button type="button" onClick={() => setOpen(true)} aria-label="Talk to Agent" className="relative grid h-14 w-14 place-items-center rounded-full bg-primary-container text-on-primary-fixed shadow-lg transition-transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary-container/30 motion-reduce:transform-none cursor-pointer">
           <Headphones size={23} />
           {conversation?.unreadByUser ? <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-danger px-1.5 py-0.5 text-[10px] font-bold text-white">1</span> : null}
         </button>
       )}
+
+      <ConfirmModal
+        isOpen={confirmDeleteConvo}
+        onClose={() => setConfirmDeleteConvo(false)}
+        onConfirm={() => { executeDeleteConversation(); setConfirmDeleteConvo(false); }}
+        title="Delete Chat History"
+        message="Are you sure you want to delete your entire chat history? This action is irreversible."
+        variant="danger"
+      />
+
+      <ConfirmModal
+        isOpen={confirmDeleteSession.open}
+        onClose={() => setConfirmDeleteSession({ open: false, id: null })}
+        onConfirm={() => { executeDeleteSession(confirmDeleteSession.id); setConfirmDeleteSession({ open: false, id: null }); }}
+        title="Delete Session"
+        message="Delete this session and all its messages?"
+        variant="danger"
+      />
     </div>
   );
 };

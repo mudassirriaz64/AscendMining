@@ -54,7 +54,7 @@ const PublicHeader = () => {
           </Link>
           <Link
             to="/register"
-            className="bg-primary text-text-light-bg hover:bg-primary-hover px-5 py-2 rounded-full text-sm font-semibold transition-all shadow-md active:scale-95"
+            className="bg-primary text-white hover:bg-primary-hover px-5 py-2 rounded-full text-sm font-semibold transition-all shadow-md active:scale-95"
           >
             Register
           </Link>
@@ -99,7 +99,7 @@ const PublicHeader = () => {
             <Link
               to="/register"
               onClick={() => setMobileMenuOpen(false)}
-              className="w-full text-center bg-primary text-text-light-bg hover:bg-primary-hover py-2 rounded-full font-semibold transition-all"
+              className="w-full text-center bg-primary text-white hover:bg-primary-hover py-2 rounded-full font-semibold transition-all"
             >
               Register
             </Link>

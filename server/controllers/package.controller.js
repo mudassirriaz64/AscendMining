@@ -59,6 +59,24 @@ const purchasePackage = async (req, res, next) => {
       });
     }
 
+    // Check if user already has an active package of this type
+    const existingActive = await UserPackage.findOne({
+      userId,
+      packageId: pkg._id,
+      status: 'active'
+    });
+
+    if (existingActive) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'ACTIVE_PLAN_EXISTS',
+          message: `You already have an active ${pkg.name} plan. You cannot purchase another one until your current plan expires.`,
+          status: 400,
+        },
+      });
+    }
+
     if (user.walletBalance < pkg.price) {
       return res.status(400).json({
         success: false,
@@ -108,27 +126,38 @@ const purchasePackage = async (req, res, next) => {
       balanceAfter: user.walletBalance,
     });
 
-    // Emit real-time updates for balance, mining, and transaction
-    const app = req.app;
+    // Process referral bonus if user was referred by someone and is active
+    if (user.referredBy && user.status === 'active') {
+      try {
+        const referralService = require('../services/referral.service');
+        await referralService.checkAndReleaseReferralRewards(user._id);
+      } catch (refError) {
+        console.error('Failed to release referral rewards on purchase:', refError);
+      }
+    }
+
+     // Emit real-time updates for balance, mining, and transaction
+     const app = req.app;
+     const activePackages = await UserPackage.find({ userId, status: 'active' }).populate({
+      path: 'packageId',
+      populate: { path: 'coins', model: 'Coin' }
+    });
+
+    let totalHashRate = 0;
+    activePackages.forEach((p) => {
+      totalHashRate += p.packageId?.hashRate || 0;
+    });
+
     emitBalanceUpdate(app, userId, { walletBalance: user.walletBalance });
     emitMiningUpdate(app, userId, {
-      activePackage: {
-        _id: userPackage._id,
-        packageId: { name: pkg.name, _id: pkg._id },
-        purchaseAmount: pkg.price,
-        dailyROISnapshot: pkg.dailyROI,
-        startDate,
-        cycleStartedAt: startDate,
-        cycleEndsAt: cycleEnds,
-        nextMiningAt: userPackage.nextMiningAt,
-      },
-      miningStatus: { status: 'active', progressPercent: 0, hashRate: pkg.hashRate },
+      activePackages,
+      miningStatus: { status: 'active', progressPercent: 0, hashRate: totalHashRate },
     });
     emitTransactionUpdate(app, userId, {
       _id: transaction._id,
       type: 'package_purchase',
       amount: -pkg.price,
-      currency: 'USD',
+      coinSymbol: 'USD',
       balanceAfter: user.walletBalance,
       createdAt: new Date(),
     });

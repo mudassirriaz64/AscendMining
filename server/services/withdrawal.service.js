@@ -61,7 +61,7 @@ const requestWithdrawal = async (userId, { coinSymbol, amount }) => {
     status: 'pending',
   });
 
-  return withdrawal;
+  return { withdrawal, user };
 };
 
 const listWithdrawals = async (userId) => {
@@ -204,7 +204,7 @@ const rejectWithdrawal = async (id, rejectionReason, adminId, ip) => {
     ipAddress: ip,
   });
 
-  return { withdrawal, tx };
+  return { withdrawal, tx, user };
 };
 
 module.exports = {

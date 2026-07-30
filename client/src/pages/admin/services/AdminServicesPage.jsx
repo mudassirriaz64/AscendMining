@@ -14,6 +14,7 @@ import DataTable from '../../../components/common/DataTable';
 import StatusBadge from '../../../components/common/StatusBadge';
 import Button from '../../../components/common/Button';
 import Modal from '../../../components/common/Modal';
+import ConfirmModal from '../../../components/common/ConfirmModal';
 
 const AdminServicesPage = () => {
   const dispatch = useDispatch();
@@ -21,6 +22,7 @@ const AdminServicesPage = () => {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingService, setEditingService] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null });
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -72,9 +74,7 @@ const AdminServicesPage = () => {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to permanently delete this service?')) {
-      dispatch(deleteAdminService(id));
-    }
+    setConfirmDelete({ open: true, id });
   };
 
   const handleSubmit = (e) => {
@@ -217,6 +217,15 @@ const AdminServicesPage = () => {
           </div>
         </form>
       </Modal>
+
+      <ConfirmModal
+        isOpen={confirmDelete.open}
+        onClose={() => setConfirmDelete({ open: false, id: null })}
+        onConfirm={() => { dispatch(deleteAdminService(confirmDelete.id)); setConfirmDelete({ open: false, id: null }); }}
+        title="Delete Service"
+        message="Are you sure you want to permanently delete this service?"
+        variant="danger"
+      />
     </div>
   );
 };

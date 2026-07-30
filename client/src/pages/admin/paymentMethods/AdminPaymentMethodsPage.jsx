@@ -15,6 +15,7 @@ import DataTable from '../../../components/common/DataTable';
 import StatusBadge from '../../../components/common/StatusBadge';
 import Button from '../../../components/common/Button';
 import Modal from '../../../components/common/Modal';
+import ConfirmModal from '../../../components/common/ConfirmModal';
 import { formatDate } from '../../../utils/formatters';
 
 const methodTypes = [
@@ -30,6 +31,8 @@ const AdminPaymentMethodsPage = () => {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingMethod, setEditingMethod] = useState(null);
+  const [confirmToggle, setConfirmToggle] = useState({ open: false, id: null });
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null });
   const [formData, setFormData] = useState({
     name: '',
     type: 'bank',
@@ -81,15 +84,11 @@ const AdminPaymentMethodsPage = () => {
   };
 
   const handleToggleStatus = (id) => {
-    if (window.confirm('Are you sure you want to toggle the status of this payment method?')) {
-      dispatch(toggleAdminPaymentMethodStatus(id));
-    }
+    setConfirmToggle({ open: true, id });
   };
 
   const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to permanently delete this payment method?')) {
-      dispatch(deleteAdminPaymentMethod(id));
-    }
+    setConfirmDelete({ open: true, id });
   };
 
   const handleSubmit = (e) => {
@@ -255,6 +254,24 @@ const AdminPaymentMethodsPage = () => {
           </div>
         </form>
       </Modal>
+
+      <ConfirmModal
+        isOpen={confirmToggle.open}
+        onClose={() => setConfirmToggle({ open: false, id: null })}
+        onConfirm={() => { dispatch(toggleAdminPaymentMethodStatus(confirmToggle.id)); setConfirmToggle({ open: false, id: null }); }}
+        title="Toggle Status"
+        message="Are you sure you want to toggle the status of this payment method?"
+        variant="warning"
+      />
+
+      <ConfirmModal
+        isOpen={confirmDelete.open}
+        onClose={() => setConfirmDelete({ open: false, id: null })}
+        onConfirm={() => { dispatch(deleteAdminPaymentMethod(confirmDelete.id)); setConfirmDelete({ open: false, id: null }); }}
+        title="Delete Payment Method"
+        message="Are you sure you want to permanently delete this payment method?"
+        variant="danger"
+      />
     </div>
   );
 };

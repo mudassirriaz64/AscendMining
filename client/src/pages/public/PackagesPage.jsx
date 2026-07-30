@@ -92,7 +92,7 @@ const PackagesPage = () => {
                 <div className="mt-8">
                   <Link
                     to="/register"
-                    className="w-full block text-center bg-primary hover:bg-primary-hover text-text-light-bg py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md active:scale-95 cursor-pointer"
+                    className="w-full block text-center bg-primary hover:bg-primary-hover text-white py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md active:scale-95 cursor-pointer"
                   >
                     Sign Up to Invest
                   </Link>

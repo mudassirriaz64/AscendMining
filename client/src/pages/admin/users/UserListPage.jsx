@@ -8,6 +8,7 @@ import FilterChips from '../../../components/common/FilterChips';
 import DataTable from '../../../components/common/DataTable';
 import Pagination from '../../../components/common/Pagination';
 import StatusBadge from '../../../components/common/StatusBadge';
+import usePolling from '../../../hooks/usePolling';
 
 const statusFilters = [
   { value: '', label: 'All' },
@@ -35,6 +36,8 @@ const UserListPage = () => {
   useEffect(() => {
     loadUsers();
   }, [loadUsers]);
+
+  usePolling(loadUsers, 30000);
 
   const handleSearch = (val) => {
     setSearch(val);

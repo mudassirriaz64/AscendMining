@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useState } from 'react';
-import { User, Mail, Phone, Lock, Globe } from 'lucide-react';
+import { User, Mail, Phone, Lock, Globe, CheckCircle } from 'lucide-react';
 import { register as registerUser, clearError } from '../../store/slices/authSlice';
 import InputField from '../../components/common/InputField';
 import SelectField from '../../components/common/SelectField';
@@ -122,6 +122,7 @@ const RegisterPage = () => {
   const [usernameCheckLoading, setUsernameCheckLoading] = useState(false);
   const [usernameCheckError, setUsernameCheckError] = useState('');
   const [usernameCheckSuccess, setUsernameCheckSuccess] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   const {
     register,
@@ -130,6 +131,7 @@ const RegisterPage = () => {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(registerSchema),
+    mode: 'onChange',
   });
 
   const selectedCountryVal = watch('country');
@@ -212,7 +214,10 @@ const RegisterPage = () => {
     };
     const result = await dispatch(registerUser(userData));
     if (!result.error) {
-      navigate('/dashboard');
+      setRegistrationSuccess(true);
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2500);
     }
   };
 
@@ -222,121 +227,136 @@ const RegisterPage = () => {
         <div className="flex justify-center mb-6">
           <Logo size="md" />
         </div>
-        <div className="bg-white rounded-2xl shadow-lg border border-border-light p-8">
-          <h1 className="text-xl font-heading font-semibold text-text-light-bg text-center mb-1">
-            Create An Account
-          </h1>
-          <p className="text-sm text-text-secondary text-center mb-6">
-            You can create account using email or username and the registration is fully free
-          </p>
-
-          <ErrorMessage message={error} className="mb-4" />
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <InputField
-              label="Username"
-              name="username"
-              icon={User}
-              placeholder="Choose a username"
-              error={usernameCheckError || errors.username?.message}
-              success={usernameCheckSuccess}
-              {...register('username')}
-              onBlur={handleUsernameBlur}
-              onChange={handleUsernameChange}
-            />
-
-            <InputField
-              label="Full Name"
-              name="fullName"
-              placeholder="Enter your full name"
-              error={errors.fullName?.message}
-              {...register('fullName')}
-            />
-
-            <InputField
-              label="E-Mail Address"
-              name="email"
-              icon={Mail}
-              type="email"
-              placeholder="Enter your email"
-              error={emailCheckError || errors.email?.message}
-              success={emailCheckSuccess}
-              {...register('email')}
-              onBlur={handleEmailBlur}
-              onChange={handleEmailChange}
-            />
-
-            <SelectField
-              label="Country"
-              name="country"
-              icon={Globe}
-              placeholder="Select your country"
-              options={COUNTRIES}
-              error={errors.country?.message}
-              {...register('country')}
-            />
-
-            <div>
-              <label className="block text-[13px] text-text-secondary mb-1.5 font-medium">
-                Mobile
-              </label>
-              <div className="flex gap-2">
-                <div className="flex items-center gap-1.5 px-3 py-2.5 bg-primary/10 border border-primary/20 rounded-lg text-sm text-primary font-medium min-w-[80px] justify-center">
-                  <Phone size={14} />
-                  <span>{phoneCode}</span>
-                </div>
-                <InputField
-                  name="phone"
-                  placeholder="Phone number"
-                  className="flex-1"
-                  error={errors.phone?.message}
-                  {...register('phone')}
-                />
-              </div>
+        {registrationSuccess ? (
+          <div className="bg-white rounded-2xl shadow-lg border border-border-light p-8 text-center space-y-6">
+            <div className="mx-auto w-16 h-16 bg-success/15 text-success rounded-full flex items-center justify-center">
+              <CheckCircle className="w-8 h-8" />
             </div>
-
-            <InputField
-              label="Password"
-              name="password"
-              type="password"
-              icon={Lock}
-              placeholder="Create a password"
-              error={errors.password?.message}
-              {...register('password')}
-            />
-
-            <InputField
-              label="Confirm Password"
-              name="confirmPassword"
-              type="password"
-              icon={Lock}
-              placeholder="Confirm your password"
-              error={errors.confirmPassword?.message}
-              {...register('confirmPassword')}
-            />
-
-            <InputField
-              label="Referral Code (Optional)"
-              name="referralCode"
-              placeholder="Enter referral code"
-              error={errors.referralCode?.message}
-              {...register('referralCode')}
-            />
-
-            <Button type="submit" fullWidth size="lg" loading={loading}>
-              Register
-            </Button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-text-secondary">
-              Already have an account?{' '}
-              <Link to="/login" className="text-primary hover:text-primary-hover font-medium no-underline">
-                Login now
-              </Link>
-            </p>
+            <div className="space-y-2">
+              <h2 className="text-xl font-bold text-text-light-bg">Welcome to AscendHash!</h2>
+              <p className="text-sm text-text-secondary font-medium animate-pulse">Registration successful! Signing you up...</p>
+            </div>
+            <div className="flex justify-center pt-2">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-white rounded-2xl shadow-lg border border-border-light p-8">
+            <h1 className="text-xl font-heading font-semibold text-text-light-bg text-center mb-1">
+              Create An Account
+            </h1>
+            <p className="text-sm text-text-secondary text-center mb-6">
+              You can create account using email or username and the registration is fully free
+            </p>
+
+            <ErrorMessage message={error} className="mb-4" />
+
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <InputField
+                label="Username"
+                name="username"
+                icon={User}
+                placeholder="Choose a username"
+                error={usernameCheckError || errors.username?.message}
+                success={usernameCheckSuccess}
+                {...register('username')}
+                onBlur={handleUsernameBlur}
+                onChange={handleUsernameChange}
+              />
+
+              <InputField
+                label="Full Name"
+                name="fullName"
+                placeholder="Enter your full name"
+                error={errors.fullName?.message}
+                {...register('fullName')}
+              />
+
+              <InputField
+                label="E-Mail Address"
+                name="email"
+                icon={Mail}
+                type="email"
+                placeholder="Enter your email"
+                error={emailCheckError || errors.email?.message}
+                success={emailCheckSuccess}
+                {...register('email')}
+                onBlur={handleEmailBlur}
+                onChange={handleEmailChange}
+              />
+
+              <SelectField
+                label="Country"
+                name="country"
+                icon={Globe}
+                placeholder="Select your country"
+                options={COUNTRIES}
+                error={errors.country?.message}
+                {...register('country')}
+              />
+
+              <div>
+                <label className="block text-[13px] text-text-secondary mb-1.5 font-medium">
+                  Mobile
+                </label>
+                <div className="flex gap-2">
+                  <div className="flex items-center gap-1.5 px-3 py-2.5 bg-primary/10 border border-primary/20 rounded-lg text-sm text-primary font-medium min-w-[80px] justify-center">
+                    <Phone size={14} />
+                    <span>{phoneCode}</span>
+                  </div>
+                  <InputField
+                    name="phone"
+                    placeholder="Phone number"
+                    className="flex-1"
+                    error={errors.phone?.message}
+                    {...register('phone')}
+                  />
+                </div>
+              </div>
+
+              <InputField
+                label="Password"
+                name="password"
+                type="password"
+                icon={Lock}
+                placeholder="Create a password"
+                error={errors.password?.message}
+                {...register('password')}
+              />
+
+              <InputField
+                label="Confirm Password"
+                name="confirmPassword"
+                type="password"
+                icon={Lock}
+                placeholder="Confirm your password"
+                error={errors.confirmPassword?.message}
+                {...register('confirmPassword')}
+              />
+
+              <InputField
+                label="Referral Code (Optional)"
+                name="referralCode"
+                placeholder="Enter referral code"
+                error={errors.referralCode?.message}
+                {...register('referralCode')}
+              />
+
+              <Button type="submit" fullWidth size="lg" loading={loading}>
+                Register
+              </Button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <p className="text-sm text-text-secondary">
+                Already have an account?{' '}
+                <Link to="/login" className="text-primary hover:text-primary-hover font-medium no-underline">
+                  Login now
+                </Link>
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

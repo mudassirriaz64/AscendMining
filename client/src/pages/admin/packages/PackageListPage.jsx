@@ -8,6 +8,7 @@ import SearchInput from '../../../components/common/SearchInput';
 import StatusBadge from '../../../components/common/StatusBadge';
 import Button from '../../../components/common/Button';
 import PackageFormModal from './PackageFormModal';
+import ConfirmModal from '../../../components/common/ConfirmModal';
 import toast from 'react-hot-toast';
 
 const PackageListPage = () => {
@@ -20,6 +21,7 @@ const PackageListPage = () => {
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingPackage, setEditingPackage] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null });
 
   const loadPackages = useCallback(() => {
     dispatch(fetchAdminPackages({ page, limit: packagesLimit, search: search || undefined }));
@@ -59,9 +61,7 @@ const PackageListPage = () => {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to permanently delete this package?')) {
-      dispatch(deleteAdminPackage(id));
-    }
+    setConfirmDelete({ open: true, id });
   };
 
   const columns = useMemo(() => [
@@ -146,6 +146,15 @@ const PackageListPage = () => {
         isOpen={modalOpen}
         onClose={() => { setModalOpen(false); setEditingPackage(null); }}
         pkg={editingPackage}
+      />
+
+      <ConfirmModal
+        isOpen={confirmDelete.open}
+        onClose={() => setConfirmDelete({ open: false, id: null })}
+        onConfirm={() => { dispatch(deleteAdminPackage(confirmDelete.id)); setConfirmDelete({ open: false, id: null }); }}
+        title="Delete Package"
+        message="Are you sure you want to permanently delete this package?"
+        variant="danger"
       />
     </div>
   );

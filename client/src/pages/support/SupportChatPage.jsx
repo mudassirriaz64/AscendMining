@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import ConfirmModal from '../../components/common/ConfirmModal';
 import { useDispatch, useSelector } from 'react-redux';
 import { MessageCircle, Send, Check, ChevronLeft, Calendar, LogOut, Paperclip, FileText, Image as ImageIcon, Download, Loader2, X, AlertCircle, Plus, Trash2, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -207,8 +208,13 @@ const SupportChatPage = () => {
     }
   }, [dispatch]);
 
+  const [confirmDeleteSession, setConfirmDeleteSession] = useState({ open: false, id: null });
+
   const handleDeleteSession = useCallback(async (sessionId) => {
-    if (!window.confirm('Delete this session and all its messages?')) return;
+    setConfirmDeleteSession({ open: true, id: sessionId });
+  }, [dispatch]);
+
+  const executeDeleteSession = useCallback(async (sessionId) => {
     try {
       await dispatch(deleteSession({ sessionId })).unwrap();
       toast.success('Session deleted.');
@@ -432,7 +438,7 @@ const SupportChatPage = () => {
               S
             </div>
             <div className="flex-1">
-              <p className="text-white font-semibold text-sm">AscendX Support</p>
+              <p className="text-white font-semibold text-sm">AscendHash Support</p>
               <p className="text-white/60 text-xs">
                 Session {sessions.findIndex((s) => s._id === activeSessionId) + 1} of {sessions.length}
               </p>
@@ -726,6 +732,15 @@ const SupportChatPage = () => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={confirmDeleteSession.open}
+        onClose={() => setConfirmDeleteSession({ open: false, id: null })}
+        onConfirm={() => { executeDeleteSession(confirmDeleteSession.id); setConfirmDeleteSession({ open: false, id: null }); }}
+        title="Delete Session"
+        message="Delete this session and all its messages?"
+        variant="danger"
+      />
     </div>
   );
 };

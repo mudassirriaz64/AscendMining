@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import ConfirmModal from '../../components/common/ConfirmModal';
 import toast from 'react-hot-toast';
 import { HelpCircle, ChevronDown, MessageCircle, Send, Plus, Trash2, AlertCircle, Phone, Mail } from 'lucide-react';
 import { io } from 'socket.io-client';
@@ -173,8 +174,13 @@ const SupportPage = () => {
     }
   };
 
+  const [confirmClearHistory, setConfirmClearHistory] = useState(false);
+
   const handleClearHistory = () => {
-    if (!window.confirm('Are you sure you want to end your session and clear chat history?')) return;
+    setConfirmClearHistory(true);
+  };
+
+  const executeClearHistory = () => {
     if (socketRef.current) socketRef.current.disconnect();
     sessionStorage.removeItem('guestToken');
     sessionStorage.removeItem('guestConvo');
@@ -256,7 +262,7 @@ const SupportPage = () => {
                 <div className="flex justify-center">
                   <Link
                     to="/support/chat"
-                    className="bg-primary hover:bg-primary-hover text-text-light-bg px-6 py-2.5 rounded-full text-sm font-semibold transition-all shadow-md active:scale-95"
+                    className="bg-primary hover:bg-primary-hover text-white px-6 py-2.5 rounded-full text-sm font-semibold transition-all shadow-md active:scale-95"
                   >
                     Go to Live Chat
                   </Link>
@@ -315,7 +321,7 @@ const SupportPage = () => {
                   <button
                     type="submit"
                     disabled={loadingChat}
-                    className="w-full bg-primary hover:bg-primary-hover text-text-light-bg py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
+                    className="w-full bg-primary hover:bg-primary-hover text-white py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
                   >
                     {loadingChat ? 'Connecting...' : <><MessageCircle size={14} /> Start Chat</>}
                   </button>
@@ -383,10 +389,10 @@ const SupportPage = () => {
                     placeholder="Type your message here..."
                     className="flex-grow bg-bg-light-alt border border-border-light rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-secondary transition-colors"
                   />
-                  <button
+                   <button
                     type="submit"
                     disabled={!replyText.trim() || sending}
-                    className="bg-primary hover:bg-primary-hover text-text-light-bg px-4 py-2 rounded-xl transition-all shadow-md disabled:opacity-50 cursor-pointer flex items-center justify-center shrink-0"
+                    className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-xl transition-all shadow-md disabled:opacity-50 cursor-pointer flex items-center justify-center shrink-0"
                   >
                     <Send size={14} />
                   </button>
@@ -396,6 +402,14 @@ const SupportPage = () => {
           </div>
         </div>
       </div>
+      <ConfirmModal
+        isOpen={confirmClearHistory}
+        onClose={() => setConfirmClearHistory(false)}
+        onConfirm={() => { executeClearHistory(); setConfirmClearHistory(false); }}
+        title="End Session"
+        message="Are you sure you want to end your session and clear chat history?"
+        variant="danger"
+      />
     </div>
   );
 };

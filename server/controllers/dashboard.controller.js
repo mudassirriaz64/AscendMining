@@ -127,7 +127,7 @@ const getDashboardSummary = async (req, res, next) => {
           hashRate: totalHashRate,
         },
         coins,
-        activePackage: isMiningActive ? activePackages[0] : null,
+        activePackages,
         latestTransactions: transactions,
         miningSettings,
       },

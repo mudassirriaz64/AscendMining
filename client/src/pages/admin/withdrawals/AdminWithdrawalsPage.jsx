@@ -10,7 +10,9 @@ import Pagination from '../../../components/common/Pagination';
 import StatusBadge from '../../../components/common/StatusBadge';
 import Button from '../../../components/common/Button';
 import Modal from '../../../components/common/Modal';
+import ConfirmModal from '../../../components/common/ConfirmModal';
 import { formatDate } from '../../../utils/formatters';
+import { connectDashboardSocket } from '../../../services/dashboardSocket';
 
 const statusFilters = [
   { value: 'pending', label: 'Pending' },
@@ -28,6 +30,7 @@ const AdminWithdrawalsPage = () => {
   
   const [rejectModal, setRejectModal] = useState({ open: false, withdrawalId: null });
   const [rejectionReason, setRejectionReason] = useState('');
+  const [confirmApprove, setConfirmApprove] = useState({ open: false, id: null });
 
   const loadWithdrawals = useCallback(() => {
     dispatch(fetchAdminWithdrawals({ page, limit: 20, status }));
@@ -38,12 +41,31 @@ const AdminWithdrawalsPage = () => {
   }, [loadWithdrawals]);
 
   useEffect(() => {
+    const socket = connectDashboardSocket();
+    
+    const handleNewWithdrawal = () => {
+      loadWithdrawals();
+    };
+
+    socket.on('admin:withdrawal:new', handleNewWithdrawal);
+    socket.on('admin:withdrawal:status', handleNewWithdrawal);
+    socket.on('admin:withdrawal:approved', handleNewWithdrawal);
+    socket.on('admin:withdrawal:rejected', handleNewWithdrawal);
+
+    return () => {
+      socket.off('admin:withdrawal:new', handleNewWithdrawal);
+      socket.off('admin:withdrawal:status', handleNewWithdrawal);
+      socket.off('admin:withdrawal:approved', handleNewWithdrawal);
+      socket.off('admin:withdrawal:rejected', handleNewWithdrawal);
+    };
+  }, [loadWithdrawals]);
+
+  useEffect(() => {
     if (actionSuccess) {
       toast.success(actionSuccess);
       dispatch(clearAdminWithdrawalSuccess());
-      loadWithdrawals();
     }
-  }, [actionSuccess, dispatch, loadWithdrawals]);
+  }, [actionSuccess, dispatch]);
 
   useEffect(() => {
     if (error) {
@@ -58,9 +80,7 @@ const AdminWithdrawalsPage = () => {
   };
 
   const handleApprove = (id) => {
-    if (window.confirm('Are you sure you want to approve this withdrawal? Make sure you have actually sent the funds.')) {
-      dispatch(approveAdminWithdrawal(id));
-    }
+    setConfirmApprove({ open: true, id });
   };
 
   const openRejectModal = (id) => {
@@ -68,12 +88,15 @@ const AdminWithdrawalsPage = () => {
     setRejectionReason('');
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     if (!rejectionReason.trim()) {
       toast.error('Rejection reason is required');
       return;
     }
-    dispatch(rejectAdminWithdrawal({ id: rejectModal.withdrawalId, reason: rejectionReason }));
+    try {
+      await dispatch(rejectAdminWithdrawal({ id: rejectModal.withdrawalId, reason: rejectionReason })).unwrap();
+      loadWithdrawals();
+    } catch { /* error handled by Redux error state */ }
     setRejectModal({ open: false, withdrawalId: null });
   };
 
@@ -224,6 +247,21 @@ const AdminWithdrawalsPage = () => {
           </div>
         </div>
       </Modal>
+
+      <ConfirmModal
+        isOpen={confirmApprove.open}
+        onClose={() => setConfirmApprove({ open: false, id: null })}
+        onConfirm={async () => {
+          try {
+            await dispatch(approveAdminWithdrawal(confirmApprove.id)).unwrap();
+            loadWithdrawals();
+          } catch { /* error handled by Redux error state */ }
+          setConfirmApprove({ open: false, id: null });
+        }}
+        title="Approve Withdrawal"
+        message="Are you sure you want to approve this withdrawal? Make sure you have actually sent the funds."
+        variant="warning"
+      />
     </div>
   );
 };

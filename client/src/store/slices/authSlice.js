@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import authService from '../../services/authService';
 import { getAccessToken, setTokens, clearTokens } from '../../services/tokenStorage';
+import { disconnectDashboardSocket } from '../../services/dashboardSocket';
+import { disconnectSocket } from '../../services/socketService';
 
 export const register = createAsyncThunk(
   'auth/register',
@@ -20,12 +22,12 @@ export const register = createAsyncThunk(
 
 export const login = createAsyncThunk(
   'auth/login',
-  async (credentials, { rejectWithValue }) => {
+  async ({ emailOrUsername, password, keepLoggedIn }, { rejectWithValue }) => {
     try {
-      const response = await authService.login(credentials);
+      const response = await authService.login({ emailOrUsername, password });
       const data = response.data.data;
       if (data.accessToken && data.refreshToken) {
-        setTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken });
+        setTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken, keepLoggedIn });
       }
       return data;
     } catch (error) {
@@ -96,6 +98,8 @@ export const logoutUser = createAsyncThunk(
     try {
       await authService.logout();
       clearTokens();
+      disconnectDashboardSocket();
+      disconnectSocket();
       return true;
     } catch (error) {
       return rejectWithValue(error.response?.data || { message: 'Logout failed.' });
@@ -117,6 +121,18 @@ const authSlice = createSlice({
     },
     setUser: (state, action) => {
       state.user = action.payload;
+    },
+    clearAuthState: (state) => {
+      state.user = null;
+      state.loading = false;
+    },
+    updateUserKycStatus: (state, action) => {
+      const { kycStatus, kycRejectionReason, status } = action.payload;
+      if (state.user) {
+        if (kycStatus !== undefined) state.user.kycStatus = kycStatus;
+        if (kycRejectionReason !== undefined) state.user.kycRejectionReason = kycRejectionReason;
+        if (status !== undefined) state.user.status = status;
+      }
     },
   },
   extraReducers: (builder) => {
@@ -200,5 +216,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError, setUser } = authSlice.actions;
+export const { clearError, setUser, clearAuthState, updateUserKycStatus } = authSlice.actions;
 export default authSlice.reducer;

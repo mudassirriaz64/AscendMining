@@ -159,7 +159,7 @@ const sendMessage = async (req, res, next) => {
       attachmentType: req.body.attachmentType || null,
       messageId: req.body.messageId || null,
     });
-    req.app.get('supportNamespace')?.to(`conversation:${conversationId}`).emit('message:new', result);
+    req.app.get('supportNamespace')?.to(`conversation:${conversationId}`).to('admin-alerts').emit('message:new', result);
     if (result.startedWaiting) {
       emitAlarmTrigger(
         req.app.get('supportNamespace'),
@@ -186,7 +186,7 @@ const openConversation = async (req, res, next) => {
     emitAlarmClear(req.app.get('supportNamespace'), req.params.id);
     
     if (data.systemMessage) {
-      req.app.get('supportNamespace')?.to(`conversation:${req.params.id}`).emit('message:new', {
+      req.app.get('supportNamespace')?.to(`conversation:${req.params.id}`).to('admin-alerts').emit('message:new', {
         message: data.systemMessage,
         conversation: data.conversation,
         sessionId: data.systemMessage.sessionId.toString(),
@@ -276,7 +276,7 @@ const uploadAttachment = async (req, res, next) => {
 
     const messageId = new mongoose.Types.ObjectId();
     const originalFilename = req.file.originalname;
-    const folder = `ascendxmining/support-conversations/${conversationId}`;
+    const folder = `ascendhash/support-conversations/${conversationId}`;
     const filename = `${messageId}-${originalFilename}`;
 
     let uploadBuffer = req.file.buffer;

@@ -1,0 +1,17 @@
+/* Client/Investor Dashboard Specific Styles */
+
+@keyframes progress {
+  0% { background-position: 1rem 0; }
+  100% { background-position: 0 0; }
+}
+
+.animate-progress {
+  animation: progress 1s linear infinite;
+}
+
+/* Glassmorphism panel highlight effects */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}

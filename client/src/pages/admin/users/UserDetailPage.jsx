@@ -223,7 +223,7 @@ const UserDetailPage = () => {
             />
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => setSuspendModal(false)}>Cancel</Button>
+            <Button variant="secondary" onClick={() => setSuspendModal(false)}>Cancel</Button>
             <Button variant="danger" onClick={handleSuspend} disabled={!suspendReason.trim()}>
               Suspend User
             </Button>
@@ -248,7 +248,7 @@ const UserDetailPage = () => {
             />
           </div>
           <div className="flex justify-end gap-2 pt-2 border-t border-border-light">
-            <Button variant="ghost" onClick={() => setResetModal(false)}>Cancel</Button>
+            <Button variant="secondary" onClick={() => setResetModal(false)}>Cancel</Button>
             <Button variant="primary" onClick={handleResetPassword} disabled={!newPassword || newPassword.length < 6}>
               Reset Password
             </Button>
@@ -318,7 +318,7 @@ const UserDetailPage = () => {
           </div>
 
           <div className="flex justify-end gap-2 pt-2 border-t border-border-light">
-            <Button variant="ghost" onClick={() => setBalanceModal(false)}>Cancel</Button>
+            <Button variant="secondary" onClick={() => setBalanceModal(false)}>Cancel</Button>
             <Button
               variant={adjustType === 'add' ? 'primary' : 'danger'}
               onClick={handleAdjustBalance}

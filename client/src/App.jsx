@@ -7,6 +7,8 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
 const AdminLoginPage = lazy(() => import('./pages/admin/AdminLoginPage'));
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
 const WithdrawNowPage = lazy(() => import('./pages/withdrawal/WithdrawNowPage'));
@@ -74,6 +76,8 @@ const TitleHandler = () => {
       '/contact': `Contact Us | ${siteName}`,
       '/login': siteName,
       '/register': siteName,
+      '/forgot-password': `Forgot Password | ${siteName}`,
+      '/reset-password': `Reset Password | ${siteName}`,
       '/admin/login': siteName,
     };
 
@@ -173,6 +177,8 @@ const App = () => {
 
           <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
           <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+          <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
+          <Route path="/reset-password" element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
           <Route path="/admin/login" element={<AdminPublicRoute><AdminLoginPage /></AdminPublicRoute>} />
 
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
+import { User as UserIcon } from 'lucide-react';
 import { updateProfile } from '../../store/slices/authSlice';
 import Header from '../../components/common/Header';
 import PageSkeleton from '../../components/common/PageSkeleton';
+import Logo from '../../components/common/Logo';
 
 const ProfilePage = () => {
   const dispatch = useDispatch();
@@ -42,79 +44,94 @@ const ProfilePage = () => {
   if (!user && loading) return <PageSkeleton />;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
+    <div className="min-h-screen flex flex-col bg-background text-on-surface font-sans antialiased">
       <Header />
       
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-[#0a1931]">Profile Settings</h1>
-          <p className="text-slate-500 text-sm mt-1">Update your personal information</p>
+      <main className="max-w-2xl w-full mx-auto px-margin-mobile md:px-margin-desktop py-gutter flex-grow space-y-gutter">
+        {/* PAGE HEADER */}
+        <div className="border-b border-outline-variant pb-4">
+          <h1 className="text-2xl font-extrabold text-primary tracking-tight uppercase flex items-center gap-2">
+            <UserIcon className="text-tertiary w-6 h-6" />
+            Profile Settings
+          </h1>
+          <p className="text-xs text-on-surface-variant mt-1 font-heading font-medium">Update your personal information</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6">
+        {/* FORM CONTAINER */}
+        <div className="bg-white rounded-xl border border-outline-variant p-card-padding">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Username</label>
+              
+              {/* Username */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Username</label>
                 <input
                   type="text"
                   value={user?.username || ''}
                   disabled
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                  className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-4 py-2.5 text-xs font-semibold text-on-surface-variant cursor-not-allowed opacity-60"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Email Address</label>
+              {/* Email */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Email Address</label>
                 <input
                   type="email"
                   value={user?.email || ''}
                   disabled
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                  className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-4 py-2.5 text-xs font-semibold text-on-surface-variant cursor-not-allowed opacity-60"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Full Name</label>
+              {/* Full Name */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Full Name</label>
                 <input
                   type="text"
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleChange}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all"
+                  placeholder="Enter full name"
+                  className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-4 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition text-on-surface"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Phone Number</label>
+              {/* Phone */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Phone Number</label>
                 <input
                   type="tel"
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all"
+                  placeholder="Enter phone number"
+                  className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-4 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition text-on-surface"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Country</label>
+              {/* Country */}
+              <div className="space-y-1.5 md:col-span-2">
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Country</label>
                 <input
                   type="text"
                   name="country"
                   value={formData.country}
                   onChange={handleChange}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all"
+                  placeholder="Enter country"
+                  className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-4 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition text-on-surface"
                 />
               </div>
             </div>
 
-            {error && <div className="text-red-500 text-sm">{error.message || 'An error occurred'}</div>}
+            {error && <div className="text-error text-xs font-semibold">{error.message || 'An error occurred'}</div>}
 
-            <div className="flex justify-end pt-4 border-t border-slate-100">
+            {/* BUTTONS */}
+            <div className="pt-4 border-t border-outline-variant flex justify-end">
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-[#083358] hover:bg-[#0a1931] text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                className="bg-primary-container hover:brightness-110 text-on-primary-fixed font-extrabold text-xs shadow-sm px-6 py-2.5 rounded-lg cursor-pointer transition-all uppercase tracking-wider"
               >
                 {loading ? 'Saving...' : 'Save Changes'}
               </button>
@@ -122,6 +139,16 @@ const ProfilePage = () => {
           </form>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="bg-on-secondary-fixed text-white/50 py-8 border-t border-outline-variant/20 mt-12">
+        <div className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop flex flex-col items-center gap-4">
+          <Logo variant="dark" size="sm" className="h-8 opacity-80" />
+          <p className="font-body-sm text-body-sm text-center">
+            &copy; 2026 <span className="font-semibold text-white">AscendHash</span>. All rights reserved.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };

@@ -1,15 +1,14 @@
 const withdrawalService = require('../services/withdrawal.service');
-const { emitWithdrawalUpdate, emitAdminUpdate, emitMiningUpdate } = require('../utils/dashboardEvents');
+const { emitWithdrawalUpdate, emitAdminUpdate, emitMiningUpdate, emitBalanceUpdate } = require('../utils/dashboardEvents');
 
 const requestWithdrawal = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const withdrawal = await withdrawalService.requestWithdrawal(userId, req.body);
+    const { withdrawal, user } = await withdrawalService.requestWithdrawal(userId, req.body);
 
     // Emit real-time events for new withdrawal
-    emitMiningUpdate(req.app, userId, {
-      miningStatus: { hashRate: 0 },
-    });
+    emitBalanceUpdate(req.app, userId, { miningBalances: Object.fromEntries(user.miningBalances) });
+    
     emitWithdrawalUpdate(req.app, userId, {
       _id: withdrawal._id,
       coinSymbol: withdrawal.coinSymbol,

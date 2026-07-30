@@ -7,7 +7,9 @@ import Pagination from '../../../components/common/Pagination';
 import Modal from '../../../components/common/Modal';
 import Button from '../../../components/common/Button';
 import InputField from '../../../components/common/InputField';
+import ConfirmModal from '../../../components/common/ConfirmModal';
 import toast from 'react-hot-toast';
+import { connectDashboardSocket } from '../../../services/dashboardSocket';
 
 const AdminKYCPage = () => {
   const dispatch = useDispatch();
@@ -34,6 +36,20 @@ const AdminKYCPage = () => {
   }, [dispatch, page]);
 
   useEffect(() => {
+    const socket = connectDashboardSocket();
+    
+    const handleStatusChange = () => {
+      loadRequests();
+    };
+
+    socket.on('admin:user:status', handleStatusChange);
+
+    return () => {
+      socket.off('admin:user:status', handleStatusChange);
+    };
+  }, []);
+
+  useEffect(() => {
     if (success) {
       toast.success(actionSuccessMessage || 'Operation completed successfully.');
       dispatch(clearKYCStatus());
@@ -41,7 +57,6 @@ const AdminKYCPage = () => {
       setPreviewOpen(false);
       setRejectionReason('');
       setSelectedReq(null);
-      loadRequests();
     }
     if (error) {
       toast.error(error);
@@ -54,10 +69,10 @@ const AdminKYCPage = () => {
     setPreviewOpen(true);
   };
 
+  const [confirmApprove, setConfirmApprove] = useState({ open: false, id: null });
+
   const handleApprove = (userId) => {
-    if (window.confirm('Are you sure you want to approve this user\'s identity documents?')) {
-      dispatch(approveUserKYC(userId));
-    }
+    setConfirmApprove({ open: true, id: userId });
   };
 
   const handleOpenReject = (req) => {
@@ -66,12 +81,15 @@ const AdminKYCPage = () => {
     setRejectOpen(true);
   };
 
-  const handleRejectSubmit = () => {
+  const handleRejectSubmit = async () => {
     if (!rejectionReason.trim()) {
       toast.error('Please enter a rejection reason.');
       return;
     }
-    dispatch(rejectUserKYC({ userId: selectedReq._id, reason: rejectionReason }));
+    try {
+      await dispatch(rejectUserKYC({ userId: selectedReq._id, reason: rejectionReason })).unwrap();
+      loadRequests();
+    } catch { /* error handled by Redux error state */ }
   };
 
   const columns = useMemo(() => [
@@ -245,14 +263,14 @@ const AdminKYCPage = () => {
 
             <div className="pt-4 border-t border-slate-100 flex justify-end gap-2">
               <Button
+                variant="danger"
                 onClick={() => handleOpenReject(selectedReq)}
-                className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200"
               >
                 Reject Verification
               </Button>
               <Button
+                variant="primary"
                 onClick={() => handleApprove(selectedReq._id)}
-                className="bg-green-600 hover:bg-green-700 text-white font-bold"
               >
                 Approve Verification
               </Button>
@@ -283,15 +301,15 @@ const AdminKYCPage = () => {
 
           <div className="pt-4 border-t border-slate-100 flex justify-end gap-2">
             <Button
+              variant="secondary"
               onClick={() => setRejectOpen(false)}
-              className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold"
             >
               Cancel
             </Button>
             <Button
+              variant="danger"
               onClick={handleRejectSubmit}
               loading={loading}
-              className="bg-red-600 hover:bg-red-700 text-white font-bold"
             >
               Confirm Reject
             </Button>
@@ -299,6 +317,20 @@ const AdminKYCPage = () => {
         </div>
       </Modal>
 
+      <ConfirmModal
+        isOpen={confirmApprove.open}
+        onClose={() => setConfirmApprove({ open: false, id: null })}
+        onConfirm={async () => {
+          try {
+            await dispatch(approveUserKYC(confirmApprove.id)).unwrap();
+            loadRequests();
+          } catch { /* error handled by Redux error state */ }
+          setConfirmApprove({ open: false, id: null });
+        }}
+        title="Approve KYC"
+        message="Are you sure you want to approve this user's identity documents?"
+        variant="warning"
+      />
     </div>
   );
 };

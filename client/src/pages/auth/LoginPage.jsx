@@ -28,11 +28,12 @@ const LoginPage = () => {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(loginSchema),
+    mode: 'onChange',
   });
 
   const onSubmit = async (data) => {
     dispatch(clearError());
-    const result = await dispatch(login(data));
+    const result = await dispatch(login({ ...data, keepLoggedIn }));
     if (!result.error) {
       navigate('/dashboard');
     }

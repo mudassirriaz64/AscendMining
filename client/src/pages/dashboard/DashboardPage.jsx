@@ -3,36 +3,266 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { 
-  Wallet, Gift, Cpu, Copy, Check, LogOut, 
-  ExternalLink, Clock, TrendingUp, ShieldAlert, RefreshCw
+  Wallet, Gift, Cpu, Copy, Clock, LogOut, 
+  ShieldAlert, RefreshCw, ArrowRight, Check,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { fetchDashboardSummary, claimMiningPayout, updateBalance, updateMiningStatus, addTransaction } from '../../store/slices/dashboardSlice';
-import { logoutUser } from '../../store/slices/authSlice';
-import { connectDashboardSocket, getDashboardSocket, disconnectDashboardSocket } from '../../services/dashboardSocket';
+import { logoutUser, updateUserKycStatus } from '../../store/slices/authSlice';
+import { connectDashboardSocket, disconnectDashboardSocket } from '../../services/dashboardSocket';
 import Logo from '../../components/common/Logo';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageSkeleton from '../../components/common/PageSkeleton';
 import Header from '../../components/common/Header';
+import TransactionsTable from '../../components/common/TransactionsTable';
+
+const ActivePackageCard = ({ pkg }) => {
+  const dispatch = useDispatch();
+  const [timeLeft, setTimeLeft] = useState('');
+  const [isReadyToClaim, setIsReadyToClaim] = useState(false);
+  const [progressPercent, setProgressPercent] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const { balances, miningSettings } = useSelector((state) => state.dashboard);
+
+  useEffect(() => {
+    if (!pkg || !pkg.nextMiningAt) {
+      setTimeLeft('');
+      setIsReadyToClaim(false);
+      setProgressPercent(0);
+      return;
+    }
+
+    const updateTimer = () => {
+      const nextTime = new Date(pkg.nextMiningAt).getTime();
+      const now = Date.now();
+      const difference = nextTime - now;
+      const durationMs = 24 * 60 * 60 * 1000;
+      const elapsedMs = Math.max(0, durationMs - difference);
+      const computedPercent = Math.min(100, Math.floor((elapsedMs / durationMs) * 100));
+      setProgressPercent(computedPercent);
+
+      if (difference <= 0) {
+        setTimeLeft('00:00:00');
+        setIsReadyToClaim(true);
+      } else {
+        const hours = Math.floor(difference / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        const formatted = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        setTimeLeft(formatted);
+        setIsReadyToClaim(false);
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [pkg]);
+
+  const handleClaim = async () => {
+    try {
+      setLoading(true);
+      const res = await dispatch(claimMiningPayout(pkg._id));
+      if (!res.error) {
+        toast.success('Mining reward claimed successfully!');
+      } else {
+        toast.error(res.payload?.error?.message || 'Failed to claim reward.');
+      }
+    } catch (err) {
+      toast.error('Failed to claim reward.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getEstTodayForCoins = () => {
+    const coins = pkg.packageId?.coins || [];
+    if (coins.length === 0) return '0.0000 TX';
+    return coins.map((coin) => {
+      const coinRate = coin.usdRate || 1.0;
+      const usdProfit = pkg.purchaseAmount * (pkg.dailyROISnapshot / 100);
+      const coinProfit = usdProfit / coinRate;
+      return `${coinProfit.toFixed(4)} ${coin.symbol}`;
+    }).join(' + ');
+  };
+
+  const getTotalMinedForCoins = () => {
+    const coins = pkg.packageId?.coins || [];
+    if (coins.length === 0) return '0.0000 TX';
+    return coins.map((coin) => {
+      const balance = balances.miningBalances?.[coin.symbol] || 0;
+      return `${balance.toFixed(4)} ${coin.symbol}`;
+    }).join(' + ');
+  };
+
+  const hashRate = pkg.hashRateSnapshot || pkg.packageId?.hashRate || 0;
+
+  return (
+    <div className="space-y-4">
+      {/* 1. Plan Details card */}
+      <div className="bg-white rounded-xl shadow-sm border border-outline-variant overflow-hidden flex flex-col md:flex-row">
+        <div className="md:w-1/4 bg-on-secondary-fixed p-5 flex flex-col justify-center gap-1.5 min-h-[120px] md:min-h-0">
+          <p className="font-label-caps text-[10px] text-primary-fixed-dim uppercase tracking-wider">Active Track</p>
+          <h3 className="font-heading text-2xl text-white font-extrabold leading-none tracking-tight truncate">
+            {pkg.packageId?.name || 'Mining Plan'}
+          </h3>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-brand-teal/20 text-brand-teal rounded-full w-fit border border-brand-teal/30">
+            <div className="w-1.5 h-1.5 bg-brand-teal rounded-full animate-pulse"></div>
+            <span className="text-[10px] font-bold uppercase tracking-wider">Active</span>
+          </div>
+        </div>
+        <div className="flex-grow p-5 grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
+          <div className="space-y-0.5">
+            <p className="font-label-caps text-[10px] text-on-surface-variant uppercase">Investment</p>
+            <p className="text-sm font-bold text-on-surface font-mono">
+              ${(pkg.purchaseAmount || 0).toFixed(2)}
+            </p>
+          </div>
+          <div className="space-y-0.5">
+            <p className="font-label-caps text-[10px] text-on-surface-variant uppercase">ROI Rate</p>
+            <p className="text-sm font-bold text-primary font-mono">
+              {pkg.dailyROISnapshot || '0.00'}%
+            </p>
+          </div>
+          <div className="space-y-0.5">
+            <p className="font-label-caps text-[10px] text-on-surface-variant uppercase">Started On</p>
+            <p className="text-xs text-on-surface font-semibold">
+              {new Date(pkg.cycleStartedAt || pkg.startDate).toLocaleDateString()}
+            </p>
+          </div>
+          <div className="space-y-0.5">
+            <p className="font-label-caps text-[10px] text-on-surface-variant uppercase">Ends On</p>
+            <p className="text-xs text-on-surface font-semibold">
+              {pkg.cycleEndsAt ? new Date(pkg.cycleEndsAt).toLocaleDateString() : '-'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Live Mining Progress panel */}
+      <div className="bg-white rounded-xl shadow-sm border border-outline-variant overflow-hidden">
+        <div className="bg-on-secondary-fixed p-4 px-card-padding flex items-center gap-3">
+          <div className="bg-primary-container p-1.5 rounded shadow-[0_0_12px_rgba(62,205,190,0.5)] border border-brand-teal/40">
+            <Cpu className="w-5 h-5 text-on-primary-fixed" />
+          </div>
+          <h2 className="text-white font-headline-md text-headline-md">Live Mining Progress - {pkg.packageId?.name}</h2>
+        </div>
+        
+        <div className="p-card-padding space-y-8">
+          {/* Progress Header */}
+          <div className="flex justify-between items-end">
+            <div className="flex items-center gap-3">
+              <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">Current Engine Status:</span>
+              {miningSettings?.isPaused ? (
+                <span className="text-amber-500 font-bold text-sm tracking-wide">PAUSED</span>
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-brand-teal animate-pulse"></span>
+                  <span className="text-[#1e786b] font-bold text-sm tracking-wide uppercase">Active</span>
+                </div>
+              )}
+            </div>
+            <span className="bg-surface-container-high text-on-surface-variant px-3 py-1 rounded-lg text-xs font-bold">
+              {progressPercent}% Complete
+            </span>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="relative w-full h-4 bg-surface-container-low rounded-full overflow-hidden border border-outline-variant/30">
+            <div 
+              className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-primary-container rounded-full transition-all duration-1000 ease-in-out" 
+              style={{ width: `${progressPercent}%` }}
+            >
+              <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.15)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.15)_50%,rgba(255,255,255,0.15)_75%,transparent_75%,transparent)] bg-[length:1rem_1rem] animate-progress"></div>
+            </div>
+          </div>
+
+          {/* Mining Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+            <div className="bg-surface-container-lowest border border-outline-variant/30 p-6 rounded-xl text-center space-y-1 hover:border-primary/50 transition-colors">
+              <p className="font-data-lg text-data-lg text-on-surface font-mono">
+                {getEstTodayForCoins()}
+              </p>
+              <p className="font-label-caps text-[10px] text-on-surface-variant uppercase font-bold mt-1">Est. Today</p>
+            </div>
+            <div className="bg-surface-container-lowest border border-outline-variant/30 p-6 rounded-xl text-center space-y-1 hover:border-primary/50 transition-colors">
+              <p className="font-data-lg text-data-lg text-on-surface font-mono">
+                {getTotalMinedForCoins()}
+              </p>
+              <p className="font-label-caps text-[10px] text-on-surface-variant uppercase font-bold mt-1">Total Mined</p>
+            </div>
+            <div className="bg-surface-container-lowest border border-outline-variant/30 p-6 rounded-xl text-center space-y-1 hover:border-primary/50 transition-colors">
+              <p className="font-data-lg text-data-lg text-on-surface font-mono">
+                {hashRate.toFixed(2)} MH/S
+              </p>
+              <p className="font-label-caps text-[10px] text-on-surface-variant uppercase font-bold mt-1">Hash Rate</p>
+            </div>
+          </div>
+
+          {/* Claim Action Row */}
+          <div className="bg-surface-container-low p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex flex-col">
+              <h4 className="font-headline-md text-headline-md text-on-surface font-bold">Claim Daily Mining Payout</h4>
+              <p className="text-sm text-on-surface-variant">Claim your package profit once every 24 hours.</p>
+            </div>
+            <div className="flex items-center gap-4 w-full md:w-auto justify-end">
+              {timeLeft && !isReadyToClaim && (
+                <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-lg border border-outline-variant font-mono text-xs text-on-surface-variant font-bold shadow-sm">
+                  <Clock size={14} className="animate-pulse text-primary" />
+                  {timeLeft}
+                </div>
+              )}
+              <button 
+                onClick={handleClaim}
+                disabled={!isReadyToClaim || loading || miningSettings?.isPaused}
+                className={`px-8 py-3 rounded-lg font-bold border transition-all text-sm w-full md:w-auto text-center cursor-pointer
+                  ${isReadyToClaim && !miningSettings?.isPaused
+                    ? 'bg-primary-container text-on-primary-fixed border-outline-variant/10 hover:brightness-110 shadow-sm'
+                    : 'bg-surface-dim text-on-surface-variant/40 border-outline-variant/20 cursor-not-allowed'
+                  }`}
+              >
+                {miningSettings?.isPaused ? 'Mining Paused' : 'Claim Reward'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const DashboardPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
-  const [timeLeft, setTimeLeft] = useState('');
-  const [isReadyToClaim, setIsReadyToClaim] = useState(false);
-  
+  const [copied, setCopied] = useState(false);
   const { user } = useSelector((state) => state.auth);
   const { 
     balances, 
     referralLink, 
     miningStatus, 
     coins,
-    activePackage,
+    activePackages,
     latestTransactions,
     miningSettings, 
     loading, 
     error 
   } = useSelector((state) => state.dashboard);
+
+  const [activeCoinIndex, setActiveCoinIndex] = useState(0);
+  const currentCoin = coins[activeCoinIndex];
+  const hasActivePlan = activePackages && activePackages.length > 0;
+
+  const groupedPackages = activePackages ? activePackages.reduce((acc, pkg) => {
+    const planName = pkg.packageId?.name || 'Mining Plan';
+    if (!acc[planName]) {
+      acc[planName] = [];
+    }
+    acc[planName].push(pkg);
+    return acc;
+  }, {}) : {};
 
   const loadDashboard = useCallback(() => {
     dispatch(fetchDashboardSummary());
@@ -56,52 +286,35 @@ const DashboardPage = () => {
     const onTransactionUpdate = (data) => {
       dispatch(addTransaction(data));
     };
+    const onUserStatusChange = (data) => {
+      dispatch(updateUserKycStatus(data));
+      loadDashboard();
+    };
+    const onRealtimeChange = () => {
+      loadDashboard();
+    };
 
     socket.on('balance:update', onBalanceUpdate);
     socket.on('mining:update', onMiningUpdate);
     socket.on('transaction:update', onTransactionUpdate);
+    socket.on('user:status:change', onUserStatusChange);
+    socket.on('deposit:status:change', onRealtimeChange);
+    socket.on('withdrawal:status:change', onRealtimeChange);
+    socket.on('withdrawal:update', onRealtimeChange);
 
     return () => {
       socket.off('balance:update', onBalanceUpdate);
       socket.off('mining:update', onMiningUpdate);
       socket.off('transaction:update', onTransactionUpdate);
+      socket.off('user:status:change', onUserStatusChange);
+      socket.off('deposit:status:change', onRealtimeChange);
+      socket.off('withdrawal:status:change', onRealtimeChange);
+      socket.off('withdrawal:update', onRealtimeChange);
       socket.emit('unsubscribe:balance');
       socket.emit('unsubscribe:mining');
       disconnectDashboardSocket();
     };
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (!activePackage || !activePackage.nextMiningAt) {
-      setTimeLeft('');
-      setIsReadyToClaim(false);
-      return;
-    }
-
-    const updateTimer = () => {
-      const nextTime = new Date(activePackage.nextMiningAt).getTime();
-      const now = Date.now();
-      const difference = nextTime - now;
-
-      if (difference <= 0) {
-        setTimeLeft('00:00:00');
-        setIsReadyToClaim(true);
-      } else {
-        const hours = Math.floor(difference / (1000 * 60 * 60));
-        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-
-        const formatted = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        setTimeLeft(formatted);
-        setIsReadyToClaim(false);
-      }
-    };
-
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-
-    return () => clearInterval(interval);
-  }, [activePackage]);
+  }, [dispatch, loadDashboard]);
 
   const handleClaimReward = async () => {
     if (!activePackage?._id) return;
@@ -113,15 +326,12 @@ const DashboardPage = () => {
     }
   };
 
-  const handleLogout = async () => {
-    await dispatch(logoutUser());
-    navigate('/login');
-  };
-
   const handleCopyLink = () => {
     if (referralLink) {
       navigator.clipboard.writeText(referralLink);
       toast.success('Referral link copied to clipboard!');
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -157,20 +367,20 @@ const DashboardPage = () => {
 
   if (error && !balances.walletBalance && latestTransactions.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#f0f2f5] font-sans antialiased text-slate-800">
+      <div className="min-h-screen flex flex-col bg-background font-sans antialiased text-on-surface">
         <Header />
         <main className="max-w-7xl w-full mx-auto px-6 py-10 flex-grow flex items-center justify-center">
-          <div className="bg-white rounded-2xl shadow-md border border-slate-200 p-12 text-center max-w-md w-full">
-            <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-              <ShieldAlert className="w-8 h-8 text-red-500" />
+          <div className="bg-surface-container-lowest rounded-2xl shadow-md border border-outline-variant p-12 text-center max-w-md w-full">
+            <div className="bg-error-container w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+              <ShieldAlert className="w-8 h-8 text-error" />
             </div>
-            <h2 className="text-lg font-bold text-slate-900 mb-2">Failed to Load Dashboard</h2>
-            <p className="text-sm text-slate-500 mb-6">
+            <h2 className="text-lg font-bold text-on-surface mb-2 font-heading">Failed to Load Dashboard</h2>
+            <p className="text-sm text-on-surface-variant mb-6">
               {error?.message || 'An unexpected error occurred while loading your dashboard.'}
             </p>
             <button
               onClick={loadDashboard}
-              className="px-6 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-yellow-400 to-orange-500 text-slate-900 hover:shadow-lg transition-all active:scale-95 cursor-pointer flex items-center gap-2 mx-auto"
+              className="px-6 py-3 rounded-xl font-bold text-sm bg-primary-container text-on-primary-fixed hover:brightness-110 transition-all active:scale-95 cursor-pointer flex items-center gap-2 mx-auto"
             >
               <RefreshCw size={16} />
               Retry
@@ -182,23 +392,23 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f0f2f5] font-sans antialiased text-slate-800">
-      
+    <div className="min-h-screen flex flex-col bg-background font-sans antialiased text-on-surface">
       <Header />
 
       {/* MAIN CONTAINER */}
-      <main className="max-w-7xl w-full mx-auto px-6 py-10 flex-grow space-y-10">
+      <main className="max-w-container-max w-full mx-auto px-margin-mobile md:px-margin-desktop py-gutter flex-grow space-y-gutter">
         
+        {/* KYC ALERTS */}
         {user?.kycStatus === 'rejected' && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3 text-red-800 text-xs font-medium shadow-sm">
-            <ShieldAlert size={18} className="text-red-500 flex-shrink-0" />
+          <div className="bg-error-container border border-error/20 rounded-xl p-4 flex items-center gap-3 text-on-error-container text-sm font-medium shadow-sm">
+            <ShieldAlert size={18} className="text-error flex-shrink-0" />
             <div className="flex-grow">
-              <p className="font-bold">Identity Verification Rejected</p>
-              <p className="text-red-600 mt-0.5 font-semibold">Reason: {user.kycRejectionReason || 'Invalid document photo.'}</p>
+              <p className="font-bold font-heading">Identity Verification Rejected</p>
+              <p className="text-xs opacity-90 mt-0.5 font-semibold">Reason: {user.kycRejectionReason || 'Invalid document photo.'}</p>
             </div>
             <button 
               onClick={() => navigate('/kyc')}
-              className="bg-red-100 hover:bg-red-200 text-red-800 font-bold px-3 py-1.5 rounded-lg border border-red-200 cursor-pointer"
+              className="bg-white text-error hover:bg-slate-50 font-bold px-3 py-1.5 rounded-lg border border-error/10 cursor-pointer text-xs"
             >
               Re-submit KYC
             </button>
@@ -206,15 +416,15 @@ const DashboardPage = () => {
         )}
 
         {user?.kycStatus === 'none' && (
-          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-center gap-3 text-blue-800 text-xs font-medium shadow-sm">
-            <ShieldAlert size={18} className="text-blue-500 flex-shrink-0" />
+          <div className="bg-surface-container border border-outline-variant rounded-xl p-4 flex items-center gap-3 text-on-surface text-sm font-medium shadow-sm">
+            <ShieldAlert size={18} className="text-primary flex-shrink-0" />
             <div className="flex-grow">
-              <p className="font-bold">Identity Verification Required</p>
-              <p className="text-blue-600 mt-0.5">Please complete your KYC identity verification to unlock cash withdrawals.</p>
+              <p className="font-bold font-heading">Identity Verification Required</p>
+              <p className="text-xs text-on-surface-variant mt-0.5">Please complete your KYC identity verification to unlock cash withdrawals.</p>
             </div>
             <button 
               onClick={() => navigate('/kyc')}
-              className="bg-blue-100 hover:bg-blue-200 text-[#185adb] font-bold px-3 py-1.5 rounded-lg border border-blue-200 cursor-pointer"
+              className="bg-primary-container text-on-primary-fixed hover:brightness-110 font-bold px-3 py-1.5 rounded-lg cursor-pointer text-xs"
             >
               Verify Now
             </button>
@@ -222,15 +432,15 @@ const DashboardPage = () => {
         )}
 
         {user?.kycStatus === 'pending' && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 flex items-center gap-3 text-yellow-800 text-xs font-medium shadow-sm">
-            <Clock size={18} className="text-yellow-600 flex-shrink-0 animate-pulse" />
+          <div className="bg-surface-container-low border border-outline-variant/60 rounded-xl p-4 flex items-center gap-3 text-on-surface text-sm font-medium shadow-sm">
+            <Clock size={18} className="text-secondary flex-shrink-0 animate-pulse" />
             <div className="flex-grow">
-              <p className="font-bold">KYC Review In Progress</p>
-              <p className="text-yellow-600 mt-0.5">Your identity documents have been submitted and are pending admin review.</p>
+              <p className="font-bold font-heading">KYC Review In Progress</p>
+              <p className="text-xs text-on-surface-variant mt-0.5">Your identity documents have been submitted and are pending admin review.</p>
             </div>
             <button 
               onClick={() => navigate('/kyc')}
-              className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-bold px-3 py-1.5 rounded-lg border border-yellow-200 cursor-pointer"
+              className="bg-secondary-container text-on-secondary-container hover:bg-slate-200 font-bold px-3 py-1.5 rounded-lg cursor-pointer text-xs"
             >
               Check Status
             </button>
@@ -238,342 +448,206 @@ const DashboardPage = () => {
         )}
 
         {miningSettings?.isPaused && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3 text-amber-800 text-xs font-medium shadow-sm">
-            <ShieldAlert size={18} className="text-amber-500 flex-shrink-0" />
+          <div className="bg-surface-container-high border border-outline-variant rounded-xl p-4 flex items-center gap-3 text-on-surface text-sm font-medium shadow-sm">
+            <ShieldAlert size={18} className="text-primary flex-shrink-0" />
             <div>
-              <p className="font-bold">Mining Operations Paused</p>
-              <p className="text-amber-600 mt-0.5">The administrator has temporarily paused the mining claims. Your timers will continue counting down, but reward payouts are suspended.</p>
+              <p className="font-bold font-heading">Mining Operations Paused</p>
+              <p className="text-xs text-on-surface-variant mt-0.5">The administrator has temporarily paused the mining claims. Your timers will continue counting down, but reward payouts are suspended.</p>
             </div>
           </div>
         )}
         
-        {/* STATS CARDS */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          
+        {/* Wallet Stats Row */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
           {/* Balance Card */}
-          <div className="bg-gradient-to-br from-[#0a2647] to-[#144272] text-white p-6 rounded-2xl border border-white/10 shadow-lg flex flex-col justify-between min-h-[200px] hover:translate-y-[-4px] hover:shadow-2xl transition-all duration-300">
-            <div className="flex justify-between items-start">
-              <div className="bg-gradient-to-br from-[#facc15] to-[#ca8a04] w-12 h-12 rounded-xl flex items-center justify-center shadow-md">
-                <Wallet className="w-6 h-6 text-[#0a1931]" />
-              </div>
+          <div className="bg-on-secondary-fixed rounded-xl p-card-padding shadow-sm relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4">
               <button
                 onClick={() => navigate('/deposit')}
-                className="bg-yellow-400 hover:bg-yellow-500 text-[#0a2647] font-black text-[10px] px-3.5 py-1.5 rounded-lg shadow-md transition-all active:scale-95 uppercase tracking-wider cursor-pointer"
+                className="bg-primary-container text-on-primary-fixed font-bold text-xs px-3 py-1 rounded-full hover:brightness-110 transition-all uppercase tracking-wider cursor-pointer"
               >
                 Top Up
               </button>
             </div>
-            <div className="mt-6">
-              <p className="text-white/60 text-xs font-bold uppercase tracking-wider mb-1">Balance</p>
-              <p className="text-3xl font-black">
-                {balances.walletBalance.toFixed(2)}{' '}
-                <span className="text-yellow-400 text-lg font-bold">USD</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Referral Card */}
-          <div className="bg-gradient-to-br from-[#0a2647] to-[#144272] text-white p-6 rounded-2xl border border-white/10 shadow-lg flex flex-col justify-between min-h-[200px] hover:translate-y-[-4px] hover:shadow-2xl transition-all duration-300">
-            <div className="bg-gradient-to-br from-[#facc15] to-[#ca8a04] w-12 h-12 rounded-xl flex items-center justify-center shadow-md">
-              <Gift className="w-6 h-6 text-[#0a1931]" />
-            </div>
-            <div className="mt-6">
-              <p className="text-white/60 text-xs font-bold uppercase tracking-wider mb-1">Referral Bonus</p>
-              <p className="text-3xl font-black">
-                {balances.referralBalance.toFixed(2)}{' '}
-                <span className="text-yellow-400 text-lg font-bold">USD</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Active Coins Cards */}
-          {coins && coins.map((coin) => {
-            const coinBalance = balances.miningBalances?.[coin.symbol] || 0;
-            return (
-              <div key={coin._id} className="bg-gradient-to-br from-[#0a2647] to-[#144272] text-white p-6 rounded-2xl border border-white/10 shadow-lg flex flex-col justify-between min-h-[200px] hover:translate-y-[-4px] hover:shadow-2xl transition-all duration-300">
-                <div className="bg-gradient-to-br from-[#facc15] to-[#ca8a04] w-12 h-12 rounded-xl flex items-center justify-center shadow-md">
-                  {coin.logoUrl ? (
-                    <img src={coin.logoUrl} alt={coin.name} className="w-6 h-6 object-contain" />
-                  ) : (
-                    <Cpu className="w-6 h-6 text-[#0a1931]" />
-                  )}
-                </div>
-                <div className="mt-6">
-                  <p className="text-white/60 text-xs font-bold uppercase tracking-wider mb-1">{coin.symbol} Wallet</p>
-                  <p className="text-3xl font-black font-mono">
-                    {coinBalance.toFixed(4)}{' '}
-                    <span className="text-yellow-400 text-lg font-bold">{coin.symbol}</span>
-                  </p>
-                </div>
+            <div className="flex flex-col gap-4">
+              <div className="bg-primary-container/20 w-12 h-12 rounded-lg flex items-center justify-center">
+                <Wallet className="w-6 h-6 text-primary-fixed-dim" />
               </div>
-            );
-          })}
-          
+              <div>
+                <p className="font-label-caps text-label-caps text-secondary-fixed-dim/70 uppercase">Balance</p>
+                <p className="font-headline-lg text-headline-lg text-white font-mono mt-1">
+                  {(balances.walletBalance || 0).toFixed(2)}{' '}
+                  <span className="text-primary-fixed-dim text-lg">USD</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Referral Bonus Card */}
+          <div className="bg-on-secondary-fixed rounded-xl p-card-padding shadow-sm relative overflow-hidden group">
+            <div className="flex flex-col gap-4">
+              <div className="bg-primary-container/20 w-12 h-12 rounded-lg flex items-center justify-center">
+                <Gift className="w-6 h-6 text-primary-fixed-dim" />
+              </div>
+              <div>
+                <p className="font-label-caps text-label-caps text-secondary-fixed-dim/70 uppercase">Referral Bonus</p>
+                <p className="font-headline-lg text-headline-lg text-white font-mono mt-1">
+                  {(balances.referralBalance || 0).toFixed(2)}{' '}
+                  <span className="text-primary-fixed-dim text-lg">USD</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Coin Wallet Card */}
+          <div className="bg-on-secondary-fixed rounded-xl p-card-padding shadow-sm relative overflow-hidden group">
+            {hasActivePlan ? (
+              <>
+                {coins.length > 1 && (
+                  <div className="absolute top-0 right-0 p-4 flex items-center gap-1">
+                    <button
+                      onClick={() => setActiveCoinIndex((i) => (i - 1 + coins.length) % coins.length)}
+                      className="w-8 h-8 rounded-full bg-white/10 hover:bg-primary-container/30 flex items-center justify-center transition-all cursor-pointer"
+                      aria-label="Previous coin"
+                    >
+                      <ChevronLeft size={16} className="text-secondary-fixed-dim/70 group-hover:text-primary-fixed-dim transition-colors" />
+                    </button>
+                    <button
+                      onClick={() => setActiveCoinIndex((i) => (i + 1) % coins.length)}
+                      className="w-8 h-8 rounded-full bg-white/10 hover:bg-primary-container/30 flex items-center justify-center transition-all cursor-pointer"
+                      aria-label="Next coin"
+                    >
+                      <ChevronRight size={16} className="text-secondary-fixed-dim/70 group-hover:text-primary-fixed-dim transition-colors" />
+                    </button>
+                  </div>
+                )}
+                <div className="flex flex-col gap-4">
+                  <div className="bg-primary-container/20 w-12 h-12 rounded-lg flex items-center justify-center">
+                    {currentCoin?.logoUrl ? (
+                      <img src={currentCoin.logoUrl} alt={currentCoin.name} className="w-6 h-6 object-contain" />
+                    ) : (
+                      <Cpu className="w-6 h-6 text-primary-fixed-dim" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-label-caps text-label-caps text-secondary-fixed-dim/70 uppercase">
+                      {currentCoin?.name || 'Coin'} Wallet
+                      {coins.length > 1 && (
+                        <span className="ml-2 text-[10px] text-secondary-fixed-dim/50">
+                          {activeCoinIndex + 1}/{coins.length}
+                        </span>
+                      )}
+                    </p>
+                    <p className="font-headline-lg text-headline-lg text-white font-mono mt-1">
+                      {(balances.miningBalances?.[currentCoin?.symbol || 'TX'] || 0).toFixed(4)}{' '}
+                      <span className="text-primary-fixed-dim text-lg">{currentCoin?.symbol || 'TX'}</span>
+                    </p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col gap-4 items-center justify-center py-4 text-center">
+                <Cpu className="w-10 h-10 text-secondary-fixed-dim/40" />
+                <p className="font-body-md text-body-md text-secondary-fixed-dim/60">
+                  Purchase a mining plan to start earning coins
+                </p>
+              </div>
+            )}
+          </div>
         </section>
 
-        {/* REFERRAL LINK SECTION */}
-        <section className="bg-[#185adb] rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-32 translate-x-32 blur-3xl"></div>
-          <div className="relative z-10 space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="bg-white/10 p-2.5 rounded-lg">
-                <ExternalLink className="w-5 h-5 text-yellow-400" />
+        {/* Referral Link Banner */}
+        <section className="bg-gradient-to-r from-brand-teal to-tertiary rounded-xl p-card-padding text-white relative overflow-hidden shadow-sm">
+          <div className="absolute inset-0 opacity-10 pointer-events-none">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -mr-20 -mt-20 blur-3xl"></div>
+          </div>
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <svg className="w-6 h-6 text-primary-container" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                </svg>
+                <h2 className="font-headline-md text-headline-md">Your Referral Link</h2>
               </div>
-              <h2 className="text-xl font-bold tracking-tight">Your Referral Link</h2>
+              <p className="font-body-md text-body-md opacity-90 max-w-xl">Share this link with your network to earn exclusive referral bonuses on every successful deposit they make.</p>
             </div>
-            <p className="text-blue-100 text-sm">Share this link with your network to earn exclusive referral bonuses:</p>
-            <div className="flex items-stretch shadow-md max-w-3xl">
-              <input 
-                type="text" 
-                readOnly 
-                value={referralLink || ''} 
-                className="flex-grow bg-white/10 border border-white/20 rounded-l-xl text-white px-4 py-3 focus:outline-none focus:ring-1 focus:ring-yellow-400 placeholder-white/30 text-sm font-mono"
-              />
+            <div className="flex items-center bg-white/10 rounded-lg p-1 pl-4 border border-white/20 backdrop-blur-sm w-full md:w-auto min-w-[320px]">
+              <span className="font-mono text-xs truncate flex-grow select-all">{referralLink || ''}</span>
               <button 
                 onClick={handleCopyLink}
-                className="bg-[#0a1931] hover:bg-slate-800 px-6 py-3 rounded-r-xl font-bold flex items-center text-xs text-white transition-all active:scale-95 cursor-pointer gap-1.5"
+                className="bg-on-secondary-fixed text-primary-container px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-black transition-colors ml-4 cursor-pointer"
               >
-                <Copy size={14} className="text-yellow-400" />
+                <Copy size={14} />
                 Copy
               </button>
             </div>
           </div>
         </section>
 
-        {/* ACTIVE PACKAGE DETAILS */}
-        {activePackage && !miningSettings?.isDisabled && (
-          <section className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden flex flex-col sm:flex-row">
-            <div className="bg-[#0a1931] p-8 text-white sm:w-1/3 flex flex-col justify-center relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-16 translate-x-16 blur-2xl"></div>
-              <div className="relative z-10">
-                <p className="text-yellow-400 font-bold text-xs uppercase tracking-widest mb-2">Current Plan</p>
-                <h2 className="text-3xl font-black mb-2">{activePackage.packageId?.name || 'Active Plan'}</h2>
-                {miningSettings?.isPaused ? (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-xs font-bold border border-amber-500/30">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                    Paused
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-xs font-bold border border-green-500/30">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
-                    Active
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="p-8 sm:w-2/3 grid grid-cols-2 gap-6 items-center">
-              <div>
-                <p className="text-slate-400 font-bold text-xs uppercase tracking-wider mb-1">Investment Amount</p>
-                <p className="text-2xl font-black text-slate-900 font-mono">
-                  ${activePackage.purchaseAmount?.toFixed(2)}
-                </p>
-              </div>
-              <div>
-                <p className="text-slate-400 font-bold text-xs uppercase tracking-wider mb-1">Daily Profit Rate</p>
-                <p className="text-2xl font-black text-slate-900 font-mono text-green-600">
-                  {activePackage.dailyROISnapshot}%
-                </p>
-              </div>
-              <div>
-                <p className="text-slate-400 font-bold text-xs uppercase tracking-wider mb-1">Started On</p>
-                <p className="text-sm font-bold text-slate-800">
-                  {new Date(activePackage.cycleStartedAt || activePackage.startDate).toLocaleDateString()}
-                </p>
-              </div>
-              <div>
-                <p className="text-slate-400 font-bold text-xs uppercase tracking-wider mb-1">Ends On</p>
-                <p className="text-sm font-bold text-slate-800">
-                  {new Date(activePackage.cycleEndsAt).toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* LIVE MINING PROGRESS */}
-        {!miningSettings?.isDisabled && (
-          <section className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
-            <div className="bg-slate-900 p-6 flex items-center border-b border-slate-850">
-              <div className="bg-yellow-400 p-2 rounded-lg mr-3.5">
-                <Cpu className="w-5 h-5 text-slate-900" />
-              </div>
-              <h2 className="text-lg font-bold text-white tracking-tight">Live Mining Progress</h2>
-            </div>
-            <div className="p-8 space-y-8">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-slate-500 font-bold uppercase tracking-wider text-xs flex items-center gap-1.5">
-                    Current Engine Status:{' '}
-                    {miningSettings?.isPaused ? (
-                      <span className="text-amber-500">Paused</span>
-                    ) : (
-                      <span className={miningStatus.status === 'active' ? 'text-green-500' : 'text-slate-400'}>
-                        {miningStatus.status === 'active' ? 'Active' : 'Inactive'}
-                      </span>
-                    )}
-                  </div>
-                <div>
-                  <span className="text-xs font-black text-slate-900 bg-slate-100 px-2.5 py-1 rounded-full">
-                    {miningStatus.progressPercent}% Complete
-                  </span>
-                </div>
-              </div>
-              <div className="overflow-hidden h-3 flex rounded-full bg-slate-100">
-                <div 
-                  className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-yellow-500 to-orange-500 relative transition-all duration-1000 ease-in-out" 
-                  style={{ width: `${miningStatus.progressPercent}%` }}
-                >
-                  <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-[#f8fafc] border border-slate-100 p-6 rounded-2xl text-center hover:border-yellow-400/50 transition-colors flex flex-col justify-center space-y-4">
-                {coins && coins.map(coin => (
-                  <div key={coin._id}>
-                    <p className="text-slate-900 text-2xl font-black font-mono">
-                      {(miningStatus.estToday?.[coin.symbol] || 0).toFixed(4)}
-                    </p>
-                    <p className="text-slate-400 font-semibold text-[10px] uppercase tracking-wider">Est. Today ({coin.symbol})</p>
-                  </div>
-                ))}
-                {(!coins || coins.length === 0) && (
-                  <div>
-                    <p className="text-slate-900 text-2xl font-black font-mono">0.0000</p>
-                    <p className="text-slate-400 font-semibold text-[10px] uppercase tracking-wider">Est. Today (Tx)</p>
-                  </div>
-                )}
-              </div>
-              <div className="bg-[#f8fafc] border border-slate-100 p-6 rounded-2xl text-center hover:border-yellow-400/50 transition-colors flex flex-col justify-center space-y-4">
-                {coins && coins.map(coin => (
-                  <div key={coin._id}>
-                    <p className="text-slate-900 text-2xl font-black font-mono">
-                      {(balances.miningBalances?.[coin.symbol] || 0).toFixed(4)}
-                    </p>
-                    <p className="text-slate-400 font-semibold text-[10px] uppercase tracking-wider">Total Mined ({coin.symbol})</p>
-                  </div>
-                ))}
-                {(!coins || coins.length === 0) && (
-                  <div>
-                    <p className="text-slate-900 text-2xl font-black font-mono">0.0000</p>
-                    <p className="text-slate-400 font-semibold text-[10px] uppercase tracking-wider">Total Mined (Tx)</p>
-                  </div>
-                )}
-              </div>
-              <div className="bg-[#f8fafc] border border-slate-100 p-6 rounded-2xl text-center hover:border-yellow-400/50 transition-colors flex flex-col justify-center">
-                <p className="text-slate-900 text-2xl font-black font-mono">{miningStatus.hashRate.toFixed(2)} MH/S</p>
-                <p className="text-slate-400 font-semibold text-[10px] uppercase tracking-wider">Hash Rate</p>
-              </div>
-            </div>
-
-            {activePackage && (
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-slate-50 border border-slate-100 p-6 rounded-2xl">
-                <div>
-                  <h3 className="font-bold text-slate-900 text-sm mb-1 font-heading">Claim Daily Mining Payout</h3>
-                  <p className="text-xs text-slate-500">Claim your package profit once every 24 hours. Value-based conversion applies automatically.</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  {timeLeft && !isReadyToClaim && (
-                    <span className="flex items-center gap-1.5 font-mono text-sm bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-bold">
-                      <Clock size={16} className="animate-pulse" />
-                      {timeLeft}
-                    </span>
-                  )}
-                  <button
-                    onClick={handleClaimReward}
-                    disabled={!isReadyToClaim || loading || miningSettings?.isPaused}
-                    className={`px-6 py-3 rounded-xl font-black text-sm shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-1.5
-                      ${isReadyToClaim && !miningSettings?.isPaused
-                        ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-slate-900 hover:from-yellow-350 hover:to-orange-450 hover:shadow-lg' 
-                        : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
-                      }`}
-                  >
-                    {miningSettings?.isPaused ? 'Mining Paused' : 'Claim Reward'}
-                  </button>
-                </div>
-              </div>
+        {/* Active Mining Plans */}
+        <section className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="font-heading text-xl font-extrabold uppercase tracking-wider text-on-surface">
+              Active Plans
+            </h2>
+            {activePackages && activePackages.length > 0 && (
+              <span className="bg-primary-container/20 text-primary-container px-3 py-1 rounded-full text-xs font-bold uppercase border border-primary-container/30">
+                {activePackages.length} Plan{activePackages.length > 1 ? 's' : ''} Running
+              </span>
             )}
           </div>
+          {activePackages && activePackages.length > 0 ? (
+            <div className="flex flex-col gap-10">
+              {activePackages.map((pkg) => (
+                <ActivePackageCard key={pkg._id} pkg={pkg} />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white border border-outline-variant rounded-xl p-8 text-center flex flex-col items-center justify-center gap-4">
+              <Cpu className="w-12 h-12 text-slate-300 animate-pulse" />
+              <div>
+                <p className="font-heading text-base font-bold text-on-surface">No Active Mining Plans</p>
+                <p className="text-xs text-on-surface-variant mt-1">Start cloud mining packages to earn high-yield payouts.</p>
+              </div>
+              <button
+                onClick={() => navigate('/mining/plans')}
+                className="bg-primary-container text-on-primary-fixed hover:brightness-110 font-bold px-6 py-3 rounded-xl cursor-pointer text-xs"
+              >
+                Purchase Plan
+              </button>
+            </div>
+          )}
         </section>
-        )}
 
-        {/* TRANSACTION HISTORY */}
-        <section className="space-y-4">
-          <div className="flex items-end justify-between">
-            <h2 className="text-xl font-black text-slate-950 uppercase tracking-tight">
-              Latest <span className="text-yellow-500">Transactions</span>
+        {/* Latest Transactions Table */}
+        <section className="bg-white rounded-xl shadow-sm border border-outline-variant overflow-hidden">
+          <div className="p-card-padding flex justify-between items-center border-b border-outline-variant">
+            <h2 className="font-headline-md text-headline-md uppercase">
+              LATEST <span className="text-primary font-extrabold">TRANSACTIONS</span>
             </h2>
-            <span onClick={() => navigate('/transactions')} className="text-xs font-bold text-[#185adb] hover:underline cursor-pointer">View All →</span>
+            <span 
+              onClick={() => navigate('/transactions')} 
+              className="text-primary font-bold text-sm hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              View All 
+              <ArrowRight size={14} />
+            </span>
           </div>
           
-          <div className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              {latestTransactions.length === 0 ? (
-                <div className="p-8 text-center text-slate-400 text-sm">
-                  No transactions recorded yet.
-                </div>
-              ) : (
-                <table className="w-full text-left">
-                  <thead className="bg-[#f8fafc] border-b border-slate-100 text-slate-400 font-bold text-xs uppercase tracking-wider">
-                    <tr>
-                      <th className="px-6 py-4">Trx ID</th>
-                      <th className="px-6 py-4">Transacted At</th>
-                      <th className="px-6 py-4">Amount</th>
-                      <th className="px-6 py-4">Post Balance</th>
-                      <th className="px-6 py-4 text-right">Description</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {latestTransactions.map((tx) => {
-                      const isCredit = tx.type === 'mining_payout' || tx.type === 'deposit' || tx.type === 'referral_reward' || tx.type === 'cancellation_refund';
-                      const isCoin = tx.type === 'mining_payout' || tx.type === 'withdrawal';
-                      const unit = isCoin ? (tx.coinSymbol || 'Tx') : 'USD';
-                      
-                      return (
-                        <tr key={tx._id} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-6 py-5 font-bold text-slate-800 text-xs font-mono">{tx._id.slice(-12).toUpperCase()}</td>
-                          <td className="px-6 py-5">
-                            <p className="text-slate-900 text-xs font-semibold">{formatDateTime(tx.createdAt)}</p>
-                            <p className="text-slate-400 text-[10px] mt-0.5">{formatRelativeTime(tx.createdAt)}</p>
-                          </td>
-                          <td className="px-6 py-5">
-                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${
-                              isCredit ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                            }`}>
-                              {isCredit ? '+' : '-'} {tx.amount.toFixed(isCoin ? 4 : 2)} {unit}
-                            </span>
-                          </td>
-                          <td className="px-6 py-5 text-slate-650 font-bold text-xs">
-                            {tx.balanceAfter.toFixed(isCoin ? 4 : 2)} {unit}
-                          </td>
-                          <td className="px-6 py-5 text-right text-slate-400 italic text-xs max-w-xs truncate">
-                            {tx.reason || `${tx.type.replace('_', ' ')}`}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </div>
+          <TransactionsTable transactions={latestTransactions} loading={loading} />
         </section>
 
       </main>
 
-      {/* FOOTER */}
-      <footer className="bg-slate-900 text-white py-10 border-t border-slate-800 mt-auto">
-        <div className="max-w-7xl mx-auto px-6 text-center space-y-4">
-          <div className="flex justify-center items-center opacity-70">
-            <Logo size="sm" variant="dark" className="h-8" />
-          </div>
-          <p className="text-slate-500 text-xs">
-            Copyright © 2026 <span className="text-yellow-400 font-bold">AscendX Mining</span>. All rights reserved.
+      {/* Footer */}
+      <footer className="bg-on-secondary-fixed dark:bg-on-background py-8 px-margin-desktop mt-auto flex flex-col items-center justify-center gap-4 text-center">
+        <div className="flex flex-col items-center gap-2">
+          <Logo size="sm" variant="dark" className="h-8" />
+          <p className="font-label-caps text-label-caps text-secondary-fixed-dim opacity-80 mt-1">
+            © 2026 AscendHash. All rights reserved.
           </p>
         </div>
       </footer>
-
     </div>
   );
 };

@@ -29,14 +29,7 @@ const approveDeposit = async (req, res, next) => {
       approvedAt: deposit.approvedAt,
     });
     emitBalanceUpdate(req.app, deposit.userId, { walletBalance: newWalletBalance });
-    emitTransactionUpdate(req.app, deposit.userId, {
-      _id: deposit._id,
-      type: 'deposit',
-      amount: deposit.amount,
-      currency: 'USD',
-      balanceAfter: newWalletBalance,
-      createdAt: new Date(),
-    });
+    emitTransactionUpdate(req.app, deposit.userId, tx.toJSON());
 
     res.status(200).json({
       success: true,

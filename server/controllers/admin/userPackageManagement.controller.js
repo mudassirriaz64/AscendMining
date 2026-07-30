@@ -81,6 +81,26 @@ exports.updateUserPackage = async (req, res, next) => {
 
     await userPackage.save();
 
+    // Query updated activePackages list
+    const activePackages = await UserPackage.find({ userId: userPackage.userId, status: 'active' }).populate({
+      path: 'packageId',
+      populate: { path: 'coins', model: 'Coin' }
+    });
+
+    let totalHashRate = 0;
+    activePackages.forEach((p) => {
+      totalHashRate += p.packageId?.hashRate || 0;
+    });
+
+    const { emitMiningUpdate } = require('../../utils/dashboardEvents');
+    emitMiningUpdate(req.app, userPackage.userId, {
+      activePackages,
+      miningStatus: {
+        status: activePackages.length > 0 ? 'active' : 'inactive',
+        hashRate: totalHashRate,
+      },
+    });
+
     // Log admin action
     await AdminLog.create({
       actorId: adminId,

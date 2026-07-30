@@ -90,7 +90,7 @@ const initSupportChatSocket = (io) => {
           messageId,
         });
         socket.join(`conversation:${targetId}`);
-        namespace.to(`conversation:${targetId}`).emit('message:new', result);
+        namespace.to(`conversation:${targetId}`).to('admin-alerts').emit('message:new', result);
         if (result.startedWaiting) {
           emitAlarmTrigger(namespace, targetId, result.conversation.awaitingAgentSince);
         } else if (role !== 'investor') {

@@ -92,7 +92,7 @@ const AboutPage = () => {
             <div className="flex justify-center gap-4">
               <Link
                 to="/register"
-                className="bg-primary text-text-light-bg hover:bg-primary-hover px-6 py-2.5 rounded-full text-sm font-semibold transition-all shadow-md active:scale-95"
+                className="bg-primary text-white hover:bg-primary-hover px-6 py-2.5 rounded-full text-sm font-semibold transition-all shadow-md active:scale-95"
               >
                 Sign Up Now
               </Link>

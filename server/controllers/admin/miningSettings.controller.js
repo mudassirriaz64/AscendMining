@@ -51,6 +51,9 @@ exports.updateMiningSettings = async (req, res, next) => {
       { new: true, upsert: true }
     );
 
+    const { emitGlobalMiningSettingsUpdate } = require('../../utils/dashboardEvents');
+    emitGlobalMiningSettingsUpdate(req.app, settings.value);
+
     res.status(200).json({
       success: true,
       message: 'Mining settings updated successfully.',

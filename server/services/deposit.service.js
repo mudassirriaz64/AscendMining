@@ -11,6 +11,7 @@ const Notification = require('../models/Notification');
 const UserPackage = require('../models/UserPackage');
 const Package = require('../models/Package');
 const AppError = require('../utils/AppError');
+const referralService = require('./referral.service');
 
 // Helper to calculate SHA-256 hash of a buffer
 const calculateBufferHash = (buffer) => {
@@ -67,7 +68,7 @@ const submitDeposit = async (userId, { paymentMethodId, amount, screenshot, send
 
   // Generate deposit ID first to use in specced folder path
   const depositId = new mongoose.Types.ObjectId();
-  const folder = `ascendxmining/deposits/${depositId}`;
+  const folder = `ascendhash/deposits/${depositId}`;
   
   // 4. Compress image if it is indeed an image
   let uploadBuffer = buffer;
@@ -161,6 +162,11 @@ const approveDeposit = async (id, adminId, ip) => {
     referenceId: deposit._id,
     balanceAfter: newWalletBalance,
   });
+
+  // Process referral bonus if user was referred by someone and is active
+  if (user.referredBy && user.status === 'active') {
+    await referralService.checkAndReleaseReferralRewards(user._id);
+  }
 
   // Notify user
   await Notification.create({

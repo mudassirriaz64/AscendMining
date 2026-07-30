@@ -1,38 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&family=Sora:wght@400;500;600;700&display=swap');
+
 @import "tailwindcss";
 
-@theme {
-  --color-primary: #F5C518;
-  --color-primary-hover: #D9AD10;
-  --color-secondary: #2F8FEA;
-  --color-secondary-end: #6C5CE7;
-  --color-success: #22C55E;
-  --color-warning: #F59E0B;
-  --color-danger: #EF4444;
-  --color-bg-dark: #0B1220;
-  --color-surface-dark: #131B2E;
-  --color-bg-light: #FFFFFF;
-  --color-bg-light-alt: #F4F6F9;
-  --color-border-light: #E4E7EC;
-  --color-text-dark-bg: #F5F7FA;
-  --color-text-light-bg: #101828;
-  --color-text-secondary: #64748B;
+/* Aureus Design Token Modules */
+@import "./styles/common.css";
 
-  --font-heading: 'Poppins', 'Sora', system-ui, sans-serif;
-  --font-body: 'Inter', system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', 'JetBrains Mono', ui-monospace, monospace;
-}
+/* Public Site Styles */
+@import "./styles/homepage.css";
 
-@layer base {
-  body {
-    font-family: var(--font-body);
-    color: var(--color-text-light-bg);
-    background-color: var(--color-bg-light-alt);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+/* Authenticated Product Styles */
+@import "./styles/client.css";
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-heading);
-  }
-}
+/* Management Panel Styles */
+@import "./styles/admin.css";
