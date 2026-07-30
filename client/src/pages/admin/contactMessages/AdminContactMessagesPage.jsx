@@ -15,7 +15,7 @@ import Modal from '../../../components/common/Modal';
 import Pagination from '../../../components/common/Pagination';
 import ConfirmModal from '../../../components/common/ConfirmModal';
 import { formatDate } from '../../../utils/formatters';
-import usePolling from '../../../hooks/usePolling';
+import { connectDashboardSocket } from '../../../services/dashboardSocket';
 
 const AdminContactMessagesPage = () => {
   const dispatch = useDispatch();
@@ -33,7 +33,19 @@ const AdminContactMessagesPage = () => {
     loadMessages();
   }, [loadMessages]);
 
-  usePolling(loadMessages, 30000);
+  useEffect(() => {
+    const socket = connectDashboardSocket();
+    
+    const handleNewMessage = () => {
+      loadMessages();
+    };
+
+    socket.on('admin:contact:new', handleNewMessage);
+
+    return () => {
+      socket.off('admin:contact:new', handleNewMessage);
+    };
+  }, [loadMessages]);
 
   useEffect(() => {
     if (actionSuccess) {
