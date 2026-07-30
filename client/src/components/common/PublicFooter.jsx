@@ -51,14 +51,14 @@ const PublicFooter = () => {
 
         {/* Risk warning and copyright */}
         <div className="mt-12 pt-8 border-t border-white/5 space-y-4">
-          <p className="text-xs text-text-secondary max-w-4xl leading-relaxed">
+          <p className="text-xs text-text-dark-bg/60 max-w-4xl leading-relaxed">
             <strong>Disclaimer:</strong> Cryptocurrency cloud mining involves significant financial risk. Mining difficulty increases dynamically, and token prices fluctuate. AscendHash provides infrastructure access but does not guarantee fixed earnings, static hash returns, or specific profits. Please invest carefully.
           </p>
-          <div className="flex flex-col sm:flex-row justify-between items-center text-xs text-text-secondary gap-2">
+          <div className="flex flex-col sm:flex-row justify-between items-center text-xs text-text-dark-bg/60 gap-2">
             <p>© {currentYear} AscendHash. All rights reserved.</p>
             <div className="flex gap-4">
-              <Link to="/login" className="hover:underline">Login</Link>
-              <Link to="/register" className="hover:underline">Register</Link>
+              <Link to="/login" className="hover:underline text-text-dark-bg/80">Login</Link>
+              <Link to="/register" className="hover:underline text-text-dark-bg/80">Register</Link>
             </div>
           </div>
         </div>

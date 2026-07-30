@@ -32,9 +32,9 @@ const HomePage = () => {
   ];
 
   const features = [
-    { icon: <Zap size={24} className="text-secondary" />, title: 'Instant Mining Payouts', desc: 'Get your earnings credited immediately to your balance every 24 hours with absolute automation.' },
-    { icon: <ShieldCheck size={24} className="text-secondary" />, title: 'Grade-A Security', desc: 'Multi-signature cold wallets and full data sanitization protect your capital and investments.' },
-    { icon: <Cpu size={24} className="text-secondary" />, title: 'Premium Hash Power', desc: 'Access state-of-the-art ASIC hardware and clean energy source farms without maintenance fees.' },
+    { icon: <Zap size={24} className="text-tertiary" />, title: 'Instant Mining Payouts', desc: 'Get your earnings credited immediately to your balance every 24 hours with absolute automation.' },
+    { icon: <ShieldCheck size={24} className="text-tertiary" />, title: 'Grade-A Security', desc: 'Multi-signature cold wallets and full data sanitization protect your capital and investments.' },
+    { icon: <Cpu size={24} className="text-tertiary" />, title: 'Premium Hash Power', desc: 'Access state-of-the-art ASIC hardware and clean energy source farms without maintenance fees.' },
   ];
 
   const steps = [
@@ -146,11 +146,7 @@ const HomePage = () => {
         gsap.to(obj, {
           val: targetData.target,
           duration: 2,
-          scrollTrigger: {
-            trigger: el,
-            start: 'top 85%',
-            toggleActions: 'play none none none',
-          },
+          ease: 'power2.out',
           onUpdate: () => {
             el.innerText = targetData.isDecimal 
               ? obj.val.toFixed(1) + targetData.suffix 
@@ -255,17 +251,19 @@ const HomePage = () => {
       {/* Hero Section */}
       <section id="hero-section" className="bg-bg-dark text-white relative py-20 lg:py-32 overflow-hidden">
         {/* Subtle background glow */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-secondary/15 rounded-full filter blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary-end/10 rounded-full filter blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-container/10 rounded-full filter blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-tertiary/15 rounded-full filter blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-teal/5 rounded-full filter blur-[120px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
           {/* Hero Left Content */}
           <div ref={heroTextRef} className="space-y-6">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary/10 border border-secondary/20 text-xs font-semibold text-secondary">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-tertiary/10 border border-tertiary/20 text-xs font-semibold text-tertiary">
               <Zap size={12} /> Next-Gen Cloud Mining Platform
             </span>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading font-bold leading-tight">
-              Earn Passive Income With <span className="bg-gradient-to-r from-secondary to-secondary-end bg-clip-text text-transparent">Cloud Mining</span>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading font-bold leading-tight tracking-tight">
+              <span className="bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">Earn Passive Income With</span> <br className="hidden sm:inline" />
+              <span className="bg-gradient-to-r from-primary-container via-brand-teal to-tertiary bg-clip-text text-transparent">Cloud Mining</span>
             </h1>
             <p className="text-base sm:text-lg text-text-dark-bg/85 max-w-lg leading-relaxed">
               AscendHash bridges the gap between hardware complexity and passive profitability. Deploy dynamic high-hash mining power instantly from your wallet balance.
@@ -273,7 +271,7 @@ const HomePage = () => {
             <div className="flex flex-wrap gap-4 pt-2">
               <Link
                 to="/register"
-                className="bg-gradient-to-r from-secondary to-secondary-end text-white hover:opacity-95 shadow-lg shadow-secondary/20 px-8 py-3 rounded-full font-semibold transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+                className="bg-gradient-to-r from-primary-container via-brand-teal to-tertiary text-text-light-bg hover:opacity-95 shadow-lg shadow-primary-container/20 px-8 py-3 rounded-full font-semibold transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
               >
                 Start Mining Now <ArrowRight size={16} />
               </Link>
@@ -403,10 +401,10 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {stats.map((stat, idx) => (
             <div key={idx} className="space-y-1">
-              <h2 className="stat-number text-3xl sm:text-4xl font-heading font-bold text-secondary">
+              <h2 className="stat-number text-3xl sm:text-4xl font-heading font-bold text-primary-container">
                 0
               </h2>
-              <p className="text-xs sm:text-sm text-text-secondary font-medium tracking-wide uppercase">
+              <p className="text-xs sm:text-sm text-text-dark-bg/60 font-medium tracking-wide uppercase">
                 {stat.label}
               </p>
             </div>
@@ -417,7 +415,7 @@ const HomePage = () => {
       {/* Feature Cards */}
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-          <span className="text-xs font-bold tracking-widest text-secondary uppercase">Why Choose Us</span>
+          <span className="text-xs font-bold tracking-widest text-primary uppercase">Why Choose Us</span>
           <h2 className="text-3xl font-heading font-semibold text-text-light-bg">A Secure Premium Infrastructure</h2>
           <p className="text-sm text-text-secondary leading-relaxed">
             We operate thousands of ASIC miners in stable power grids, routing hash capacities directly to client balances.
@@ -427,7 +425,7 @@ const HomePage = () => {
         <div ref={featuresRef} className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {features.map((feat, idx) => (
             <div key={idx} className="bg-white border border-border-light rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group">
-              <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <div className="w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 {feat.icon}
               </div>
               <h3 className="text-lg font-heading font-semibold text-text-light-bg mb-3">{feat.title}</h3>
@@ -441,7 +439,7 @@ const HomePage = () => {
       <section className="bg-bg-light-alt border-y border-border-light py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-            <span className="text-xs font-bold tracking-widest text-secondary uppercase">Three Steps</span>
+            <span className="text-xs font-bold tracking-widest text-primary uppercase">Three Steps</span>
             <h2 className="text-3xl font-heading font-semibold text-text-light-bg">How Cloud Mining Works</h2>
             <p className="text-sm text-text-secondary leading-relaxed">
               No hardware configuration required. Deploy cloud mining cycles in minutes from any browser.
@@ -454,7 +452,7 @@ const HomePage = () => {
                 <span className="absolute top-2 right-4 text-7xl font-bold text-slate-100 select-none group-hover:text-slate-200/60 transition-colors">
                   {step.number}
                 </span>
-                <span className="w-8 h-8 rounded-full bg-secondary text-white flex items-center justify-center font-bold text-xs mb-6 relative z-10 shadow-sm">
+                <span className="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-xs mb-6 relative z-10 shadow-sm">
                   {idx + 1}
                 </span>
                 <h3 className="text-lg font-heading font-semibold text-text-light-bg mb-3 relative z-10">{step.title}</h3>
@@ -468,7 +466,7 @@ const HomePage = () => {
       {/* Testimonials */}
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-          <span className="text-xs font-bold tracking-widest text-secondary uppercase">Reviews</span>
+          <span className="text-xs font-bold tracking-widest text-primary uppercase">Reviews</span>
           <h2 className="text-3xl font-heading font-semibold text-text-light-bg">Trusted by Over 75,000 Miners</h2>
         </div>
 
