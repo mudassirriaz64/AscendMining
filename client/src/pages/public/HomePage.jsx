@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Zap, ShieldCheck, Coins, Users, Cpu, Clock, Send, Star, ArrowRight } from 'lucide-react';
+import { Zap, ShieldCheck, Cpu, Clock, Send, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 
@@ -18,7 +18,6 @@ const HomePage = () => {
   const statsSectionRef = useRef(null);
   const featuresRef = useRef(null);
   const stepsRef = useRef(null);
-  const testimonialsRef = useRef(null);
   const securityRef = useRef(null);
 
   const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', message: '' });
@@ -41,11 +40,6 @@ const HomePage = () => {
     { number: '01', title: 'Create Account', desc: 'Sign up in less than a minute. Complete simple KYC verification to secure your identity.' },
     { number: '02', title: 'Top Up Balance', desc: 'Deposit funds instantly into your wallet balance using our secure multi-network cryptocurrency gates.' },
     { number: '03', title: 'Purchase Package', desc: 'Select from our dynamic high-ROI mining tracks and activate your power cycle with one click.' },
-  ];
-
-  const testimonials = [
-    { name: 'Sarah K.', role: 'Crypto Investor', text: 'AscendHash completely changed my view on cloud mining. The daily payouts are instant, and the dashboard is incredibly clean.', stars: 5 },
-    { name: 'David M.', role: 'Tech Entrepreneur', text: 'I started with the beginner track, and within months scaled to the premium packages. Responsive support team and fully consistent cycles.', stars: 5 },
   ];
 
   useEffect(() => {
@@ -192,24 +186,6 @@ const HomePage = () => {
       );
     }
 
-    // 6. Testimonials Stagger
-    if (testimonialsRef.current) {
-      gsap.fromTo(testimonialsRef.current.children,
-        { scale: 0.95, opacity: 0 },
-        {
-          scale: 1,
-          opacity: 1,
-          duration: 0.8,
-          stagger: 0.2,
-          ease: 'back.out(1.2)',
-          scrollTrigger: {
-            trigger: testimonialsRef.current,
-            start: 'top 85%',
-          }
-        }
-      );
-    }
-
     // 7. Security Cards slide-in
     if (securityRef.current) {
       gsap.fromTo(securityRef.current.children,
@@ -247,12 +223,12 @@ const HomePage = () => {
   };
 
   return (
-    <div className="bg-bg-light-alt min-h-screen">
+    <div className="bg-gradient-to-b from-[#f8fafc] via-[#f1f5f9] to-[#e2e8f0] text-slate-800 min-h-screen">
       {/* Hero Section */}
-      <section id="hero-section" className="bg-bg-dark text-white relative py-20 lg:py-32 overflow-hidden">
+      <section id="hero-section" className="bg-gradient-to-b from-white via-[#f8fafc] to-[#f1f5f9] text-[#0b1c30] relative py-20 lg:py-32 overflow-hidden border-b border-slate-100">
         {/* Subtle background glow */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-container/10 rounded-full filter blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-tertiary/15 rounded-full filter blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-tertiary/10 rounded-full filter blur-[100px] pointer-events-none" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-teal/5 rounded-full filter blur-[120px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
@@ -261,11 +237,11 @@ const HomePage = () => {
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-tertiary/10 border border-tertiary/20 text-xs font-semibold text-tertiary">
               <Zap size={12} /> Next-Gen Cloud Mining Platform
             </span>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading font-bold leading-tight tracking-tight">
-              <span className="bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">Earn Passive Income With</span> <br className="hidden sm:inline" />
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading font-bold leading-tight tracking-tight text-slate-900">
+              Earn Passive Income With <br className="hidden sm:inline" />
               <span className="bg-gradient-to-r from-primary-container via-brand-teal to-tertiary bg-clip-text text-transparent">Cloud Mining</span>
             </h1>
-            <p className="text-base sm:text-lg text-text-dark-bg/85 max-w-lg leading-relaxed">
+            <p className="text-base sm:text-lg text-slate-600 max-w-lg leading-relaxed">
               AscendHash bridges the gap between hardware complexity and passive profitability. Deploy dynamic high-hash mining power instantly from your wallet balance.
             </p>
             <div className="flex flex-wrap gap-4 pt-2">
@@ -277,7 +253,7 @@ const HomePage = () => {
               </Link>
               <Link
                 to="/login"
-                className="border border-white/20 hover:border-white/40 text-white px-8 py-3 rounded-full font-semibold transition-all hover:bg-white/5 active:scale-95"
+                className="border border-slate-350 hover:border-slate-400 text-slate-700 px-8 py-3 rounded-full font-semibold transition-all hover:bg-slate-50 active:scale-95"
               >
                 Login
               </Link>
@@ -287,8 +263,8 @@ const HomePage = () => {
           {/* Hero Right Graphics */}
           <div className="relative flex justify-center items-center h-[340px] sm:h-[450px] w-full max-w-[450px] mx-auto select-none overflow-visible">
             {/* Faint rotating orbit rings behind central coin */}
-            <div className="absolute w-[240px] h-[240px] sm:w-[320px] sm:h-[320px] rounded-full border border-white/5 animate-[spin_60s_linear_infinite] pointer-events-none motion-reduce:animate-none" />
-            <div className="absolute w-[160px] h-[160px] sm:w-[220px] sm:h-[220px] rounded-full border border-white/5 animate-[spin_40s_linear_infinite_reverse] pointer-events-none motion-reduce:animate-none" />
+            <div className="absolute w-[240px] h-[240px] sm:w-[320px] sm:h-[320px] rounded-full border border-slate-200/40 animate-[spin_60s_linear_infinite] pointer-events-none motion-reduce:animate-none" />
+            <div className="absolute w-[160px] h-[160px] sm:w-[220px] sm:h-[220px] rounded-full border border-slate-200/40 animate-[spin_40s_linear_infinite_reverse] pointer-events-none motion-reduce:animate-none" />
 
             {/* Central Coin Badge (Image 1 style circular lightning coin) */}
             <div ref={coinRef} className="relative z-20 w-36 h-36 sm:w-48 sm:h-48 rounded-full shadow-[0_0_40px_rgba(245,197,24,0.15)] select-none">
@@ -300,8 +276,8 @@ const HomePage = () => {
                     <stop offset="100%" stopColor="#C49A00" />
                   </linearGradient>
                   <linearGradient id="navyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#0B1220" />
-                    <stop offset="100%" stopColor="#05080F" />
+                    <stop offset="0%" stopColor="#ffffff" />
+                    <stop offset="100%" stopColor="#e2e8f0" />
                   </linearGradient>
                 </defs>
 
@@ -337,7 +313,7 @@ const HomePage = () => {
             {/* Asymmetric Floating Card 1: Bitcoin (top-left) */}
             <div 
               ref={btcRef} 
-              className="absolute top-2 left-2 sm:top-10 sm:left-6 bg-[#0B1220]/90 border border-white/10 rounded-2xl p-3 sm:p-4 shadow-2xl flex flex-col items-center gap-1.5 sm:gap-2 z-30 transition-transform hover:scale-105"
+              className="absolute top-2 left-2 sm:top-10 sm:left-6 bg-white/95 border border-slate-200/80 rounded-2xl p-3 sm:p-4 shadow-2xl flex flex-col items-center gap-1.5 sm:gap-2 z-30 transition-transform hover:scale-105"
             >
               {/* Bitcoin Icon Card */}
               <svg viewBox="0 0 64 64" className="w-10 h-10 sm:w-12 sm:h-12 shadow-md">
@@ -347,14 +323,14 @@ const HomePage = () => {
               {/* Attached Status Pill */}
               <div className="flex items-center gap-1 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full select-none">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shrink-0" />
-                <span className="text-[8px] sm:text-[9px] font-mono text-green-400 font-bold uppercase tracking-wider">BTC Mining</span>
+                <span className="text-[8px] sm:text-[9px] font-mono text-green-500 font-bold uppercase tracking-wider">BTC Mining</span>
               </div>
             </div>
 
             {/* Asymmetric Floating Card 2: Ethereum (bottom-right) */}
             <div 
               ref={ethRef} 
-              className="absolute bottom-2 right-2 sm:bottom-12 sm:right-6 bg-[#0B1220]/90 border border-white/10 rounded-2xl p-3 sm:p-4 shadow-2xl flex flex-col items-center gap-1.5 sm:gap-2 z-30 transition-transform hover:scale-105"
+              className="absolute bottom-2 right-2 sm:bottom-12 sm:right-6 bg-white/95 border border-slate-200/80 rounded-2xl p-3 sm:p-4 shadow-2xl flex flex-col items-center gap-1.5 sm:gap-2 z-30 transition-transform hover:scale-105"
             >
               {/* Ethereum Icon Card */}
               <svg viewBox="0 0 64 64" className="w-10 h-10 sm:w-12 sm:h-12 shadow-md">
@@ -366,14 +342,14 @@ const HomePage = () => {
               {/* Attached Status Pill */}
               <div className="flex items-center gap-1 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full select-none">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse shrink-0" />
-                <span className="text-[8px] sm:text-[9px] font-mono text-blue-400 font-bold uppercase tracking-wider">ETH Active</span>
+                <span className="text-[8px] sm:text-[9px] font-mono text-blue-500 font-bold uppercase tracking-wider">ETH Active</span>
               </div>
             </div>
 
             {/* Asymmetric Floating Card 3: Coin Stack (bottom-left) */}
             <div 
               ref={stackRef} 
-              className="absolute bottom-2 left-6 sm:bottom-10 sm:left-12 bg-[#0B1220]/90 border border-white/10 rounded-2xl p-3 sm:p-4 shadow-2xl z-25 transition-transform hover:scale-105 hidden sm:flex flex-col items-center justify-center gap-2"
+              className="absolute bottom-2 left-6 sm:bottom-10 sm:left-12 bg-white/95 border border-slate-200/80 rounded-2xl p-3 sm:p-4 shadow-2xl z-25 transition-transform hover:scale-105 hidden sm:flex flex-col items-center justify-center gap-2"
             >
               <svg viewBox="0 0 64 64" className="w-10 h-10 sm:w-12 sm:h-12">
                 <defs>
@@ -390,21 +366,21 @@ const HomePage = () => {
                 <path d="M 12 26 L 12 31 A 20 7 0 0 0 52 31 L 52 26 Z" fill="url(#cyanGrad)" />
                 <ellipse cx="32" cy="26" rx="14" ry="4.5" fill="none" stroke="#E0F7FA" strokeWidth="1" strokeDasharray="2,2" opacity="0.8" />
               </svg>
-              <span className="text-[8px] sm:text-[9px] font-mono text-cyan-400 font-bold uppercase tracking-wider">High ROI</span>
+              <span className="text-[8px] sm:text-[9px] font-mono text-cyan-500 font-bold uppercase tracking-wider">High ROI</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* Stats Bar */}
-      <section ref={statsSectionRef} className="bg-bg-dark border-y border-white/5 py-12 relative z-20">
+      <section ref={statsSectionRef} className="bg-white border-y border-slate-100 py-12 relative z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {stats.map((stat, idx) => (
             <div key={idx} className="space-y-1">
               <h2 className="stat-number text-3xl sm:text-4xl font-heading font-bold text-primary-container">
                 0
               </h2>
-              <p className="text-xs sm:text-sm text-text-dark-bg/60 font-medium tracking-wide uppercase">
+              <p className="text-xs sm:text-sm text-slate-500 font-medium tracking-wide uppercase">
                 {stat.label}
               </p>
             </div>
@@ -416,119 +392,87 @@ const HomePage = () => {
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <span className="text-xs font-bold tracking-widest text-primary uppercase">Why Choose Us</span>
-          <h2 className="text-3xl font-heading font-semibold text-text-light-bg">A Secure Premium Infrastructure</h2>
-          <p className="text-sm text-text-secondary leading-relaxed">
+          <h2 className="text-3xl font-heading font-semibold text-[#0b1c30]">A Secure Premium Infrastructure</h2>
+          <p className="text-sm text-slate-600 leading-relaxed">
             We operate thousands of ASIC miners in stable power grids, routing hash capacities directly to client balances.
           </p>
         </div>
 
         <div ref={featuresRef} className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {features.map((feat, idx) => (
-            <div key={idx} className="bg-white border border-border-light rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group">
+            <div key={idx} className="bg-white border border-slate-100 hover:shadow-xl rounded-2xl p-8 transition-all duration-300 hover:-translate-y-1 group">
               <div className="w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 {feat.icon}
               </div>
-              <h3 className="text-lg font-heading font-semibold text-text-light-bg mb-3">{feat.title}</h3>
-              <p className="text-sm text-text-secondary leading-relaxed">{feat.desc}</p>
+              <h3 className="text-lg font-heading font-semibold text-[#0b1c30] mb-3">{feat.title}</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">{feat.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* How It Works */}
-      <section className="bg-bg-light-alt border-y border-border-light py-20">
+      <section className="border-y border-slate-100 bg-[#f8fafc] py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
             <span className="text-xs font-bold tracking-widest text-primary uppercase">Three Steps</span>
-            <h2 className="text-3xl font-heading font-semibold text-text-light-bg">How Cloud Mining Works</h2>
-            <p className="text-sm text-text-secondary leading-relaxed">
+            <h2 className="text-3xl font-heading font-semibold text-[#0b1c30]">How Cloud Mining Works</h2>
+            <p className="text-sm text-slate-600 leading-relaxed">
               No hardware configuration required. Deploy cloud mining cycles in minutes from any browser.
             </p>
           </div>
 
           <div ref={stepsRef} className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
             {steps.map((step, idx) => (
-              <div key={idx} className="bg-white border border-border-light rounded-2xl p-8 shadow-sm flex flex-col items-start relative overflow-hidden group">
+              <div key={idx} className="bg-white border border-slate-100 rounded-2xl p-8 flex flex-col items-start relative overflow-hidden group">
                 <span className="absolute top-2 right-4 text-7xl font-bold text-slate-100 select-none group-hover:text-slate-200/60 transition-colors">
                   {step.number}
                 </span>
                 <span className="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-xs mb-6 relative z-10 shadow-sm">
                   {idx + 1}
                 </span>
-                <h3 className="text-lg font-heading font-semibold text-text-light-bg mb-3 relative z-10">{step.title}</h3>
-                <p className="text-sm text-text-secondary leading-relaxed relative z-10">{step.desc}</p>
+                <h3 className="text-lg font-heading font-semibold text-[#0b1c30] mb-3 relative z-10">{step.title}</h3>
+                <p className="text-sm text-slate-600 leading-relaxed relative z-10">{step.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-          <span className="text-xs font-bold tracking-widest text-primary uppercase">Reviews</span>
-          <h2 className="text-3xl font-heading font-semibold text-text-light-bg">Trusted by Over 75,000 Miners</h2>
-        </div>
-
-        <div ref={testimonialsRef} className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {testimonials.map((test, idx) => (
-            <div key={idx} className="bg-white border border-border-light rounded-2xl p-8 shadow-sm space-y-4">
-              <div className="flex gap-1 text-primary">
-                {[...Array(test.stars)].map((_, i) => (
-                  <Star key={i} size={16} fill="currentColor" />
-                ))}
-              </div>
-              <p className="text-sm text-text-light-bg italic leading-relaxed">
-                "{test.text}"
-              </p>
-              <div className="flex items-center gap-2 pt-2">
-                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-text-secondary">
-                  {test.name[0]}
-                </div>
-                <div>
-                  <h4 className="text-xs font-semibold text-text-light-bg">{test.name}</h4>
-                  <p className="text-[10px] text-text-secondary">{test.role}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* Security Info */}
-      <section className="bg-bg-dark text-white py-20 border-t border-white/5">
+      <section className="bg-[#f8fafc] text-slate-800 py-20 border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
             <span className="text-xs font-bold tracking-widest text-secondary uppercase">Enterprise Trust</span>
-            <h2 className="text-3xl sm:text-4xl font-heading font-bold">Uncompromising Safety Standards</h2>
-            <p className="text-sm text-text-dark-bg/85 leading-relaxed">
+            <h2 className="text-3xl sm:text-4xl font-heading font-bold text-[#0b1c30]">Uncompromising Safety Standards</h2>
+            <p className="text-sm text-slate-600 leading-relaxed">
               We leverage multi-tier encryption, secure hardware security modules (HSMs), and routine third-party smart contract audits to guarantee platform longevity and capital safety.
             </p>
             <div className="flex flex-col gap-4" ref={securityRef}>
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center shrink-0 border border-white/10">
+                <div className="w-10 h-10 rounded-lg bg-white border border-slate-200/60 flex items-center justify-center shrink-0 shadow-sm">
                   <ShieldCheck size={18} className="text-secondary" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-white">Cold Storage Wallets</h4>
-                  <p className="text-xs text-text-secondary mt-1">98% of customer funds are securely retained offline in hardware-isolated cold assets.</p>
+                  <h4 className="text-sm font-semibold text-[#0b1c30]">Cold Storage Wallets</h4>
+                  <p className="text-xs text-slate-500 mt-1">98% of customer funds are securely retained offline in hardware-isolated cold assets.</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center shrink-0 border border-white/10">
+                <div className="w-10 h-10 rounded-lg bg-white border border-slate-200/60 flex items-center justify-center shrink-0 shadow-sm">
                   <Clock size={18} className="text-secondary" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-white">Strict Payout Auditing</h4>
-                  <p className="text-xs text-text-secondary mt-1">Hourly payouts run through strict double-signature server verification bounds.</p>
+                  <h4 className="text-sm font-semibold text-[#0b1c30]">Strict Payout Auditing</h4>
+                  <p className="text-xs text-slate-500 mt-1">Hourly payouts run through strict double-signature server verification bounds.</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Contact Inline Form */}
-          <div className="bg-[#131b2e] border border-white/10 rounded-2xl p-8 max-w-md mx-auto w-full">
-            <h3 className="text-lg font-heading font-semibold mb-6">Send Us A Message</h3>
+          <div className="bg-white border border-slate-200/80 shadow-md rounded-2xl p-8 max-w-md mx-auto w-full">
+            <h3 className="text-lg font-heading font-semibold text-[#0b1c30] mb-6">Send Us A Message</h3>
             <form onSubmit={handleContactSubmit} className="space-y-4">
               <div>
                 <label htmlFor="name" className="block text-xs font-semibold text-text-secondary mb-1">Full Name</label>
@@ -538,7 +482,7 @@ const HomePage = () => {
                   value={contactForm.name}
                   onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
                   placeholder="John Doe"
-                  className="w-full bg-[#0d1627] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-secondary transition-colors"
+                  className="w-full bg-[#fafbfc] border border-slate-250/80 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-secondary transition-colors"
                 />
               </div>
               <div>
@@ -549,7 +493,7 @@ const HomePage = () => {
                   value={contactForm.email}
                   onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
                   placeholder="john@example.com"
-                  className="w-full bg-[#0d1627] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-secondary transition-colors"
+                  className="w-full bg-[#fafbfc] border border-slate-250/80 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-secondary transition-colors"
                 />
               </div>
               <div>
@@ -560,7 +504,7 @@ const HomePage = () => {
                   value={contactForm.subject}
                   onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
                   placeholder="Inquiry about custom package"
-                  className="w-full bg-[#0d1627] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-secondary transition-colors"
+                  className="w-full bg-[#fafbfc] border border-slate-250/80 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-secondary transition-colors"
                 />
               </div>
               <div>
@@ -571,13 +515,13 @@ const HomePage = () => {
                   value={contactForm.message}
                   onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
                   placeholder="Write your request details here..."
-                  className="w-full bg-[#0d1627] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-secondary transition-colors"
+                  className="w-full bg-[#fafbfc] border border-slate-250/80 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-secondary transition-colors"
                 />
               </div>
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-primary hover:bg-primary-hover text-text-light-bg py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
+                className="w-full bg-primary hover:bg-primary-hover text-white py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
               >
                 {submitting ? 'Sending...' : <><Send size={14} /> Send Inquiry</>}
               </button>

@@ -13,7 +13,7 @@ const Button = ({
   const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer';
 
   const variants = {
-    primary: 'bg-primary-container text-text-light-bg hover:brightness-95 focus-visible:ring-primary-container/20 shadow-sm font-bold',
+    primary: 'bg-primary-container text-white hover:brightness-95 focus-visible:ring-primary-container/20 shadow-sm font-bold',
     secondary: 'border border-secondary text-secondary bg-transparent hover:bg-secondary/5 focus-visible:ring-secondary',
     danger: 'bg-danger text-white hover:bg-danger/90 focus-visible:ring-danger',
     ghost: 'text-text-secondary hover:bg-bg-light-alt focus-visible:ring-text-secondary',

@@ -262,7 +262,7 @@ const SupportPage = () => {
                 <div className="flex justify-center">
                   <Link
                     to="/support/chat"
-                    className="bg-primary hover:bg-primary-hover text-text-light-bg px-6 py-2.5 rounded-full text-sm font-semibold transition-all shadow-md active:scale-95"
+                    className="bg-primary hover:bg-primary-hover text-white px-6 py-2.5 rounded-full text-sm font-semibold transition-all shadow-md active:scale-95"
                   >
                     Go to Live Chat
                   </Link>
@@ -321,7 +321,7 @@ const SupportPage = () => {
                   <button
                     type="submit"
                     disabled={loadingChat}
-                    className="w-full bg-primary hover:bg-primary-hover text-text-light-bg py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
+                    className="w-full bg-primary hover:bg-primary-hover text-white py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
                   >
                     {loadingChat ? 'Connecting...' : <><MessageCircle size={14} /> Start Chat</>}
                   </button>
@@ -389,10 +389,10 @@ const SupportPage = () => {
                     placeholder="Type your message here..."
                     className="flex-grow bg-bg-light-alt border border-border-light rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-secondary transition-colors"
                   />
-                  <button
+                   <button
                     type="submit"
                     disabled={!replyText.trim() || sending}
-                    className="bg-primary hover:bg-primary-hover text-text-light-bg px-4 py-2 rounded-xl transition-all shadow-md disabled:opacity-50 cursor-pointer flex items-center justify-center shrink-0"
+                    className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-xl transition-all shadow-md disabled:opacity-50 cursor-pointer flex items-center justify-center shrink-0"
                   >
                     <Send size={14} />
                   </button>
