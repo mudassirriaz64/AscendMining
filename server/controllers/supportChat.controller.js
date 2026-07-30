@@ -276,7 +276,7 @@ const uploadAttachment = async (req, res, next) => {
 
     const messageId = new mongoose.Types.ObjectId();
     const originalFilename = req.file.originalname;
-    const folder = `ascendxmining/support-conversations/${conversationId}`;
+    const folder = `ascendhash/support-conversations/${conversationId}`;
     const filename = `${messageId}-${originalFilename}`;
 
     let uploadBuffer = req.file.buffer;

@@ -432,7 +432,7 @@ const SupportChatPage = () => {
               S
             </div>
             <div className="flex-1">
-              <p className="text-white font-semibold text-sm">AscendX Support</p>
+              <p className="text-white font-semibold text-sm">AscendHash Support</p>
               <p className="text-white/60 text-xs">
                 Session {sessions.findIndex((s) => s._id === activeSessionId) + 1} of {sessions.length}
               </p>

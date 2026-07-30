@@ -21,14 +21,14 @@ const NavDropdown = ({ label, isActive, children }) => {
 
   return (
     <div
-      className="relative py-1"
+      className="relative py-1 font-body-md text-body-md"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <span className={`pb-1 flex items-center gap-1 transition-colors cursor-pointer ${
         isActive
-          ? 'text-yellow-400 font-semibold border-b-2 border-yellow-400'
-          : 'text-white/95 hover:text-yellow-400'
+          ? 'text-primary font-bold border-b-2 border-primary'
+          : 'text-on-surface-variant hover:text-primary'
       }`}>
         {label}
         <svg className={`w-3 h-3 opacity-60 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,8 +70,8 @@ const DropdownLink = ({ to, currentPath, onClick, children }) => {
         e.preventDefault();
         onClick(to);
       }}
-      className={`block px-4 py-2 text-xs font-bold hover:bg-slate-50 transition-colors ${
-        isActive ? 'text-[#083358] bg-slate-50' : 'text-slate-600'
+      className={`block px-4 py-2 text-xs font-bold hover:bg-surface-container-low transition-colors ${
+        isActive ? 'text-primary bg-surface-container-low' : 'text-on-surface-variant hover:text-primary'
       }`}
     >
       {children}
@@ -121,20 +121,20 @@ const Header = () => {
   const isDropdownActive = (paths) => paths.some((path) => location.pathname.startsWith(path));
 
   return (
-    <header className="bg-gradient-to-r from-[#001f3f] to-[#083358] text-white py-4 sticky top-0 z-50 shadow-xl backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
+    <header className="bg-surface border-b border-outline-variant py-4 sticky top-0 z-50 shadow-sm">
+      <div className="max-w-container-max mx-auto px-margin-desktop flex justify-between items-center w-full">
         <div className="flex items-center cursor-pointer" onClick={() => navigate('/dashboard')}>
-          <Logo size="sm" variant="dark" className="h-10" />
+          <Logo size="sm" variant="light" className="h-8" />
         </div>
         
-        <nav className="hidden md:flex items-center space-x-8 text-sm font-medium">
+        <nav className="hidden md:flex items-center gap-6">
           <a
             href="/dashboard"
             onClick={(e) => { e.preventDefault(); navigate('/dashboard'); }}
-            className={`transition-colors pb-1 ${
+            className={`font-body-md text-body-md transition-colors pb-1 ${
               isActive('/dashboard')
-                ? 'text-yellow-400 font-semibold border-b-2 border-yellow-400'
-                : 'text-white/95 hover:text-yellow-400'
+                ? 'text-primary font-bold border-b-2 border-primary'
+                : 'text-on-surface-variant hover:text-primary'
             }`}
           >
             Home
@@ -205,18 +205,18 @@ const Header = () => {
           </NavDropdown>
         </nav>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center gap-4">
           <div className="relative" ref={notifRef}>
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="p-2 text-white/90 hover:text-yellow-400 transition-colors relative focus:outline-none"
+              className="p-2 text-primary hover:bg-surface-container-low transition-colors rounded-full active:scale-95 duration-150 relative focus:outline-none"
             >
               <Bell size={20} />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-[#083358]"></span>
+                <span className="absolute top-1 right-1.5 w-2 h-2 bg-error rounded-full border border-surface"></span>
               )}
             </button>
-
+            
             {showNotifications && (
               <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-slate-100 overflow-hidden z-50 origin-top-right">
                 <div className="bg-slate-50 border-b border-slate-100 p-3 flex items-center justify-between">
@@ -261,17 +261,20 @@ const Header = () => {
           </div>
 
           <button 
-            onClick={() => navigate('/dashboard')}
-            className="hidden sm:inline-block bg-white/10 hover:bg-white/20 text-white px-4 py-1.5 rounded-lg font-bold text-xs shadow-sm transition-all duration-300 border border-white/20"
+            onClick={() => navigate('/profile')}
+            className="p-2 text-primary hover:bg-surface-container-low transition-colors rounded-full active:scale-95 duration-150 focus:outline-none"
+            title="Profile"
           >
-            Dashboard
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
           </button>
           <button 
             onClick={handleLogout}
-            className="bg-white text-[#0a1931] hover:bg-yellow-400 hover:text-slate-900 px-4 py-1.5 rounded-lg font-bold text-xs shadow-md transition-all duration-300 flex items-center gap-1.5 cursor-pointer"
+            className="p-2 text-primary hover:bg-surface-container-low transition-colors rounded-full active:scale-95 duration-150 focus:outline-none"
+            title="Sign Out"
           >
-            <LogOut size={13} />
-            Sign Out
+            <LogOut size={20} />
           </button>
         </div>
       </div>

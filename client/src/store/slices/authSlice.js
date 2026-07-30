@@ -20,12 +20,12 @@ export const register = createAsyncThunk(
 
 export const login = createAsyncThunk(
   'auth/login',
-  async (credentials, { rejectWithValue }) => {
+  async ({ emailOrUsername, password, keepLoggedIn }, { rejectWithValue }) => {
     try {
-      const response = await authService.login(credentials);
+      const response = await authService.login({ emailOrUsername, password });
       const data = response.data.data;
       if (data.accessToken && data.refreshToken) {
-        setTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken });
+        setTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken, keepLoggedIn });
       }
       return data;
     } catch (error) {

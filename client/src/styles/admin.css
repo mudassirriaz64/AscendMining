@@ -1,0 +1,21 @@
+/* Admin Panel Specific Styles */
+
+/* Subtle row border animation on hovering records table */
+.admin-table-row {
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-table-row:hover {
+  background-color: var(--color-surface-container-low);
+}
+
+/* Red / green quick badge styling fallback utilities */
+.badge-pill-success {
+  background-color: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+
+.badge-pill-danger {
+  background-color: rgba(220, 38, 38, 0.12);
+  color: #dc2626;
+}

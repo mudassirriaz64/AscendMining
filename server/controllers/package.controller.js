@@ -108,6 +108,16 @@ const purchasePackage = async (req, res, next) => {
       balanceAfter: user.walletBalance,
     });
 
+    // Process referral bonus if user was referred by someone and is active
+    if (user.referredBy && user.status === 'active') {
+      try {
+        const referralService = require('../services/referral.service');
+        await referralService.checkAndReleaseReferralRewards(user._id);
+      } catch (refError) {
+        console.error('Failed to release referral rewards on purchase:', refError);
+      }
+    }
+
     // Emit real-time updates for balance, mining, and transaction
     const app = req.app;
     emitBalanceUpdate(app, userId, { walletBalance: user.walletBalance });

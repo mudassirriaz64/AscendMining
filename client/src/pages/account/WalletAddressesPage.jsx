@@ -123,14 +123,12 @@ const WalletAddressesPage = () => {
 
       </main>
 
-      {/* FOOTER */}
-      <footer className="bg-slate-900 text-white py-10 border-t border-slate-800 mt-auto">
-        <div className="max-w-7xl mx-auto px-6 text-center space-y-4">
-          <div className="flex justify-center items-center opacity-70">
-            <Logo size="sm" variant="dark" className="h-8" />
-          </div>
-          <p className="text-slate-500 text-xs">
-            Copyright © 2026 <span className="text-yellow-400 font-bold">AscendX Mining</span>. All rights reserved.
+      {/* Footer */}
+      <footer className="bg-on-secondary-fixed text-white/50 py-8 border-t border-outline-variant/20 mt-12">
+        <div className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop flex flex-col items-center gap-4">
+          <Logo variant="dark" size="sm" className="h-8 opacity-80" />
+          <p className="font-body-sm text-body-sm text-center">
+            &copy; 2026 <span className="font-semibold text-white">AscendHash</span>. All rights reserved.
           </p>
         </div>
       </footer>

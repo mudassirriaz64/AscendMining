@@ -196,7 +196,7 @@ const AdminLayout = () => {
   useEffect(() => {
     if (waitingIds.size > prevWaitingSizeRef.current) {
       if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('AscendX Support SLA Overdue Alert', {
+        new Notification('AscendHash Support SLA Overdue Alert', {
           body: `${waitingIds.size} support conversation(s) waiting over 30 minutes! Please respond.`,
           tag: 'support-sla-alarm',
           renotify: true,

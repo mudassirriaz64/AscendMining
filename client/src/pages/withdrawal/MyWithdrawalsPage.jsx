@@ -84,64 +84,64 @@ const MyWithdrawalsPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f0f2f5] font-sans antialiased text-slate-800">
+    <div className="min-h-screen flex flex-col bg-background text-on-surface font-sans antialiased">
       
       <Header />
 
       {/* MAIN CONTAINER */}
-      <main className="max-w-6xl w-full mx-auto px-6 py-12 flex-grow space-y-8">
+      <main className="max-w-6xl w-full mx-auto px-margin-mobile md:px-margin-desktop py-gutter flex-grow space-y-gutter">
         
-        <div className="border-b border-slate-200 pb-4">
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight uppercase">
-            My <span className="text-yellow-500">Withdrawals</span>
+        <div className="border-b border-outline-variant pb-4">
+          <h1 className="text-2xl font-extrabold text-primary tracking-tight uppercase">
+            My <span className="text-primary font-extrabold">Withdrawals</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-1 font-medium font-heading">Historical logs of all your withdrawal requests and approved payouts.</p>
+          <p className="text-xs text-on-surface-variant mt-1 font-medium font-heading">Historical logs of all your withdrawal requests and approved payouts.</p>
         </div>
 
         {/* LOG HISTORY LIST */}
-        <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <section className="bg-white rounded-xl border border-outline-variant overflow-hidden">
           <div className="overflow-x-auto">
             {!withdrawals || withdrawals.length === 0 ? (
-              <div className="p-12 text-center text-slate-400 text-sm font-medium">
+              <div className="p-12 text-center text-on-surface-variant text-sm font-medium">
                 No withdrawals requested yet.
               </div>
             ) : (
-              <table className="w-full text-left">
-                <thead className="bg-[#f8fafc] border-b border-slate-100 text-slate-450 font-bold text-xs uppercase tracking-wider">
+              <table className="w-full text-left border-collapse min-w-[700px]">
+                <thead className="bg-surface-container-low border-b border-outline-variant text-on-surface-variant font-label-caps text-label-caps text-xs uppercase tracking-wider">
                   <tr>
-                    <th className="px-6 py-4">Request ID</th>
-                    <th className="px-6 py-4">Date & Time</th>
-                    <th className="px-6 py-4">Amount</th>
-                    <th className="px-6 py-4">Payment Method (Coin & Wallet)</th>
-                    <th className="px-6 py-4 text-right">Status</th>
+                    <th className="px-card-padding py-3">Request ID</th>
+                    <th className="px-card-padding py-3">Date & Time</th>
+                    <th className="px-card-padding py-3">Amount</th>
+                    <th className="px-card-padding py-3">Payment Method (Coin & Wallet)</th>
+                    <th className="px-card-padding py-3 text-right">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-outline-variant/30">
                   {withdrawals.map((w) => (
-                    <tr key={w._id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-6 py-5 font-bold text-slate-800 text-xs font-mono">
+                    <tr key={w._id} className="hover:bg-primary/5 transition-colors group">
+                      <td className="px-card-padding py-3 font-bold text-on-surface text-xs font-mono">
                         {w._id.slice(-12).toUpperCase()}
                       </td>
-                      <td className="px-6 py-5">
-                        <p className="text-slate-900 text-xs font-bold">{formatDateTime(w.createdAt)}</p>
+                      <td className="px-card-padding py-3">
+                        <div className="flex flex-col">
+                          <span className="text-on-surface text-xs font-bold font-heading">{formatDateTime(w.createdAt)}</span>
+                        </div>
                       </td>
-                      <td className="px-6 py-5">
-                        <span className="text-xs font-black text-slate-900 font-mono">
+                      <td className="px-card-padding py-3">
+                        <span className="text-xs font-black text-on-surface font-mono">
                           {w.amount.toFixed(4)} {w.coinSymbol}
                         </span>
                       </td>
-                      <td className="px-6 py-5">
+                      <td className="px-card-padding py-3">
                         <div className="flex flex-col">
-                          <span className="text-xs font-bold text-slate-800">{w.coinSymbol}</span>
+                          <span className="text-xs font-bold text-on-surface">{w.coinSymbol}</span>
                           <WalletAddressCell address={w.walletAddress} maxWidth="200px" />
                         </div>
                       </td>
-                      <td className="px-6 py-5 text-right">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${getStatusStyle(w.status)}`}>
-                          {w.status}
-                        </span>
+                      <td className="px-card-padding py-3 text-right">
+                        <StatusBadge status={w.status} />
                         {w.status === 'rejected' && w.rejectionReason && (
-                          <p className="text-[10px] text-red-500 mt-1 font-semibold italic">Reason: {w.rejectionReason}</p>
+                          <p className="text-[10px] text-error mt-1 font-semibold italic">Reason: {w.rejectionReason}</p>
                         )}
                       </td>
                     </tr>
@@ -154,14 +154,12 @@ const MyWithdrawalsPage = () => {
 
       </main>
 
-      {/* FOOTER */}
-      <footer className="bg-slate-900 text-white py-10 border-t border-slate-800 mt-auto">
-        <div className="max-w-7xl mx-auto px-6 text-center space-y-4">
-          <div className="flex justify-center items-center opacity-70">
-            <Logo size="sm" variant="dark" className="h-8" />
-          </div>
-          <p className="text-slate-500 text-xs">
-            Copyright © 2026 <span className="text-yellow-400 font-bold">AscendX Mining</span>. All rights reserved.
+      {/* Footer */}
+      <footer className="bg-on-secondary-fixed text-white/50 py-8 border-t border-outline-variant/20 mt-12">
+        <div className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop flex flex-col items-center gap-4">
+          <Logo variant="dark" size="sm" className="h-8 opacity-80" />
+          <p className="font-body-sm text-body-sm text-center">
+            &copy; 2026 <span className="font-semibold text-white">AscendHash</span>. All rights reserved.
           </p>
         </div>
       </footer>

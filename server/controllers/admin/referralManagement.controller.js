@@ -54,8 +54,8 @@ const getGlobalReferralRecords = async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     const referrals = await Referral.find()
-      .populate('referrerId', 'username email fullName')
-      .populate('referredId', 'username email fullName status createdAt')
+      .populate('referrer', 'username email fullName')
+      .populate('referredUser', 'username email fullName status createdAt')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);

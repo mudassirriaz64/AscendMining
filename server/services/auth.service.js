@@ -6,6 +6,7 @@ const { generateAccessToken, generateRefreshToken } = require('../utils/tokenUti
 const AppError = require('../utils/AppError');
 const { PASSWORD_RESET_EXPIRY_MINUTES } = require('../config/constants');
 const Admin = require('../models/Admin');
+const Referral = require('../models/Referral');
 
 // No cookie setup functions are needed for sessionStorage auth
 
@@ -38,6 +39,14 @@ const register = async ({ fullName, username, email, password, country, phone, r
     referralCode: uuidv4().slice(0, 8).toUpperCase(),
     referredBy,
   });
+
+  if (referredBy) {
+    await Referral.create({
+      referrer: referredBy,
+      referredUser: user._id,
+      status: 'pending',
+    });
+  }
 
   const accessToken = generateAccessToken(user);
   const { token: refreshTokenHash, rawToken } = generateRefreshToken();
