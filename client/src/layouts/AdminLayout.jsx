@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   LayoutDashboard, Users, Package, Coins, ArrowDownToLine, ArrowUpFromLine,
@@ -99,13 +99,23 @@ const AdminLayout = () => {
   const [waitingIds, setWaitingIds] = useState(() => new Set());
   const [muted, setMuted] = useState(false);
   const [audioUnlocked, setAudioUnlocked] = useState(() => {
-    // If permission was already granted previously, we still need a gesture to resume audio in the new session.
-    // However, we can initialize it from localStorage to see if the user has opted-in previously.
     return localStorage.getItem('admin_sound_alerts_enabled') === 'true';
   });
+  const [globalSearch, setGlobalSearch] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const prevWaitingSizeRef = useRef(0);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    setGlobalSearch(searchParams.get('search') || '');
+  }, [location.search]);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    navigate(`/admin/users?search=${encodeURIComponent(globalSearch.trim())}`);
+  };
 
   const handleLogout = async () => {
     await dispatch(logoutUser());
@@ -263,14 +273,16 @@ const AdminLayout = () => {
             <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-text-secondary cursor-pointer">
               <Menu size={22} />
             </button>
-            <div className="relative hidden sm:block">
+            <form onSubmit={handleSearchSubmit} className="relative hidden sm:block">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
               <input
                 type="text"
-                placeholder="Search users, deposits..."
+                value={globalSearch}
+                onChange={(e) => setGlobalSearch(e.target.value)}
+                placeholder="Search users..."
                 className="pl-9 pr-4 py-2 border border-border-light rounded-lg text-sm w-64 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
-            </div>
+            </form>
           </div>
 
           <div className="flex items-center gap-4">

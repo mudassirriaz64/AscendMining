@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Users, ShieldCheck } from 'lucide-react';
 import { fetchUsers } from '../../../store/slices/adminUserSlice';
 import SearchInput from '../../../components/common/SearchInput';
@@ -20,9 +20,13 @@ const statusFilters = [
 const UserListPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { users, usersTotal, usersPage, usersLimit, loading } = useSelector((s) => s.adminUsers);
 
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    return searchParams.get('search') || '';
+  });
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
 
@@ -39,9 +43,15 @@ const UserListPage = () => {
 
   usePolling(loadUsers, 30000);
 
-  const handleSearch = (val) => {
-    setSearch(val);
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const q = searchParams.get('search') || '';
+    setSearch(q);
     setPage(1);
+  }, [location.search]);
+
+  const handleSearch = (val) => {
+    navigate(`/admin/users?search=${encodeURIComponent(val)}`, { replace: true });
   };
 
   const handleStatusFilter = (val) => {
