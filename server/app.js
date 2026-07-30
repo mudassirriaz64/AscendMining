@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 const mongoSanitize = require('./middlewares/mongoSanitize');
@@ -91,6 +92,13 @@ app.use('/api/contact', publicContactRoutes);
 app.get('/api/health', (req, res) => {
   res.status(200).json({ success: true, message: 'Server is running.' });
 });
+
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../client/dist')));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+  });
+}
 
 app.use(errorHandler);
 
