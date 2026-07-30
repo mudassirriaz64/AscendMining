@@ -44,7 +44,7 @@ const conversationMessageSchema = new mongoose.Schema(
     },
     attachmentType: {
       type: String,
-      enum: ['image', 'document', null],
+      enum: ['image', 'document', 'video', null],
       default: null,
     },
     sentAt: {

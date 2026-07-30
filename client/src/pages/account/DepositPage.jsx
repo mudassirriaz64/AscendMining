@@ -54,8 +54,8 @@ const DepositPage = () => {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size must be less than 5MB.');
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size must be less than 10MB.');
       return;
     }
 
@@ -286,7 +286,7 @@ const DepositPage = () => {
                     <Upload size={20} />
                   </div>
                   <span className="text-xs font-bold text-on-surface">Select payment receipt screenshot</span>
-                  <span className="text-[10px] text-on-surface-variant mt-1">PNG, JPG, or JPEG up to 5MB</span>
+                  <span className="text-[10px] text-on-surface-variant mt-1">PNG, JPG, or JPEG (Maximum size: 10MB)</span>
                   <input 
                     type="file" 
                     accept="image/*" 

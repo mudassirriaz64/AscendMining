@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { MessageCircle, Send, Ticket, AlertTriangle, Trash2, Paperclip, FileText, Image as ImageIcon, Download, Loader2, Zap, X, Plus } from 'lucide-react';
+import { MessageCircle, Send, Ticket, AlertTriangle, Trash2, Paperclip, FileText, Image as ImageIcon, Download, Loader2, Zap, X, Plus, Video } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../../services/api';
 import { connectSocket, getSocket } from '../../../services/socketService';
 import { formatRelativeTime, formatFullTimestamp } from '../../../utils/date';
 import { triggerTabFlash } from '../../../utils/browser';
+import { compressVideo } from '../../../utils/videoCompressor';
 import ConfirmModal from '../../../components/common/ConfirmModal';
 import PromptModal from '../../../components/common/PromptModal';
 
@@ -309,7 +310,7 @@ const AdminSupportPage = () => {
                 if (String(c._id) === String(selectedId)) {
                   let preview = msg.body || '';
                   if (msg.attachmentUrl) {
-                    preview = msg.attachmentType === 'image' ? '📷 Photo' : '📄 Document';
+                    preview = msg.attachmentType === 'image' ? '📷 Photo' : (msg.attachmentType === 'video' ? '🎥 Video' : '📄 Document');
                   }
                   return {
                     ...c,
@@ -337,7 +338,7 @@ const AdminSupportPage = () => {
           if (String(c._id) === String(selectedId)) {
             let preview = msg.body || '';
             if (msg.attachmentUrl) {
-              preview = msg.attachmentType === 'image' ? '📷 Photo' : '📄 Document';
+              preview = msg.attachmentType === 'image' ? '📷 Photo' : (msg.attachmentType === 'video' ? '🎥 Video' : '📄 Document');
             }
             return {
               ...c,
@@ -357,24 +358,32 @@ const AdminSupportPage = () => {
   };
 
   const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
+    let file = e.target.files[0];
     if (!file) return;
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    const allowedTypes = [
+      'image/jpeg', 'image/png', 'image/jpg', 'image/webp',
+      'application/pdf',
+      'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'
+    ];
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Invalid file type. Only JPG, PNG, and PDF files are allowed.');
+      toast.error('Invalid file type. Only JPG, PNG, PDF, and Video files are allowed.');
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size exceeds the 5MB limit.');
+    if (file.size > 200 * 1024 * 1024) {
+      toast.error('File size exceeds the 200MB limit.');
       return;
     }
-
-    const formData = new FormData();
-    formData.append('file', file);
 
     setUploading(true);
     try {
+      if (file.type.startsWith('video/')) {
+        file = await compressVideo(file);
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
       const response = await api.post(`/admin/support/conversations/${selectedId}/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
@@ -707,13 +716,24 @@ const AdminSupportPage = () => {
                               className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold transition-all hover:bg-slate-50/50 ${msg.body ? 'mt-2' : ''} ${
                                 isAgent
                                   ? 'bg-[#083358]/20 border-white/20 text-white hover:text-[#e2b007]'
-                                  : 'bg-slate-50 border-slate-200 text-[#001f3f] hover:text-[#e2b007]'
+                                    : 'bg-slate-50 border-slate-200 text-[#001f3f] hover:text-[#e2b007]'
                               }`}
                             >
                               <FileText size={16} />
                               <span className="truncate max-w-[200px]">{msg.attachmentFileName || 'Download Document'}</span>
                               <Download size={14} className="ml-auto" />
                             </a>
+                          )}
+
+                          {msg.attachmentUrl && msg.attachmentType === 'video' && (
+                            <div className={`max-w-sm rounded-lg overflow-hidden border border-slate-200 shadow-sm ${msg.body ? 'mt-2' : ''}`}>
+                              <video
+                                src={msg.attachmentUrl}
+                                controls
+                                preload="metadata"
+                                className="max-h-60 w-full object-contain bg-black"
+                              />
+                            </div>
                           )}
 
                           {isAgent && isLastSent ? (
@@ -758,7 +778,7 @@ const AdminSupportPage = () => {
                 {pendingAttachment && (
                   <div className="flex items-center justify-between bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs text-slate-600 mb-2 w-full animate-fade-in">
                     <div className="flex items-center gap-1.5 truncate">
-                      {pendingAttachment.attachmentType === 'image' ? <ImageIcon size={14} /> : <FileText size={14} />}
+                      {pendingAttachment.attachmentType === 'image' ? <ImageIcon size={14} /> : (pendingAttachment.attachmentType === 'video' ? <Video size={14} /> : <FileText size={14} />)}
                       <span className="truncate font-medium">{pendingAttachment.attachmentFileName}</span>
                     </div>
                     <button
@@ -776,7 +796,7 @@ const AdminSupportPage = () => {
                     type="file"
                     ref={fileInputRef}
                     onChange={handleFileUpload}
-                    accept=".jpg,.jpeg,.png,.pdf"
+                    accept=".jpg,.jpeg,.png,.pdf,.mp4,.webm,.ogg,.mov"
                     className="hidden"
                   />
                   <button
@@ -784,7 +804,7 @@ const AdminSupportPage = () => {
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading || sending}
                     className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 disabled:opacity-50 transition-all cursor-pointer shrink-0 mb-0.5"
-                    title="Attach JPG, PNG, or PDF file"
+                    title="Attach JPG, PNG, PDF, or Video file (up to 200MB)"
                   >
                     {uploading ? (
                       <Loader2 size={18} className="animate-spin" />
@@ -801,7 +821,7 @@ const AdminSupportPage = () => {
                     rows={1}
                     maxLength={500}
                     aria-label="Reply"
-                    placeholder="Reply to investor"
+                    placeholder="Reply to investor (Max 200MB attachment)"
                     className="min-h-10 flex-1 resize-none rounded-xl border border-border-light px-3 py-2 text-sm outline-none placeholder:text-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/25 cursor-pointer max-h-24 overflow-y-auto"
                     style={{ height: 'auto' }}
                   />

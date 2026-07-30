@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertCircle, Headphones, Send, X, Plus, Trash2, ChevronDown, RefreshCw, Paperclip, FileText, Image as ImageIcon, Download, Loader2 } from 'lucide-react';
+import { AlertCircle, Headphones, Send, X, Plus, Trash2, ChevronDown, RefreshCw, Paperclip, FileText, Image as ImageIcon, Download, Loader2, Video } from 'lucide-react';
 import ConfirmModal from './ConfirmModal';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 import { connectSocket, getSocket } from '../../services/socketService';
 import { formatRelativeTime, formatFullTimestamp } from '../../utils/date';
 import { triggerTabFlash } from '../../utils/browser';
+import { compressVideo } from '../../utils/videoCompressor';
 
 const POLL_MS = 10000;
 
@@ -343,24 +344,32 @@ const SupportChatWidget = () => {
   };
 
   const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
+    let file = e.target.files[0];
     if (!file) return;
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    const allowedTypes = [
+      'image/jpeg', 'image/png', 'image/jpg', 'image/webp',
+      'application/pdf',
+      'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'
+    ];
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Invalid file type. Only JPG, PNG, and PDF files are allowed.');
+      toast.error('Invalid file type. Only JPG, PNG, PDF, and Video files are allowed.');
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size exceeds the 5MB limit.');
+    if (file.size > 200 * 1024 * 1024) {
+      toast.error('File size exceeds the 200MB limit.');
       return;
     }
-
-    const formData = new FormData();
-    formData.append('file', file);
 
     setUploading(true);
     try {
+      if (file.type.startsWith('video/')) {
+        file = await compressVideo(file);
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
       const response = await api.post('/support/conversations/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
@@ -601,6 +610,17 @@ const SupportChatWidget = () => {
                         </a>
                       )}
 
+                      {message.attachmentUrl && message.attachmentType === 'video' && (
+                        <div className={`max-w-xs rounded-lg overflow-hidden border border-slate-200 shadow-sm ${message.body ? 'mt-2' : ''}`}>
+                          <video
+                            src={message.attachmentUrl}
+                            controls
+                            preload="metadata"
+                            className="max-h-48 w-full object-contain bg-black"
+                          />
+                        </div>
+                      )}
+
                       {mine && isLastSent ? (
                         <span className="text-[9px] text-white/75 mt-1 flex items-center justify-end gap-0.5 font-medium">
                           {message.readAt ? '✓✓ Seen' : '✓ Sent'}
@@ -645,7 +665,7 @@ const SupportChatWidget = () => {
             {pendingAttachment && (
               <div className="flex items-center justify-between bg-slate-50 border border-slate-200 px-2 py-1 rounded-md text-[11px] text-slate-600 mb-2 w-full animate-fade-in">
                 <div className="flex items-center gap-1 truncate">
-                  {pendingAttachment.attachmentType === 'image' ? <ImageIcon size={12} /> : <FileText size={12} />}
+                  {pendingAttachment.attachmentType === 'image' ? <ImageIcon size={12} /> : (pendingAttachment.attachmentType === 'video' ? <Video size={12} /> : <FileText size={12} />)}
                   <span className="truncate font-medium">{pendingAttachment.attachmentFileName}</span>
                 </div>
                 <button
@@ -663,7 +683,7 @@ const SupportChatWidget = () => {
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileUpload}
-                accept=".jpg,.jpeg,.png,.pdf"
+                accept=".jpg,.jpeg,.png,.pdf,.mp4,.webm,.ogg,.mov"
                 className="hidden"
               />
               <button
@@ -671,7 +691,7 @@ const SupportChatWidget = () => {
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading || sending}
                 className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 disabled:opacity-50 transition-all cursor-pointer shrink-0 mb-0.5"
-                title="Attach JPG, PNG, or PDF file"
+                title="Attach JPG, PNG, PDF, or Video file (up to 200MB)"
               >
                 {uploading ? (
                   <Loader2 size={16} className="animate-spin" />
@@ -687,7 +707,7 @@ const SupportChatWidget = () => {
                 onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); send(); } }}
                 rows={1}
                 maxLength={500}
-                placeholder="Type your message"
+                placeholder="Type your message (Max 200MB attachment)"
                 aria-label="Message"
                 className="min-h-10 flex-1 resize-none rounded-xl border border-border-light px-3 py-2 text-sm outline-none placeholder:text-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/25 cursor-pointer max-h-24 overflow-y-auto"
                 style={{ height: 'auto' }}

@@ -293,7 +293,12 @@ const uploadAttachment = async (req, res, next) => {
     }
 
     const uploadResult = await uploadToCloudinary(uploadBuffer, folder, filename);
-    const attachmentType = req.file.mimetype.startsWith('image/') ? 'image' : 'document';
+    let attachmentType = 'document';
+    if (req.file.mimetype.startsWith('image/')) {
+      attachmentType = 'image';
+    } else if (req.file.mimetype.startsWith('video/')) {
+      attachmentType = 'video';
+    }
 
     res.status(200).json({
       success: true,

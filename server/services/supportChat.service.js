@@ -185,7 +185,7 @@ const sendMessage = async ({
   if (trimmedBody) {
     previewText = trimmedBody.slice(0, 100);
   } else if (attachmentUrl) {
-    previewText = attachmentType === 'image' ? '📷 Photo' : '📄 Document';
+    previewText = attachmentType === 'image' ? '📷 Photo' : (attachmentType === 'video' ? '🎥 Video' : '📄 Document');
   }
 
   const update = {

@@ -52,8 +52,8 @@ const KYCPage = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size must be less than 5MB.');
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error('File size must be less than 20MB.');
       return;
     }
 
@@ -136,7 +136,7 @@ const KYCPage = () => {
               </p>
             </div>
             <div className="pt-4">
-              <Button onClick={() => navigate('/dashboard')} className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-6 py-2.5">
+              <Button onClick={() => navigate('/dashboard')} className="bg-primary-container hover:brightness-110 text-on-primary-fixed font-bold text-xs px-6 py-2.5">
                 Back to Dashboard
               </Button>
             </div>
@@ -308,7 +308,7 @@ const KYCPage = () => {
                         <Upload size={22} />
                       </div>
                       <span className="text-xs font-bold text-slate-700">Choose file or drag & drop</span>
-                      <span className="text-[10px] text-slate-400 mt-1">PNG, JPG, or WEBP up to 5MB</span>
+                      <span className="text-[10px] text-slate-400 mt-1">PNG, JPG, or WEBP (Maximum size: 20MB)</span>
                       <input 
                         type="file" 
                         accept="image/*" 

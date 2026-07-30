@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import { useDispatch, useSelector } from 'react-redux';
-import { MessageCircle, Send, Check, ChevronLeft, Calendar, LogOut, Paperclip, FileText, Image as ImageIcon, Download, Loader2, X, AlertCircle, Plus, Trash2, ChevronRight } from 'lucide-react';
+import { MessageCircle, Send, Check, ChevronLeft, Calendar, LogOut, Paperclip, FileText, Image as ImageIcon, Download, Loader2, X, AlertCircle, Plus, Trash2, ChevronRight, Video } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Header from '../../components/common/Header';
 import PageSkeleton from '../../components/common/PageSkeleton';
@@ -21,6 +21,7 @@ import api from '../../services/api';
 import { connectSocket, getSocket } from '../../services/socketService';
 import { formatRelativeTime, formatFullTimestamp } from '../../utils/date';
 import { triggerTabFlash } from '../../utils/browser';
+import { compressVideo } from '../../utils/videoCompressor';
 
 const SupportChatPage = () => {
   const dispatch = useDispatch();
@@ -273,24 +274,32 @@ const SupportChatPage = () => {
   }, [input, pendingAttachment, sending, dispatch, activeSessionId, conversation?._id]);
 
   const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
+    let file = e.target.files[0];
     if (!file) return;
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    const allowedTypes = [
+      'image/jpeg', 'image/png', 'image/jpg', 'image/webp',
+      'application/pdf',
+      'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'
+    ];
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Invalid file type. Only JPG, PNG, and PDF files are allowed.');
+      toast.error('Invalid file type. Only JPG, PNG, PDF, and Video files are allowed.');
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size exceeds the 5MB limit.');
+    if (file.size > 200 * 1024 * 1024) {
+      toast.error('File size exceeds the 200MB limit.');
       return;
     }
-
-    const formData = new FormData();
-    formData.append('file', file);
 
     setUploading(true);
     try {
+      if (file.type.startsWith('video/')) {
+        file = await compressVideo(file);
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
       const response = await api.post('/support/conversations/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
@@ -601,6 +610,17 @@ const SupportChatPage = () => {
                                 <Download size={14} className="ml-auto" />
                               </a>
                             )}
+
+                            {msg.attachmentUrl && msg.attachmentType === 'video' && (
+                              <div className={`max-w-sm rounded-lg overflow-hidden border border-slate-200/50 shadow-sm ${msg.body ? 'mt-2' : ''}`}>
+                                <video
+                                  src={msg.attachmentUrl}
+                                  controls
+                                  preload="metadata"
+                                  className="max-h-60 w-full object-contain bg-black"
+                                />
+                              </div>
+                            )}
                           </div>
                           {isMe && isLastSent ? (
                             <span className="text-[10px] text-slate-400 mt-1 px-1 flex items-center gap-0.5 font-medium" title={formatFullTimestamp(msg.sentAt || msg.createdAt)}>
@@ -648,7 +668,7 @@ const SupportChatPage = () => {
             {pendingAttachment && (
               <div className="flex items-center justify-between bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs text-slate-600 mb-2 w-full animate-fade-in">
                 <div className="flex items-center gap-1.5 truncate">
-                  {pendingAttachment.attachmentType === 'image' ? <ImageIcon size={14} /> : <FileText size={14} />}
+                  {pendingAttachment.attachmentType === 'image' ? <ImageIcon size={14} /> : (pendingAttachment.attachmentType === 'video' ? <Video size={14} /> : <FileText size={14} />)}
                   <span className="truncate font-medium">{pendingAttachment.attachmentFileName}</span>
                 </div>
                 <button
@@ -666,7 +686,7 @@ const SupportChatPage = () => {
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileUpload}
-                accept=".jpg,.jpeg,.png,.pdf"
+                accept=".jpg,.jpeg,.png,.pdf,.mp4,.webm,.ogg,.mov"
                 className="hidden"
               />
               <button
@@ -674,7 +694,7 @@ const SupportChatPage = () => {
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading || sending}
                 className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 disabled:opacity-50 transition-all cursor-pointer shrink-0 mb-0.5"
-                title="Attach JPG, PNG, or PDF file"
+                title="Attach JPG, PNG, PDF, or Video file (up to 200MB)"
               >
                 {uploading ? (
                   <Loader2 size={18} className="animate-spin" />
@@ -688,7 +708,7 @@ const SupportChatPage = () => {
                 value={input}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
-                placeholder="Type a message...  (Enter to send)"
+                placeholder="Type a message... (Max 200MB attachment)"
                 rows={1}
                 maxLength={500}
                 className="flex-1 resize-none bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-[#083358] focus:ring-2 focus:ring-[#083358]/15 transition-all placeholder-slate-400 max-h-32 overflow-y-auto animate-fade-in"
