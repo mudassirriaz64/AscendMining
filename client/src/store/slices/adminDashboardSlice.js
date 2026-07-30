@@ -13,16 +13,40 @@ export const fetchAdminDashboardStats = createAsyncThunk(
   }
 );
 
+export const updateSystemStatusThunk = createAsyncThunk(
+  'adminDashboard/updateSystemStatus',
+  async (statusData, { rejectWithValue }) => {
+    try {
+      const response = await api.put('/admin/dashboard/system-status', statusData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
 const adminDashboardSlice = createSlice({
   name: 'adminDashboard',
   initialState: {
-    stats: {
-      totalUsers: 0,
-      activeUsers: 0,
-      activePackages: 0,
-      pendingDeposits: 0,
-      totalDeposits: 0,
-      totalWithdrawals: 0,
+    statsData: {
+      stats: {
+        totalUsers: 0,
+        activeUsers: 0,
+        activePackages: 0,
+        pendingApprovals: 0,
+        platformLiquidity: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0,
+      },
+      activityTrend: [],
+      depositTrend: [],
+      systemStatus: {
+        maintenanceMode: false,
+        newRegistrations: true,
+        withdrawalProcessing: true,
+      },
+      recentRegistrations: [],
+      platformTransactions: [],
     },
     loading: false,
     error: null,
@@ -36,11 +60,14 @@ const adminDashboardSlice = createSlice({
       })
       .addCase(fetchAdminDashboardStats.fulfilled, (state, action) => {
         state.loading = false;
-        state.stats = action.payload.data.stats;
+        state.statsData = action.payload.data;
       })
       .addCase(fetchAdminDashboardStats.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(updateSystemStatusThunk.fulfilled, (state, action) => {
+        state.statsData.systemStatus = action.payload.data;
       });
   },
 });
