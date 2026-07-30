@@ -8,6 +8,7 @@ const authService = {
   getMe: () => api.get('/auth/me'),
   logout: () => api.post('/auth/logout'),
   forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
+  verifyOTP: (data) => api.post('/auth/verify-otp', data),
   resetPassword: (data) => api.post('/auth/reset-password', data),
   checkAvailability: (params) => api.get('/auth/check-availability', { params }),
   updateProfile: (data) => api.put('/auth/profile', data),

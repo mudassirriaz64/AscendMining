@@ -8,6 +8,7 @@ import SearchInput from '../../../components/common/SearchInput';
 import StatusBadge from '../../../components/common/StatusBadge';
 import Button from '../../../components/common/Button';
 import CoinFormModal from './CoinFormModal';
+import ConfirmModal from '../../../components/common/ConfirmModal';
 import toast from 'react-hot-toast';
 
 const CoinListPage = () => {
@@ -20,6 +21,7 @@ const CoinListPage = () => {
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCoin, setEditingCoin] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null });
 
   const loadCoins = useCallback(() => {
     dispatch(fetchCoins({ page, limit: coinsLimit, search: search || undefined }));
@@ -49,9 +51,7 @@ const CoinListPage = () => {
   };
 
   const handleDelete = (id, name) => {
-    if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
-      dispatch(deleteCoin(id));
-    }
+    setConfirmDelete({ open: true, id, name });
   };
 
   const handleEdit = (coin) => {
@@ -147,6 +147,15 @@ const CoinListPage = () => {
         isOpen={modalOpen}
         onClose={() => { setModalOpen(false); setEditingCoin(null); }}
         coin={editingCoin}
+      />
+
+      <ConfirmModal
+        isOpen={confirmDelete.open}
+        onClose={() => setConfirmDelete({ open: false, id: null })}
+        onConfirm={() => { dispatch(deleteCoin(confirmDelete.id)); setConfirmDelete({ open: false, id: null }); }}
+        title="Delete Coin"
+        message={`Are you sure you want to delete "${confirmDelete.name || ''}"?`}
+        variant="danger"
       />
     </div>
   );

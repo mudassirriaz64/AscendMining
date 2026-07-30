@@ -51,8 +51,8 @@ const resetPasswordSchema = z.object({
     .min(8, 'Password must be at least 8 characters with a letter and a number.')
     .regex(/[a-zA-Z]/, 'Password must be at least 8 characters with a letter and a number.')
     .regex(/[0-9]/, 'Password must be at least 8 characters with a letter and a number.'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
+  confirmPassword: z.string().optional(),
+}).refine((data) => !data.confirmPassword || data.password === data.confirmPassword, {
   message: 'Passwords do not match.',
   path: ['confirmPassword'],
 });
@@ -66,11 +66,23 @@ const adminLoginSchema = z.object({
   password: z.string().min(1, 'Password is required.'),
 });
 
+const verifyOTPSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Enter a valid email address.'),
+  otp: z
+    .string()
+    .length(6, 'OTP must be 6 digits.')
+    .regex(/^\d{6}$/, 'OTP must be 6 digits.'),
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
   adminLoginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  verifyOTPSchema,
   refreshTokenSchema,
 };

@@ -17,7 +17,8 @@ const Button = ({
     secondary: 'border border-secondary text-secondary bg-transparent hover:bg-secondary/5 focus-visible:ring-secondary',
     danger: 'bg-danger text-white hover:bg-danger/90 focus-visible:ring-danger',
     ghost: 'text-text-secondary hover:bg-bg-light-alt focus-visible:ring-text-secondary',
-    outline: 'border border-border-light text-text-light-bg bg-white hover:bg-bg-light-alt focus-visible:ring-primary',
+    outline: 'border border-secondary text-text-light-bg bg-white hover:bg-bg-light-alt focus-visible:ring-primary shadow-sm',
+    success: 'bg-success text-white hover:brightness-95 focus-visible:ring-success shadow-sm',
     hero: 'bg-gradient-to-r from-secondary to-secondary-end text-white hover:opacity-90 focus-visible:ring-secondary shadow-lg',
   };
 

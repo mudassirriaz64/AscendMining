@@ -14,6 +14,7 @@ import DataTable from '../../../components/common/DataTable';
 import StatusBadge from '../../../components/common/StatusBadge';
 import Button from '../../../components/common/Button';
 import Modal from '../../../components/common/Modal';
+import ConfirmModal from '../../../components/common/ConfirmModal';
 
 const AdminFAQsPage = () => {
   const dispatch = useDispatch();
@@ -21,6 +22,7 @@ const AdminFAQsPage = () => {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingFAQ, setEditingFAQ] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null });
   const [formData, setFormData] = useState({
     question: '',
     answer: '',
@@ -69,9 +71,7 @@ const AdminFAQsPage = () => {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to permanently delete this FAQ?')) {
-      dispatch(deleteAdminFAQ(id));
-    }
+    setConfirmDelete({ open: true, id });
   };
 
   const handleSubmit = (e) => {
@@ -205,6 +205,15 @@ const AdminFAQsPage = () => {
           </div>
         </form>
       </Modal>
+
+      <ConfirmModal
+        isOpen={confirmDelete.open}
+        onClose={() => setConfirmDelete({ open: false, id: null })}
+        onConfirm={() => { dispatch(deleteAdminFAQ(confirmDelete.id)); setConfirmDelete({ open: false, id: null }); }}
+        title="Delete FAQ"
+        message="Are you sure you want to permanently delete this FAQ?"
+        variant="danger"
+      />
     </div>
   );
 };

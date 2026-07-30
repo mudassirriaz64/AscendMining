@@ -10,6 +10,8 @@ import Pagination from '../../../components/common/Pagination';
 import StatusBadge from '../../../components/common/StatusBadge';
 import Button from '../../../components/common/Button';
 import Modal from '../../../components/common/Modal';
+import ConfirmModal from '../../../components/common/ConfirmModal';
+import usePolling from '../../../hooks/usePolling';
 
 const statusFilters = [
   { value: 'pending', label: 'Pending' },
@@ -28,6 +30,7 @@ const AdminDepositsPage = () => {
   
   const [rejectModal, setRejectModal] = useState({ open: false, depositId: null });
   const [rejectionReason, setRejectionReason] = useState('');
+  const [confirmApprove, setConfirmApprove] = useState({ open: false, id: null });
 
   const loadDeposits = useCallback(() => {
     dispatch(fetchAdminDeposits({ page, limit: 20, status }));
@@ -37,13 +40,14 @@ const AdminDepositsPage = () => {
     loadDeposits();
   }, [loadDeposits]);
 
+  usePolling(loadDeposits, 30000);
+
   useEffect(() => {
     if (actionSuccess) {
       toast.success(actionSuccess);
       dispatch(clearAdminDepositSuccess());
-      loadDeposits();
     }
-  }, [actionSuccess, dispatch, loadDeposits]);
+  }, [actionSuccess, dispatch]);
 
   useEffect(() => {
     if (error) {
@@ -58,9 +62,7 @@ const AdminDepositsPage = () => {
   };
 
   const handleApprove = (id) => {
-    if (window.confirm('Are you sure you want to approve this payment?')) {
-      dispatch(approveAdminDeposit(id));
-    }
+    setConfirmApprove({ open: true, id });
   };
 
   const openRejectModal = (id) => {
@@ -68,12 +70,15 @@ const AdminDepositsPage = () => {
     setRejectionReason('');
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     if (!rejectionReason.trim()) {
       toast.error('Rejection reason is required');
       return;
     }
-    dispatch(rejectAdminDeposit({ id: rejectModal.depositId, rejectionReason }));
+    try {
+      await dispatch(rejectAdminDeposit({ id: rejectModal.depositId, rejectionReason })).unwrap();
+      loadDeposits();
+    } catch { /* error handled by Redux error state */ }
     setRejectModal({ open: false, depositId: null });
   };
 
@@ -199,7 +204,7 @@ const AdminDepositsPage = () => {
           )}
         </div>
         <div className="px-6 py-4 border-t border-border-light flex justify-end">
-          <Button onClick={() => setSelectedScreenshot(null)}>Close</Button>
+          <Button variant="ghost" onClick={() => setSelectedScreenshot(null)}>Close</Button>
         </div>
       </Modal>
 
@@ -225,6 +230,21 @@ const AdminDepositsPage = () => {
           <Button variant="danger" onClick={handleReject} disabled={!rejectionReason.trim() || loading}>Reject Payment</Button>
         </div>
       </Modal>
+
+      <ConfirmModal
+        isOpen={confirmApprove.open}
+        onClose={() => setConfirmApprove({ open: false, id: null })}
+        onConfirm={async () => {
+          try {
+            await dispatch(approveAdminDeposit(confirmApprove.id)).unwrap();
+            loadDeposits();
+          } catch { /* error handled by Redux error state */ }
+          setConfirmApprove({ open: false, id: null });
+        }}
+        title="Approve Payment"
+        message="Are you sure you want to approve this payment?"
+        variant="warning"
+      />
     </div>
   );
 };

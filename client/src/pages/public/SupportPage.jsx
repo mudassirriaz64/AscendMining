@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import ConfirmModal from '../../components/common/ConfirmModal';
 import toast from 'react-hot-toast';
 import { HelpCircle, ChevronDown, MessageCircle, Send, Plus, Trash2, AlertCircle, Phone, Mail } from 'lucide-react';
 import { io } from 'socket.io-client';
@@ -173,8 +174,13 @@ const SupportPage = () => {
     }
   };
 
+  const [confirmClearHistory, setConfirmClearHistory] = useState(false);
+
   const handleClearHistory = () => {
-    if (!window.confirm('Are you sure you want to end your session and clear chat history?')) return;
+    setConfirmClearHistory(true);
+  };
+
+  const executeClearHistory = () => {
     if (socketRef.current) socketRef.current.disconnect();
     sessionStorage.removeItem('guestToken');
     sessionStorage.removeItem('guestConvo');
@@ -396,6 +402,14 @@ const SupportPage = () => {
           </div>
         </div>
       </div>
+      <ConfirmModal
+        isOpen={confirmClearHistory}
+        onClose={() => setConfirmClearHistory(false)}
+        onConfirm={() => { executeClearHistory(); setConfirmClearHistory(false); }}
+        title="End Session"
+        message="Are you sure you want to end your session and clear chat history?"
+        variant="danger"
+      />
     </div>
   );
 };

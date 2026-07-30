@@ -168,7 +168,7 @@ const PackageFormModal = ({ isOpen, onClose, pkg }) => {
         </div>
 
         <div className="flex justify-end gap-3 pt-2">
-          <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
           <Button type="submit">{isEditing ? 'Update Package' : 'Create Package'}</Button>
         </div>
       </form>

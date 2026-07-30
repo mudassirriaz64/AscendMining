@@ -181,9 +181,9 @@ const MiningSettingsPage = () => {
 
           <div className="pt-4 border-t border-slate-50 flex justify-end">
             <Button
+              variant="primary"
               onClick={handleSaveSettings}
               loading={loading}
-              className="bg-primary hover:bg-primary-hover text-white font-bold"
             >
               Save Configuration
             </Button>
@@ -339,15 +339,15 @@ const MiningSettingsPage = () => {
 
             <div className="pt-4 flex justify-end gap-2">
               <Button
+                variant="secondary"
                 onClick={() => setEditModalOpen(false)}
-                className="bg-slate-100 hover:bg-slate-200 text-slate-700"
               >
                 Cancel
               </Button>
               <Button
+                variant="primary"
                 onClick={handleSavePkgUpdate}
                 loading={loading}
-                className="bg-primary hover:bg-primary-hover text-white font-bold"
               >
                 Save Changes
               </Button>

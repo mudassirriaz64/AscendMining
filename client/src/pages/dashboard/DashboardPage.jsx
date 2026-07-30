@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { 
   Wallet, Gift, Cpu, Copy, Clock, LogOut, 
-  ShieldAlert, RefreshCw, ArrowRight, Check
+  ShieldAlert, RefreshCw, ArrowRight, Check,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { fetchDashboardSummary, claimMiningPayout, updateBalance, updateMiningStatus, addTransaction } from '../../store/slices/dashboardSlice';
 import { logoutUser } from '../../store/slices/authSlice';
@@ -21,7 +22,6 @@ const DashboardPage = () => {
   const [timeLeft, setTimeLeft] = useState('');
   const [isReadyToClaim, setIsReadyToClaim] = useState(false);
   const [copied, setCopied] = useState(false);
-  
   const { user } = useSelector((state) => state.auth);
   const { 
     balances, 
@@ -34,6 +34,10 @@ const DashboardPage = () => {
     loading, 
     error 
   } = useSelector((state) => state.dashboard);
+
+  const [activeCoinIndex, setActiveCoinIndex] = useState(0);
+  const currentCoin = coins[activeCoinIndex];
+  const hasActivePlan = Boolean(activePackage?.packageId?.name);
 
   const loadDashboard = useCallback(() => {
     dispatch(fetchDashboardSummary());
@@ -287,20 +291,60 @@ const DashboardPage = () => {
             </div>
           </div>
 
-          {/* TX Wallet Card */}
+          {/* Coin Wallet Card */}
           <div className="bg-on-secondary-fixed rounded-xl p-card-padding shadow-sm relative overflow-hidden group">
-            <div className="flex flex-col gap-4">
-              <div className="bg-primary-container/20 w-12 h-12 rounded-lg flex items-center justify-center">
-                <Cpu className="w-6 h-6 text-primary-fixed-dim" />
-              </div>
-              <div>
-                <p className="font-label-caps text-label-caps text-secondary-fixed-dim/70 uppercase">TX Wallet</p>
-                <p className="font-headline-lg text-headline-lg text-white font-mono mt-1">
-                  {(balances.miningBalances?.['TX'] || 0).toFixed(4)}{' '}
-                  <span className="text-primary-fixed-dim text-lg">TX</span>
+            {hasActivePlan ? (
+              <>
+                {coins.length > 1 && (
+                  <div className="absolute top-0 right-0 p-4 flex items-center gap-1">
+                    <button
+                      onClick={() => setActiveCoinIndex((i) => (i - 1 + coins.length) % coins.length)}
+                      className="w-8 h-8 rounded-full bg-white/10 hover:bg-primary-container/30 flex items-center justify-center transition-all cursor-pointer"
+                      aria-label="Previous coin"
+                    >
+                      <ChevronLeft size={16} className="text-secondary-fixed-dim/70 group-hover:text-primary-fixed-dim transition-colors" />
+                    </button>
+                    <button
+                      onClick={() => setActiveCoinIndex((i) => (i + 1) % coins.length)}
+                      className="w-8 h-8 rounded-full bg-white/10 hover:bg-primary-container/30 flex items-center justify-center transition-all cursor-pointer"
+                      aria-label="Next coin"
+                    >
+                      <ChevronRight size={16} className="text-secondary-fixed-dim/70 group-hover:text-primary-fixed-dim transition-colors" />
+                    </button>
+                  </div>
+                )}
+                <div className="flex flex-col gap-4">
+                  <div className="bg-primary-container/20 w-12 h-12 rounded-lg flex items-center justify-center">
+                    {currentCoin?.logoUrl ? (
+                      <img src={currentCoin.logoUrl} alt={currentCoin.name} className="w-6 h-6 object-contain" />
+                    ) : (
+                      <Cpu className="w-6 h-6 text-primary-fixed-dim" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-label-caps text-label-caps text-secondary-fixed-dim/70 uppercase">
+                      {currentCoin?.name || 'Coin'} Wallet
+                      {coins.length > 1 && (
+                        <span className="ml-2 text-[10px] text-secondary-fixed-dim/50">
+                          {activeCoinIndex + 1}/{coins.length}
+                        </span>
+                      )}
+                    </p>
+                    <p className="font-headline-lg text-headline-lg text-white font-mono mt-1">
+                      {(balances.miningBalances?.[currentCoin?.symbol || 'TX'] || 0).toFixed(4)}{' '}
+                      <span className="text-primary-fixed-dim text-lg">{currentCoin?.symbol || 'TX'}</span>
+                    </p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col gap-4 items-center justify-center py-4 text-center">
+                <Cpu className="w-10 h-10 text-secondary-fixed-dim/40" />
+                <p className="font-body-md text-body-md text-secondary-fixed-dim/60">
+                  Purchase a mining plan to start earning coins
                 </p>
               </div>
-            </div>
+            )}
           </div>
         </section>
 
@@ -340,7 +384,7 @@ const DashboardPage = () => {
               <h3 className="font-heading text-4xl text-white font-extrabold leading-tight tracking-tight">
                 {activePackage?.packageId?.name || 'No Active Plan'}
               </h3>
-              {activePackage ? (
+              {hasActivePlan ? (
                 <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-brand-teal/20 text-brand-teal rounded-full w-fit border border-brand-teal/30">
                   <div className="w-2 h-2 bg-brand-teal rounded-full animate-pulse"></div>
                   <span className="text-xs font-bold uppercase tracking-widest">Active</span>
@@ -351,37 +395,39 @@ const DashboardPage = () => {
                 </div>
               )}
             </div>
+            {hasActivePlan && (
             <div className="flex-grow p-card-padding grid grid-cols-2 md:grid-cols-4 gap-6 items-center">
               <div className="space-y-1">
                 <p className="font-label-caps text-label-caps text-on-surface-variant uppercase">Investment Amount</p>
                 <p className="font-headline-md text-headline-md text-on-surface font-mono">
-                  {activePackage ? `$${activePackage.purchaseAmount.toFixed(2)}` : '$0.00'}
+                  ${(activePackage.purchaseAmount || 0).toFixed(2)}
                 </p>
               </div>
               <div className="space-y-1">
                 <p className="font-label-caps text-label-caps text-on-surface-variant uppercase">Daily Profit Rate</p>
                 <p className="font-headline-md text-headline-md text-primary font-mono">
-                  {activePackage ? `${activePackage.dailyROISnapshot}%` : '0.00%'}
+                  {activePackage.dailyROISnapshot || '0.00'}%
                 </p>
               </div>
               <div className="space-y-1">
                 <p className="font-label-caps text-label-caps text-on-surface-variant uppercase">Started On</p>
                 <p className="font-body-lg text-body-lg text-on-surface">
-                  {activePackage ? new Date(activePackage.cycleStartedAt || activePackage.startDate).toLocaleDateString() : '-'}
+                  {new Date(activePackage.cycleStartedAt || activePackage.startDate).toLocaleDateString()}
                 </p>
               </div>
               <div className="space-y-1">
                 <p className="font-label-caps text-label-caps text-on-surface-variant uppercase">Ends On</p>
                 <p className="font-body-lg text-body-lg text-on-surface">
-                  {activePackage ? new Date(activePackage.cycleEndsAt).toLocaleDateString() : '-'}
+                  {activePackage.cycleEndsAt ? new Date(activePackage.cycleEndsAt).toLocaleDateString() : '-'}
                 </p>
               </div>
             </div>
+            )}
           </div>
         </section>
 
         {/* Live Mining Progress Card */}
-        {!miningSettings?.isDisabled && (
+        {!miningSettings?.isDisabled && hasActivePlan && (
           <section className="bg-white rounded-xl shadow-sm border border-outline-variant overflow-hidden">
             <div className="bg-on-secondary-fixed p-4 px-card-padding flex items-center gap-3">
               <div className="bg-primary-container p-1.5 rounded shadow-[0_0_12px_rgba(62,205,190,0.5)] border border-brand-teal/40">
@@ -446,7 +492,7 @@ const DashboardPage = () => {
               </div>
 
               {/* Claim Action Row */}
-              {activePackage && (
+              {hasActivePlan && (
                 <div className="bg-surface-container-low p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
                   <div className="flex flex-col">
                     <h4 className="font-headline-md text-headline-md text-on-surface font-bold">Claim Daily Mining Payout</h4>

@@ -7,6 +7,7 @@ const AppError = require('../utils/AppError');
 const { PASSWORD_RESET_EXPIRY_MINUTES } = require('../config/constants');
 const Admin = require('../models/Admin');
 const Referral = require('../models/Referral');
+const emailService = require('./email.service');
 
 // No cookie setup functions are needed for sessionStorage auth
 
@@ -178,12 +179,57 @@ const forgotPassword = async (email) => {
   const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
   const resetExpires = new Date(Date.now() + PASSWORD_RESET_EXPIRY_MINUTES * 60 * 1000);
 
+  const otp = String(Math.floor(100000 + Math.random() * 900000));
+  const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
+
   await userRepository.updateById(user._id, {
     passwordResetToken: resetTokenHash,
     passwordResetExpires: resetExpires,
+    passwordResetOTPHash: otpHash,
+    passwordResetOTPExpires: resetExpires,
   });
 
-  return { message: 'If an account with that email exists, a reset link has been sent.', resetToken };
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+  const resetLink = `${clientUrl}/reset-password?token=${resetToken}`;
+
+  try {
+    await emailService.sendResetPasswordEmail(user.email, user.username, resetLink, otp);
+  } catch (err) {
+    console.error('[forgotPassword] Failed to send email:', err);
+  }
+
+  return { message: 'If an account with that email exists, a reset link has been sent.', resetToken, otp };
+};
+
+const verifyOTP = async ({ email, otp }) => {
+  const user = await require('../models/User').findOne({ email })
+    .select('+passwordResetOTPHash +passwordResetOTPExpires +passwordResetToken +passwordResetExpires');
+
+  if (!user || !user.passwordResetOTPHash || !user.passwordResetOTPExpires) {
+    throw new AppError('INVALID_OTP', 'Invalid or expired OTP. Please request a new one.', 400);
+  }
+
+  if (user.passwordResetOTPExpires < new Date()) {
+    throw new AppError('EXPIRED_OTP', 'OTP has expired. Please request a new one.', 400);
+  }
+
+  const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
+  if (user.passwordResetOTPHash !== otpHash) {
+    throw new AppError('INVALID_OTP', 'Invalid OTP. Please try again.', 400);
+  }
+
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+  const resetExpires = new Date(Date.now() + PASSWORD_RESET_EXPIRY_MINUTES * 60 * 1000);
+
+  await userRepository.updateById(user._id, {
+    passwordResetToken: resetTokenHash,
+    passwordResetExpires: resetExpires,
+    passwordResetOTPHash: null,
+    passwordResetOTPExpires: null,
+  });
+
+  return { resetToken };
 };
 
 const resetPassword = async ({ token, password }) => {
@@ -256,6 +302,7 @@ module.exports = {
   getMe,
   logout,
   forgotPassword,
+  verifyOTP,
   resetPassword,
   checkAvailability,
   updateProfile,

@@ -122,6 +122,16 @@ const userSchema = new mongoose.Schema(
       default: null,
       select: false,
     },
+    passwordResetOTPHash: {
+      type: String,
+      default: null,
+      select: false,
+    },
+    passwordResetOTPExpires: {
+      type: Date,
+      default: null,
+      select: false,
+    },
   },
   {
     timestamps: true,

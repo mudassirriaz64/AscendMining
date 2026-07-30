@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Eye, Trash2, Mail } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -13,7 +13,9 @@ import DataTable from '../../../components/common/DataTable';
 import Button from '../../../components/common/Button';
 import Modal from '../../../components/common/Modal';
 import Pagination from '../../../components/common/Pagination';
+import ConfirmModal from '../../../components/common/ConfirmModal';
 import { formatDate } from '../../../utils/formatters';
+import usePolling from '../../../hooks/usePolling';
 
 const AdminContactMessagesPage = () => {
   const dispatch = useDispatch();
@@ -21,10 +23,17 @@ const AdminContactMessagesPage = () => {
 
   const [page, setPage] = useState(1);
   const [viewingMessage, setViewingMessage] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null });
 
-  useEffect(() => {
+  const loadMessages = useCallback(() => {
     dispatch(fetchAdminContactMessages({ page, limit: 20 }));
   }, [dispatch, page]);
+
+  useEffect(() => {
+    loadMessages();
+  }, [loadMessages]);
+
+  usePolling(loadMessages, 30000);
 
   useEffect(() => {
     if (actionSuccess) {
@@ -48,12 +57,7 @@ const AdminContactMessagesPage = () => {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to permanently delete this message?')) {
-      dispatch(deleteAdminContactMessage(id));
-      if (viewingMessage && viewingMessage._id === id) {
-        setViewingMessage(null);
-      }
-    }
+    setConfirmDelete({ open: true, id });
   };
 
   const columns = [
@@ -175,6 +179,22 @@ const AdminContactMessagesPage = () => {
           </div>
         )}
       </Modal>
+
+      <ConfirmModal
+        isOpen={confirmDelete.open}
+        onClose={() => setConfirmDelete({ open: false, id: null })}
+        onConfirm={async () => {
+          try {
+            await dispatch(deleteAdminContactMessage(confirmDelete.id)).unwrap();
+            loadMessages();
+          } catch { /* error handled by Redux error state */ }
+          if (viewingMessage && viewingMessage._id === confirmDelete.id) setViewingMessage(null);
+          setConfirmDelete({ open: false, id: null });
+        }}
+        title="Delete Message"
+        message="Are you sure you want to permanently delete this message?"
+        variant="danger"
+      />
     </div>
   );
 };

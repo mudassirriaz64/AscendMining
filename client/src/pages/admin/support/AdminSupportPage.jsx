@@ -5,6 +5,8 @@ import api from '../../../services/api';
 import { connectSocket, getSocket } from '../../../services/socketService';
 import { formatRelativeTime, formatFullTimestamp } from '../../../utils/date';
 import { triggerTabFlash } from '../../../utils/browser';
+import ConfirmModal from '../../../components/common/ConfirmModal';
+import PromptModal from '../../../components/common/PromptModal';
 
 const STATUS = {
   open: ['Open', 'bg-amber-50 text-amber-800'],
@@ -43,6 +45,11 @@ const AdminSupportPage = () => {
   const [uploading, setUploading] = useState(false);
   const [pendingAttachment, setPendingAttachment] = useState(null);
   const [enlargedImage, setEnlargedImage] = useState(null);
+
+  const [confirmDeleteSession, setConfirmDeleteSession] = useState({ open: false, id: null });
+  const [confirmCloseSession, setConfirmCloseSession] = useState({ open: false, id: null });
+  const [confirmDeleteConversationModal, setConfirmDeleteConversationModal] = useState(false);
+  const [promptCreateSession, setPromptCreateSession] = useState(false);
 
   const chatContainerRef = useRef(null);
   const inputRef = useRef(null);
@@ -349,7 +356,10 @@ const AdminSupportPage = () => {
   };
 
   const deleteSession = async (sessionId) => {
-    if (!window.confirm('Delete this session and all its messages?')) return;
+    setConfirmDeleteSession({ open: true, id: sessionId });
+  };
+
+  const executeDeleteSession = async (sessionId) => {
     try {
       await api.delete(`/admin/support/conversations/sessions/${sessionId}`);
       setActiveSessions((current) => current.filter((s) => s._id !== sessionId));
@@ -359,7 +369,10 @@ const AdminSupportPage = () => {
   };
 
   const handleCloseSession = async (sessionId) => {
-    if (!window.confirm('Are you sure you want to close this session?')) return;
+    setConfirmCloseSession({ open: true, id: sessionId });
+  };
+
+  const executeCloseSession = async (sessionId) => {
     try {
       await api.patch(`/admin/support/conversations/sessions/${sessionId}/close`);
       setActiveSessions((current) => current.map((s) => s._id === sessionId ? { ...s, closedAt: new Date(), closeReason: 'admin' } : s));
@@ -373,9 +386,7 @@ const AdminSupportPage = () => {
     }
   };
 
-  const handleCreateSession = async () => {
-    const title = window.prompt("Enter a title for the new session (optional):");
-    if (title === null) return;
+  const handleCreateSession = async (title) => {
     try {
       const response = await api.post(`/admin/support/conversations/${selectedId}/sessions`, { title });
       const newSession = response.data.data.session;
@@ -387,7 +398,10 @@ const AdminSupportPage = () => {
   };
 
   const handleDeleteConversation = async () => {
-    if (!window.confirm("Are you sure you want to delete this ENTIRE conversation, including all its sessions and messages? This action is irreversible.")) return;
+    setConfirmDeleteConversationModal(true);
+  };
+
+  const executeDeleteConversation = async () => {
     try {
       await api.delete(`/admin/support/conversations/${selectedId}`);
       setConversations((current) => current.filter((c) => c._id !== selectedId));
@@ -509,7 +523,7 @@ const AdminSupportPage = () => {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={handleCreateSession}
+                      onClick={() => setPromptCreateSession(true)}
                       className="rounded-lg border border-border-light bg-white px-3 py-1.5 text-xs font-semibold text-text-main shadow-sm hover:bg-bg-light-alt transition-colors flex items-center gap-1 cursor-pointer"
                     >
                       <Plus size={13} />
@@ -789,6 +803,42 @@ const AdminSupportPage = () => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={confirmDeleteSession.open}
+        onClose={() => setConfirmDeleteSession({ open: false, id: null })}
+        onConfirm={() => { executeDeleteSession(confirmDeleteSession.id); setConfirmDeleteSession({ open: false, id: null }); }}
+        title="Delete Session"
+        message="Delete this session and all its messages?"
+        variant="danger"
+      />
+
+      <ConfirmModal
+        isOpen={confirmCloseSession.open}
+        onClose={() => setConfirmCloseSession({ open: false, id: null })}
+        onConfirm={() => { executeCloseSession(confirmCloseSession.id); setConfirmCloseSession({ open: false, id: null }); }}
+        title="Close Session"
+        message="Are you sure you want to close this session?"
+        variant="warning"
+      />
+
+      <ConfirmModal
+        isOpen={confirmDeleteConversationModal}
+        onClose={() => setConfirmDeleteConversationModal(false)}
+        onConfirm={() => { executeDeleteConversation(); setConfirmDeleteConversationModal(false); }}
+        title="Delete Conversation"
+        message="Are you sure you want to delete this ENTIRE conversation, including all its sessions and messages? This action is irreversible."
+        variant="danger"
+      />
+
+      <PromptModal
+        isOpen={promptCreateSession}
+        onClose={() => setPromptCreateSession(false)}
+        onSubmit={(title) => { handleCreateSession(title); setPromptCreateSession(false); }}
+        title="New Session"
+        message="Enter a title for the new session (optional):"
+        placeholder="Session title..."
+      />
     </div>
   );
 };

@@ -358,7 +358,7 @@ const AuditLogsPage = () => {
             </div>
 
             <div className="flex justify-end pt-2">
-              <Button onClick={() => setModalOpen(false)}>Close Inspector</Button>
+              <Button variant="ghost" onClick={() => setModalOpen(false)}>Close Inspector</Button>
             </div>
           </div>
         </Modal>

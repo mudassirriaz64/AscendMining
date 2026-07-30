@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertCircle, Headphones, Send, X, Plus, Trash2, ChevronDown, RefreshCw, Paperclip, FileText, Image as ImageIcon, Download, Loader2 } from 'lucide-react';
+import ConfirmModal from './ConfirmModal';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 import { connectSocket, getSocket } from '../../services/socketService';
@@ -32,6 +33,8 @@ const SupportChatWidget = () => {
   const [uploading, setUploading] = useState(false);
   const [pendingAttachment, setPendingAttachment] = useState(null);
   const [enlargedImage, setEnlargedImage] = useState(null);
+  const [confirmDeleteConvo, setConfirmDeleteConvo] = useState(false);
+  const [confirmDeleteSession, setConfirmDeleteSession] = useState({ open: false, id: null });
 
   const chatContainerRef = useRef(null);
   const inputRef = useRef(null);
@@ -245,8 +248,11 @@ const SupportChatWidget = () => {
     }
   };
 
-  const handleDeleteConversation = async () => {
-    if (!window.confirm('Are you sure you want to delete your entire chat history? This action is irreversible.')) return;
+  const handleDeleteConversation = () => {
+    setConfirmDeleteConvo(true);
+  };
+
+  const executeDeleteConversation = async () => {
     try {
       await api.delete('/support/conversations');
       setConversation(null);
@@ -271,8 +277,11 @@ const SupportChatWidget = () => {
     }
   };
 
-  const deleteSession = async (sessionId) => {
-    if (!window.confirm('Delete this session and all its messages?')) return;
+  const deleteSession = (sessionId) => {
+    setConfirmDeleteSession({ open: true, id: sessionId });
+  };
+
+  const executeDeleteSession = async (sessionId) => {
     try {
       await api.delete(`/support/conversations/sessions/${sessionId}`);
       setSessions((current) => current.filter((s) => s._id !== sessionId));
@@ -721,6 +730,24 @@ const SupportChatWidget = () => {
           {conversation?.unreadByUser ? <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-danger px-1.5 py-0.5 text-[10px] font-bold text-white">1</span> : null}
         </button>
       )}
+
+      <ConfirmModal
+        isOpen={confirmDeleteConvo}
+        onClose={() => setConfirmDeleteConvo(false)}
+        onConfirm={() => { executeDeleteConversation(); setConfirmDeleteConvo(false); }}
+        title="Delete Chat History"
+        message="Are you sure you want to delete your entire chat history? This action is irreversible."
+        variant="danger"
+      />
+
+      <ConfirmModal
+        isOpen={confirmDeleteSession.open}
+        onClose={() => setConfirmDeleteSession({ open: false, id: null })}
+        onConfirm={() => { executeDeleteSession(confirmDeleteSession.id); setConfirmDeleteSession({ open: false, id: null }); }}
+        title="Delete Session"
+        message="Delete this session and all its messages?"
+        variant="danger"
+      />
     </div>
   );
 };
