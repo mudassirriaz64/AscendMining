@@ -116,10 +116,19 @@ const adminCoinSlice = createSlice({
       .addCase(fetchCoinDetail.fulfilled, (state, action) => {
         state.coinDetail = action.payload;
       })
+      .addCase(createCoin.pending, (state) => {
+        state.error = null;
+      })
       .addCase(createCoin.fulfilled, (state, action) => {
         state.coins.unshift(action.payload);
         state.coinsTotal += 1;
         state.actionSuccess = 'Coin created successfully.';
+      })
+      .addCase(createCoin.rejected, (state, action) => {
+        state.error = action.payload;
+      })
+      .addCase(updateCoin.pending, (state) => {
+        state.error = null;
       })
       .addCase(updateCoin.fulfilled, (state, action) => {
         const idx = state.coins.findIndex((c) => c._id === action.payload._id);
@@ -127,11 +136,17 @@ const adminCoinSlice = createSlice({
         if (state.coinDetail?._id === action.payload._id) state.coinDetail = action.payload;
         state.actionSuccess = 'Coin updated successfully.';
       })
+      .addCase(updateCoin.rejected, (state, action) => {
+        state.error = action.payload;
+      })
       .addCase(toggleCoinStatus.fulfilled, (state, action) => {
         const idx = state.coins.findIndex((c) => c._id === action.payload._id);
         if (idx !== -1) state.coins[idx] = action.payload;
         if (state.coinDetail?._id === action.payload._id) state.coinDetail = action.payload;
         state.actionSuccess = 'Coin status toggled.';
+      })
+      .addCase(toggleCoinStatus.rejected, (state, action) => {
+        state.error = action.payload;
       })
       .addCase(deleteCoin.fulfilled, (state, action) => {
         state.coins = state.coins.filter((c) => c._id !== action.payload);

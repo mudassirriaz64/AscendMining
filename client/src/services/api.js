@@ -15,6 +15,14 @@ const api = axios.create({
 // Request cache key
 const cacheKey = (config) => `${config.method}:${config.url}:${JSON.stringify(config.params || {})}`;
 
+// Normalize a request URL into the public resource prefix used as a cache key,
+// e.g. '/admin/coins/abc123/toggle' -> '/coins', '/packages/xyz' -> '/packages'.
+const resourcePrefix = (url) => {
+  const parts = url.split('?')[0].split('/').filter(Boolean);
+  if (parts[0] === 'admin' && parts[1]) return `/${parts[1]}`;
+  return parts[0] ? `/${parts[0]}` : url;
+};
+
 // Request Interceptor: Attach access token + cache hit for GET
 api.interceptors.request.use(
   (config) => {
@@ -22,7 +30,9 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    if (config.method === 'get') {
+    // Admin data is frequently mutated — never serve a cached list for it,
+    // otherwise create/edit/delete changes appear stale until a full reload.
+    if (config.method === 'get' && !config.url.startsWith('/admin/')) {
       const key = cacheKey(config);
       const cached = cache.get(key);
       if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
@@ -51,13 +61,21 @@ const processQueue = (error, token = null) => {
 
 api.interceptors.response.use(
   (response) => {
-    if (response.config.method === 'get' && !response.config._retry) {
-      const key = cacheKey(response.config);
-      cache.set(key, { data: response.data, timestamp: Date.now() });
-      if (cache.size > 100) {
-        const oldest = cache.keys().next().value;
-        cache.delete(oldest);
+    const { method, url } = response.config;
+    if (method === 'get') {
+      // Cache public GETs only; admin responses are never cached (see request interceptor).
+      if (!url.startsWith('/admin/') && !response.config._retry) {
+        const key = cacheKey(response.config);
+        cache.set(key, { data: response.data, timestamp: Date.now() });
+        if (cache.size > 100) {
+          const oldest = cache.keys().next().value;
+          cache.delete(oldest);
+        }
       }
+    } else {
+      // A mutation succeeded — drop any cached list for that resource so
+      // subsequent reads reflect the change immediately.
+      invalidateCache(resourcePrefix(url));
     }
     return response;
   },
@@ -109,6 +127,8 @@ api.interceptors.response.use(
         try {
           const { updateSocketToken } = await import('./socketService');
           updateSocketToken(accessToken);
+          const { updateDashboardSocketToken } = await import('./dashboardSocket');
+          updateDashboardSocketToken(accessToken);
         } catch (e) {
           console.warn('Socket token update failed:', e);
         }

@@ -48,6 +48,13 @@ const AdminContactMessagesPage = () => {
   }, [loadMessages]);
 
   useEffect(() => {
+    const interval = setInterval(() => {
+      if (!loading) loadMessages();
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [loadMessages, loading]);
+
+  useEffect(() => {
     if (actionSuccess) {
       toast.success(actionSuccess);
       dispatch(clearAdminContactMessageSuccess());

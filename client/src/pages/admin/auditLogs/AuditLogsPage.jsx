@@ -99,7 +99,7 @@ const AuditLogsPage = () => {
 
     const parseObj = (val) => {
       if (typeof val === 'string') {
-        try { return JSON.parse(val); } catch(e) { return val; }
+        try { return JSON.parse(val); } catch { return val; }
       }
       return val;
     };
@@ -166,7 +166,7 @@ const AuditLogsPage = () => {
       label: 'Actor (Admin)',
       render: (val) => (
         <div>
-          <span className="font-bold text-text-light-bg">{val?.username || 'System'}</span>
+          <span className="font-bold text-text-light-bg">{val?.fullName || 'System'}</span>
           <span className="block text-xxs text-text-secondary font-mono">{val?.email || ''}</span>
         </div>
       ),
@@ -185,7 +185,7 @@ const AuditLogsPage = () => {
             {log.targetType}
           </span>
           <span className="block text-xxs text-text-secondary font-mono truncate max-w-xs" title={log.targetId}>
-            ID: {log.targetId}
+            {log.targetName || `ID: ${log.targetId}`}
           </span>
         </div>
       ),
@@ -222,6 +222,7 @@ const AuditLogsPage = () => {
     'package_created',
     'package_updated',
     'package_cancelled',
+    'package_deleted',
     'wallet_adjustment',
     'referral_blocked',
     'cms_content_updated',
@@ -326,7 +327,7 @@ const AuditLogsPage = () => {
               <div>
                 <p className="text-text-secondary text-xs uppercase font-semibold">Administrator</p>
                 <p className="font-bold text-text-light-bg mt-1">
-                  {selectedLog.actorId?.username || 'System'} 
+                  {selectedLog.actorId?.fullName || 'System'} 
                   <span className="font-mono font-normal text-xs text-text-secondary ml-1">
                     ({selectedLog.actorId?.email || 'system@ascendmining.com'})
                   </span>
@@ -337,7 +338,7 @@ const AuditLogsPage = () => {
                 <p className="text-text-light-bg font-semibold mt-1">
                   {selectedLog.targetType} 
                   <span className="font-mono font-normal text-xs text-text-secondary ml-1">
-                    ({selectedLog.targetId})
+                    {selectedLog.targetName ? `${selectedLog.targetName} (${selectedLog.targetId})` : selectedLog.targetId}
                   </span>
                 </p>
               </div>

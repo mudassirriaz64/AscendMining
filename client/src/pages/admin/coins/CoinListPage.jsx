@@ -13,7 +13,7 @@ import toast from 'react-hot-toast';
 
 const CoinListPage = () => {
   const dispatch = useDispatch();
-  const { coins, coinsTotal, coinsPage, coinsLimit, loading, error, actionSuccess } = useSelector(
+  const { coins, coinsTotal, coinsLimit, loading, error, actionSuccess } = useSelector(
     (state) => state.adminCoins
   );
 
@@ -131,7 +131,7 @@ const CoinListPage = () => {
         <div className="w-64">
           <SearchInput
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onChange={(value) => { setSearch(value); setPage(1); }}
             placeholder="Search coins..."
           />
         </div>

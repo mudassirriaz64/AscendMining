@@ -1,6 +1,6 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Check, X, Eye, FileText, Calendar, User as UserIcon } from 'lucide-react';
+import { Check, X, Eye } from 'lucide-react';
 import { fetchAdminKYCRequests, approveUserKYC, rejectUserKYC, clearKYCStatus } from '../../../store/slices/kycSlice';
 import DataTable from '../../../components/common/DataTable';
 import Pagination from '../../../components/common/Pagination';
@@ -13,7 +13,7 @@ import { connectDashboardSocket } from '../../../services/dashboardSocket';
 
 const AdminKYCPage = () => {
   const dispatch = useDispatch();
-  const { pendingRequests, requestsTotal, requestsPage, requestsLimit, loading, error, success, actionSuccessMessage } = useSelector(
+  const { pendingRequests, requestsTotal, requestsLimit, loading, error, success, actionSuccessMessage } = useSelector(
     (state) => state.kyc
   );
 
@@ -27,13 +27,13 @@ const AdminKYCPage = () => {
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
 
-  const loadRequests = () => {
+  const loadRequests = useCallback(() => {
     dispatch(fetchAdminKYCRequests({ page, limit: requestsLimit }));
-  };
+  }, [dispatch, page, requestsLimit]);
 
   useEffect(() => {
     loadRequests();
-  }, [dispatch, page]);
+  }, [loadRequests]);
 
   useEffect(() => {
     const socket = connectDashboardSocket();
@@ -47,7 +47,14 @@ const AdminKYCPage = () => {
     return () => {
       socket.off('admin:user:status', handleStatusChange);
     };
-  }, []);
+  }, [loadRequests]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!loading) loadRequests();
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [loadRequests, loading]);
 
   useEffect(() => {
     if (success) {

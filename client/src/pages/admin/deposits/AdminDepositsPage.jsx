@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ArrowDownToLine, Image as ImageIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { fetchAdminDeposits, approveAdminDeposit, rejectAdminDeposit, clearAdminDepositError, clearAdminDepositSuccess } from '../../../store/slices/adminDepositSlice';
-import SearchInput from '../../../components/common/SearchInput';
 import FilterChips from '../../../components/common/FilterChips';
 import DataTable from '../../../components/common/DataTable';
 import Pagination from '../../../components/common/Pagination';
@@ -22,7 +21,7 @@ const statusFilters = [
 
 const AdminDepositsPage = () => {
   const dispatch = useDispatch();
-  const { deposits, total, page: currentPage, limit, loading, error, actionSuccess } = useSelector((s) => s.adminDeposits);
+  const { deposits, total, limit, loading, error, actionSuccess } = useSelector((s) => s.adminDeposits);
 
   const [status, setStatus] = useState('pending');
   const [page, setPage] = useState(1);
@@ -55,6 +54,13 @@ const AdminDepositsPage = () => {
       socket.off('admin:deposit:new', handleNewDeposit);
     };
   }, [loadDeposits]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!loading) loadDeposits();
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [loadDeposits, loading]);
 
   useEffect(() => {
     if (actionSuccess) {

@@ -129,10 +129,19 @@ const adminPackageSlice = createSlice({
       .addCase(fetchAdminPackageDetail.fulfilled, (state, action) => {
         state.packageDetail = action.payload;
       })
+      .addCase(createAdminPackage.pending, (state) => {
+        state.error = null;
+      })
       .addCase(createAdminPackage.fulfilled, (state, action) => {
         state.packages.unshift(action.payload);
         state.packagesTotal += 1;
         state.actionSuccess = 'Package created successfully.';
+      })
+      .addCase(createAdminPackage.rejected, (state, action) => {
+        state.error = action.payload;
+      })
+      .addCase(updateAdminPackage.pending, (state) => {
+        state.error = null;
       })
       .addCase(updateAdminPackage.fulfilled, (state, action) => {
         const idx = state.packages.findIndex((p) => p._id === action.payload._id);
@@ -140,19 +149,31 @@ const adminPackageSlice = createSlice({
         if (state.packageDetail?._id === action.payload._id) state.packageDetail = action.payload;
         state.actionSuccess = 'Package updated successfully.';
       })
+      .addCase(updateAdminPackage.rejected, (state, action) => {
+        state.error = action.payload;
+      })
       .addCase(toggleAdminPackageStatus.fulfilled, (state, action) => {
         const idx = state.packages.findIndex((p) => p._id === action.payload._id);
         if (idx !== -1) state.packages[idx] = action.payload;
         if (state.packageDetail?._id === action.payload._id) state.packageDetail = action.payload;
         state.actionSuccess = 'Package status toggled.';
       })
+      .addCase(toggleAdminPackageStatus.rejected, (state, action) => {
+        state.error = action.payload;
+      })
       .addCase(fetchAllCoins.fulfilled, (state, action) => {
         state.allCoins = action.payload;
+      })
+      .addCase(deleteAdminPackage.pending, (state) => {
+        state.error = null;
       })
       .addCase(deleteAdminPackage.fulfilled, (state, action) => {
         state.packages = state.packages.filter((p) => p._id !== action.payload._id);
         state.packagesTotal = Math.max(0, state.packagesTotal - 1);
         state.actionSuccess = 'Package deleted successfully.';
+      })
+      .addCase(deleteAdminPackage.rejected, (state, action) => {
+        state.error = action.payload;
       });
   },
 });

@@ -13,7 +13,7 @@ import toast from 'react-hot-toast';
 
 const PackageListPage = () => {
   const dispatch = useDispatch();
-  const { packages, packagesTotal, packagesPage, packagesLimit, loading, error, actionSuccess } = useSelector(
+  const { packages, packagesTotal, packagesLimit, loading, error, actionSuccess } = useSelector(
     (state) => state.adminPackages
   );
 
@@ -130,7 +130,7 @@ const PackageListPage = () => {
         <div className="w-64">
           <SearchInput
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onChange={(value) => { setSearch(value); setPage(1); }}
             placeholder="Search packages..."
           />
         </div>

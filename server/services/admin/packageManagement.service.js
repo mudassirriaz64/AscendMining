@@ -59,9 +59,9 @@ const updatePackage = async (packageId, updateData, adminId, ip) => {
     if (updateData.coins.length === 0) {
       throw new AppError('COINS_REQUIRED', 'At least one coin must be assigned to the package.', 400);
     }
-    const coins = await coinRepository.findAll({ _id: { $in: updateData.coins }, isActive: true });
+    const coins = await coinRepository.findAll({ _id: { $in: updateData.coins } });
     if (coins.length !== updateData.coins.length) {
-      throw new AppError('INVALID_COINS', 'One or more selected coins are invalid or inactive.', 400);
+      throw new AppError('INVALID_COINS', 'One or more selected coins are invalid.', 400);
     }
   }
 

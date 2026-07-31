@@ -3,12 +3,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { createCoin, updateCoin, clearCoinError } from '../../../store/slices/adminCoinSlice';
+import { createCoin, updateCoin } from '../../../store/slices/adminCoinSlice';
 import Modal from '../../../components/common/Modal';
 import InputField from '../../../components/common/InputField';
 import Button from '../../../components/common/Button';
 import ErrorMessage from '../../../components/common/ErrorMessage';
-import toast from 'react-hot-toast';
 
 const COIN_ICONS = [
   { symbol: 'BTC', label: 'Bitcoin', color: '#F7931A' },
@@ -61,7 +60,6 @@ const CoinFormModal = ({ isOpen, onClose, coin }) => {
     handleSubmit,
     reset,
     setValue,
-    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(coinSchema),
@@ -109,7 +107,7 @@ const CoinFormModal = ({ isOpen, onClose, coin }) => {
     const payload = {
       ...data,
       symbol: data.symbol.toUpperCase(),
-      logoUrl: data.logoUrl || selectedIcon?.symbol || null,
+      logoUrl: data.logoUrl || null,
     };
 
     if (isEditing) {

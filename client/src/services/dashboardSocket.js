@@ -6,6 +6,7 @@ let socket;
 export const connectDashboardSocket = () => {
   if (socket?.connected) return socket;
   if (socket) {
+    socket.auth = { ...socket.auth, token: getAccessToken() };
     socket.connect();
     return socket;
   }
@@ -16,6 +17,11 @@ export const connectDashboardSocket = () => {
     reconnection: true,
     reconnectionDelay: 1000,
     reconnectionAttempts: 10,
+  });
+  socket.on('connect_error', (err) => {
+    if (err?.message && /auth|token|unauthorized/i.test(err.message)) {
+      socket.auth = { ...socket.auth, token: getAccessToken() };
+    }
   });
   return socket;
 };

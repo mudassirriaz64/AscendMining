@@ -20,6 +20,7 @@ const adminLogSchema = new mongoose.Schema(
         'package_created',
         'package_updated',
         'package_cancelled',
+        'package_deleted',
         'wallet_adjustment',
         'referral_blocked',
         'cms_content_updated',

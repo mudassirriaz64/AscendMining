@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { ArrowUpRight } from 'lucide-react';
 import WalletAddressCell from '../../../components/common/WalletAddressCell';
 import toast from 'react-hot-toast';
 import { fetchAdminWithdrawals, approveAdminWithdrawal, rejectAdminWithdrawal, clearAdminWithdrawalError, clearAdminWithdrawalSuccess } from '../../../store/slices/adminWithdrawalSlice';
@@ -59,6 +58,13 @@ const AdminWithdrawalsPage = () => {
       socket.off('admin:withdrawal:rejected', handleNewWithdrawal);
     };
   }, [loadWithdrawals]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!loading) loadWithdrawals();
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [loadWithdrawals, loading]);
 
   useEffect(() => {
     if (actionSuccess) {

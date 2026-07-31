@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
-  ShieldCheck, Upload, AlertCircle, FileText, CheckCircle2, Clock, ShieldAlert, ArrowLeft
+  ShieldCheck, Upload, FileText, CheckCircle2, Clock, ShieldAlert, ArrowLeft
 } from 'lucide-react';
 import { submitKYC, clearKYCStatus } from '../../store/slices/kycSlice';
-import { checkAuth } from '../../store/slices/authSlice';
+import { checkAuth, updateUserKycStatus } from '../../store/slices/authSlice';
+import { connectDashboardSocket } from '../../services/dashboardSocket';
 import Header from '../../components/common/Header';
 import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
@@ -28,15 +29,44 @@ const KYCPage = () => {
     city: '',
   });
 
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
   // Always fetch fresh user profile on mount so KYC status is up-to-date
   // (admin may have approved/rejected while user was logged in)
   useEffect(() => {
     dispatch(checkAuth());
   }, [dispatch]);
 
+  // Live-update when the admin approves/rejects KYC so the view changes
+  // without requiring a manual refresh.
+  useEffect(() => {
+    const socket = connectDashboardSocket();
+
+    const handleStatusChange = () => {
+      dispatch(checkAuth());
+    };
+
+    socket.on('user:status:change', handleStatusChange);
+
+    return () => {
+      socket.off('user:status:change', handleStatusChange);
+    };
+  }, [dispatch]);
+
+  // Polling fallback: guarantees the status view updates when the admin
+  // approves/rejects, even if the socket is unavailable.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      dispatch(checkAuth());
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [dispatch]);
+
   useEffect(() => {
     if (success) {
       toast.success(actionSuccessMessage || 'KYC submitted successfully!');
+      dispatch(updateUserKycStatus({ kycStatus: 'pending' }));
       dispatch(clearKYCStatus());
       setDocumentImage('');
       setImagePreview('');
@@ -69,6 +99,10 @@ const KYCPage = () => {
     e.preventDefault();
     if (!personalInfo.fullName || !personalInfo.dateOfBirth || !personalInfo.documentNumber) {
       toast.error('Please fill in Full Name, Date of Birth, and Document Number.');
+      return;
+    }
+    if (personalInfo.dateOfBirth > todayStr) {
+      toast.error('Date of birth cannot be in the future.');
       return;
     }
     if (!documentImage) {
@@ -220,6 +254,7 @@ const KYCPage = () => {
                       <input
                         type="date"
                         required
+                        max={todayStr}
                         value={personalInfo.dateOfBirth}
                         onChange={(e) => setPersonalInfo(p => ({ ...p, dateOfBirth: e.target.value }))}
                         className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-[#185adb] transition"
