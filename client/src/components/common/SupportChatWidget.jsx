@@ -707,9 +707,9 @@ const SupportChatWidget = () => {
                 onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); send(); } }}
                 rows={1}
                 maxLength={500}
-                placeholder="Type your message (Max 200MB attachment)"
+                placeholder="Type a message..."
                 aria-label="Message"
-                className="min-h-10 flex-1 resize-none rounded-xl border border-border-light px-3 py-2 text-sm outline-none placeholder:text-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/25 cursor-pointer max-h-24 overflow-y-auto"
+                className="min-h-10 flex-1 resize-none rounded-xl border border-border-light px-3 py-2 text-sm outline-none placeholder:text-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/25 max-h-24 overflow-y-auto cursor-text"
                 style={{ height: 'auto' }}
               />
               <button type="button" aria-label="Send message" disabled={(!body.trim() && !pendingAttachment) || sending || uploading} onClick={send} className="grid h-10 w-10 place-items-center rounded-xl bg-primary-container text-on-primary-fixed hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primary-container/20 disabled:opacity-50 cursor-pointer shrink-0 mb-0.5"><Send size={17} /></button>

@@ -180,34 +180,24 @@ const AdminLayout = () => {
   // SLA looping tone alarm loop
   useEffect(() => {
     if (muted || waitingIds.size === 0 || !audioUnlocked) return undefined;
-    const playAlarm = () => {
+    const playBuzzer = () => {
       try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const context = new AudioContext();
         const now = context.currentTime;
         
-        // Piercing sawtooth wave for emergency feel, paired with detuned sine for full alert effect
+        // Two oscillators (triangle + sawtooth) detuned slightly to synthesize a rich, premium buzzer texture
         const osc1 = context.createOscillator();
         const osc2 = context.createOscillator();
         const gain = context.createGain();
 
-        osc1.type = 'sawtooth';
-        osc2.type = 'sine';
+        osc1.type = 'triangle';
+        osc2.type = 'sawtooth';
 
-        // Sirening pitch modulation: oscillating up and down
-        osc1.frequency.setValueAtTime(700, now);
-        osc1.frequency.linearRampToValueAtTime(1000, now + 0.35);
-        osc1.frequency.linearRampToValueAtTime(700, now + 0.7);
-        osc1.frequency.linearRampToValueAtTime(1000, now + 1.05);
-        osc1.frequency.linearRampToValueAtTime(700, now + 1.4);
+        osc1.frequency.value = 220; // 220Hz low electronic buzz base tone
+        osc2.frequency.value = 222; // detuned slightly to create texture
 
-        osc2.frequency.setValueAtTime(705, now);
-        osc2.frequency.linearRampToValueAtTime(1005, now + 0.35);
-        osc2.frequency.linearRampToValueAtTime(705, now + 0.7);
-        osc2.frequency.linearRampToValueAtTime(1005, now + 1.05);
-        osc2.frequency.linearRampToValueAtTime(705, now + 1.4);
-
-        // LOUDER alarm volume (0.35 instead of 0.12)
+        // Continuous ringing buzz for 1.4s (full volume, then fades out at the very end)
         gain.gain.setValueAtTime(0.35, now);
         gain.gain.setValueAtTime(0.35, now + 1.25);
         gain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
@@ -225,11 +215,11 @@ const AdminLayout = () => {
           context.close();
         };
       } catch (e) {
-        console.warn('SLA alarm sound failed:', e);
+        console.warn('SLA buzzer sound failed:', e);
       }
     };
-    playAlarm();
-    const interval = window.setInterval(playAlarm, 2000);
+    playBuzzer();
+    const interval = window.setInterval(playBuzzer, 2000);
     return () => window.clearInterval(interval);
   }, [muted, waitingIds.size, audioUnlocked]);
 

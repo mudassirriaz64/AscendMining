@@ -51,10 +51,25 @@ const SVGLineChart = ({ data, dataKey, strokeColor = '#F5C518', height = 140 }) 
 
   return (
     <div className="relative w-full h-[140px] mt-4">
+      <style>{`
+        @keyframes drawLine {
+          from {
+            stroke-dashoffset: 1000;
+          }
+          to {
+            stroke-dashoffset: 0;
+          }
+        }
+        .animate-draw {
+          stroke-dasharray: 1000;
+          stroke-dashoffset: 1000;
+          animation: drawLine 2.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+      `}</style>
       <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible" preserveAspectRatio="none">
         <defs>
           <linearGradient id={`grad-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={strokeColor} stopOpacity={0.15} />
+            <stop offset="0%" stopColor={strokeColor} stopOpacity={0.18} />
             <stop offset="100%" stopColor={strokeColor} stopOpacity={0.0} />
           </linearGradient>
         </defs>
@@ -66,12 +81,54 @@ const SVGLineChart = ({ data, dataKey, strokeColor = '#F5C518', height = 140 }) 
         {/* Fill Area under chart line */}
         <path d={areaD} fill={`url(#grad-${dataKey})`} />
 
-        {/* Chart Line Path */}
-        <path d={pathD} fill="none" stroke={strokeColor} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+        {/* Glowing Background Blur Line Path */}
+        <path 
+          d={pathD} 
+          fill="none" 
+          stroke={strokeColor} 
+          strokeWidth={4} 
+          strokeLinecap="round" 
+          strokeLinejoin="round" 
+          className="animate-draw opacity-50"
+          style={{ filter: `blur(4px)` }} 
+        />
 
-        {/* Terminal node bubble */}
+        {/* Main sharp Chart Line Path */}
+        <path 
+          d={pathD} 
+          fill="none" 
+          stroke={strokeColor} 
+          strokeWidth={2} 
+          strokeLinecap="round" 
+          strokeLinejoin="round" 
+          className="animate-draw"
+        />
+
+        {/* Terminal node bubble with outer glowing pulse animation */}
         {data.length > 0 && (
-          <circle cx={getX(data.length - 1)} cy={getY(values[data.length - 1])} r={4} fill={strokeColor} stroke="#ffffff" strokeWidth={1} />
+          <>
+            {/* Pulsing ring */}
+            <circle 
+              cx={getX(data.length - 1)} 
+              cy={getY(values[data.length - 1])} 
+              r={9} 
+              fill={strokeColor} 
+              className="animate-ping opacity-60"
+              style={{
+                transformOrigin: `${getX(data.length - 1)}px ${getY(values[data.length - 1])}px`
+              }}
+            />
+            {/* Core dot */}
+            <circle 
+              cx={getX(data.length - 1)} 
+              cy={getY(values[data.length - 1])} 
+              r={4} 
+              fill={strokeColor} 
+              stroke="#ffffff" 
+              strokeWidth={1.5}
+              style={{ filter: `drop-shadow(0 0 3px ${strokeColor})` }}
+            />
+          </>
         )}
       </svg>
     </div>
