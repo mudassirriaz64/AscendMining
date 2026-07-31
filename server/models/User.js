@@ -51,10 +51,6 @@ const userSchema = new mongoose.Schema(
       enum: ['active', 'suspended', 'unverified'],
       default: 'unverified',
     },
-    emailVerifiedAt: {
-      type: Date,
-      default: null,
-    },
     walletBalance: {
       type: Number,
       default: 0,
@@ -128,16 +124,6 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
     passwordResetOTPExpires: {
-      type: Date,
-      default: null,
-      select: false,
-    },
-    emailVerificationOTPHash: {
-      type: String,
-      default: null,
-      select: false,
-    },
-    emailVerificationOTPExpires: {
       type: Date,
       default: null,
       select: false,

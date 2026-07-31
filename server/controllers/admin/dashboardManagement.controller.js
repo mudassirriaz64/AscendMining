@@ -2,7 +2,41 @@ const User = require('../../models/User');
 const UserPackage = require('../../models/UserPackage');
 const Deposit = require('../../models/Deposit');
 const Withdrawal = require('../../models/Withdrawal');
+const AdminLog = require('../../models/AdminLog');
 const SystemSetting = require('../../models/SystemSetting');
+
+const getPendingCounts = async (req, res, next) => {
+  try {
+    const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const toDate = (value, fallback) => {
+      const ts = Number(value);
+      return Number.isFinite(ts) && ts > 0 ? new Date(ts) : fallback;
+    };
+    const usersSince = toDate(req.query.lastSeenUsers, dayAgo);
+    const logsSince = toDate(req.query.lastSeenAuditLogs, dayAgo);
+
+    const [newUsers, pendingKYCs, pendingDeposits, pendingWithdrawals, recentLogs] = await Promise.all([
+      User.countDocuments({ role: 'investor', createdAt: { $gt: usersSince } }),
+      User.countDocuments({ role: 'investor', kycStatus: 'pending' }),
+      Deposit.countDocuments({ status: 'pending' }),
+      Withdrawal.countDocuments({ status: 'pending' }),
+      AdminLog.countDocuments({ createdAt: { $gt: logsSince } }),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        users: newUsers,
+        kyc: pendingKYCs,
+        deposits: pendingDeposits,
+        withdrawals: pendingWithdrawals,
+        auditLogs: recentLogs,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 const getLast30Days = () => {
   const dates = [];
@@ -214,5 +248,6 @@ const updateSystemStatus = async (req, res, next) => {
 
 module.exports = {
   getDashboardStats,
+  getPendingCounts,
   updateSystemStatus,
 };

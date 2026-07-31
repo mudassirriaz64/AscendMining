@@ -88,7 +88,7 @@ const approveKYC = async (userId, adminId, ip) => {
   // Update Mongoose user document status
   user.kycStatus = 'approved';
   if (user.status === 'unverified') {
-    user.status = 'active'; // Activate user
+    user.status = 'active'; // Activate user after KYC approval
   }
   user.kycRejectionReason = null;
   await user.save();

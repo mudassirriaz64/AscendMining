@@ -9,7 +9,6 @@ const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
-const VerifyEmailPage = lazy(() => import('./pages/auth/VerifyEmailPage'));
 const AdminLoginPage = lazy(() => import('./pages/admin/AdminLoginPage'));
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
 const WithdrawNowPage = lazy(() => import('./pages/withdrawal/WithdrawNowPage'));
@@ -180,7 +179,6 @@ const App = () => {
           <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
           <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
           <Route path="/reset-password" element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
-          <Route path="/verify-email" element={<PublicRoute><VerifyEmailPage /></PublicRoute>} />
           <Route path="/admin/login" element={<AdminPublicRoute><AdminLoginPage /></AdminPublicRoute>} />
 
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />

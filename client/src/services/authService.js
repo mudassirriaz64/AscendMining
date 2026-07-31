@@ -13,8 +13,6 @@ const authService = {
   checkAvailability: (params) => api.get('/auth/check-availability', { params }),
   updateProfile: (data) => api.put('/auth/profile', data),
   updatePassword: (data) => api.put('/auth/password', data),
-  verifyEmail: (data) => api.post('/auth/verify-email', data),
-  resendVerificationOTP: (data) => api.post('/auth/resend-verification-otp', data),
 };
 
 export default authService;

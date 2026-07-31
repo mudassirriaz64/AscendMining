@@ -1,25 +1,86 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { Users, Wallet, Cpu, CheckSquare, Send } from 'lucide-react';
+import { Users, Wallet, Cpu, CheckSquare, Send, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { fetchAdminDashboardStats, updateSystemStatusThunk } from '../../../store/slices/adminDashboardSlice';
 import LoadingSpinner from '../../../components/common/LoadingSpinner';
 
-const StatCard = ({ title, value, label, icon: Icon }) => (
-  <div className="bg-[#131b2e] border border-white/5 rounded-2xl p-6 shadow-xl flex items-center justify-between">
-    <div className="space-y-2">
-      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{title}</p>
-      <div className="flex items-baseline gap-2">
-        <h3 className="text-3xl font-bold text-white font-mono">{value}</h3>
-        {label && <span className="text-xs font-semibold text-emerald-400">{label}</span>}
+const StatCard = ({ title, value, label, icon: Icon, to, menu }) => {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const baseClass = 'bg-[#131b2e] border border-white/5 rounded-2xl p-6 shadow-xl flex items-center justify-between transition-all';
+
+  const content = (
+    <>
+      <div className="space-y-2">
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{title}</p>
+        <div className="flex items-baseline gap-2">
+          <h3 className="text-3xl font-bold text-white font-mono">{value}</h3>
+          {label && <span className="text-xs font-semibold text-emerald-400">{label}</span>}
+        </div>
+        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary/70 uppercase tracking-wider group-hover:text-primary transition-colors">
+          View More <ArrowRight size={12} />
+        </span>
       </div>
-    </div>
-    <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-inner">
-      <Icon size={24} />
-    </div>
-  </div>
-);
+      <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-inner">
+        <Icon size={24} />
+      </div>
+    </>
+  );
+
+  if (menu) {
+    return (
+      <div
+        ref={menuRef}
+        className={`relative ${baseClass} group cursor-pointer ${open ? 'border-primary/40 shadow-2xl' : 'hover:border-primary/40 hover:shadow-2xl'}`}
+      >
+        <button
+          type="button"
+          onClick={() => setOpen((prev) => !prev)}
+          className="absolute inset-0 z-10 cursor-pointer"
+          aria-label={`${title} - view more`}
+        />
+        <div className="pointer-events-none">{content}</div>
+        {open && (
+          <div className="absolute right-4 top-[calc(100%-8px)] z-20 w-56 bg-white rounded-xl shadow-2xl border border-slate-100 py-1.5">
+            {menu.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-between px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                {item.label}
+                <ArrowRight size={12} className="text-slate-400" />
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      to={to}
+      className={`${baseClass} group hover:border-primary/40 hover:shadow-2xl`}
+    >
+      {content}
+    </Link>
+  );
+};
 
 const SVGLineChart = ({ data, dataKey, strokeColor = '#F5C518', height = 140 }) => {
   if (!data || data.length === 0) {
@@ -199,24 +260,32 @@ const AdminDashboardPage = () => {
           title="Total Registered Users" 
           value={stats.totalUsers?.toLocaleString() || 0} 
           icon={Users} 
+          to="/admin/users"
         />
         <StatCard 
           title="Platform Liquidity" 
           value={`$${stats.platformLiquidity?.toLocaleString() || 0}`} 
           label="USD"
           icon={Wallet} 
+          to="/admin/deposits"
         />
         <StatCard 
           title="Active Mining Nodes" 
           value={stats.activePackages || 0} 
           label="Online"
           icon={Cpu} 
+          to="/admin/packages"
         />
         <StatCard 
           title="Pending Approvals" 
           value={stats.pendingApprovals || 0} 
           label="Requests"
           icon={CheckSquare} 
+          menu={[
+            { label: 'Pending KYC Verifications', to: '/admin/kyc' },
+            { label: 'Pending Deposits', to: '/admin/deposits' },
+            { label: 'Pending Withdrawals', to: '/admin/withdrawals' },
+          ]}
         />
       </div>
 

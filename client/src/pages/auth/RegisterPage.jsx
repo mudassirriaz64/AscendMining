@@ -4,7 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useState } from 'react';
-import { User, Mail, Phone, Lock, Globe, CheckCircle } from 'lucide-react';
+import { User, Mail, Phone, Lock, Globe } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { register as registerUser, clearError } from '../../store/slices/authSlice';
 import InputField from '../../components/common/InputField';
 import SelectField from '../../components/common/SelectField';
@@ -122,7 +123,6 @@ const RegisterPage = () => {
   const [usernameCheckLoading, setUsernameCheckLoading] = useState(false);
   const [usernameCheckError, setUsernameCheckError] = useState('');
   const [usernameCheckSuccess, setUsernameCheckSuccess] = useState(false);
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   const {
     register,
@@ -214,12 +214,8 @@ const RegisterPage = () => {
     };
     const result = await dispatch(registerUser(userData));
     if (!result.error) {
-      const payload = result.payload;
-      const params = new URLSearchParams({ email: payload.email });
-      if (payload.otp) {
-        params.append('dev_otp', payload.otp);
-      }
-      navigate(`/verify-email?${params.toString()}`);
+      toast.success('Account created successfully! Welcome to AscendHash.');
+      navigate('/dashboard');
     }
   };
 
@@ -229,27 +225,13 @@ const RegisterPage = () => {
         <div className="flex justify-center mb-6">
           <Logo size="md" />
         </div>
-        {registrationSuccess ? (
-          <div className="bg-white rounded-2xl shadow-lg border border-border-light p-8 text-center space-y-6">
-            <div className="mx-auto w-16 h-16 bg-success/15 text-success rounded-full flex items-center justify-center">
-              <CheckCircle className="w-8 h-8" />
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-xl font-bold text-text-light-bg">Welcome to AscendHash!</h2>
-              <p className="text-sm text-text-secondary font-medium animate-pulse">Registration successful! Signing you up...</p>
-            </div>
-            <div className="flex justify-center pt-2">
-              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl shadow-lg border border-border-light p-8">
-            <h1 className="text-xl font-heading font-semibold text-text-light-bg text-center mb-1">
-              Create An Account
-            </h1>
-            <p className="text-sm text-text-secondary text-center mb-6">
-              You can create account using email or username and the registration is fully free
-            </p>
+        <div className="bg-white rounded-2xl shadow-lg border border-border-light p-8">
+          <h1 className="text-xl font-heading font-semibold text-text-light-bg text-center mb-1">
+            Create An Account
+          </h1>
+          <p className="text-sm text-text-secondary text-center mb-6">
+            You can create account using email or username and the registration is fully free
+          </p>
 
             <ErrorMessage message={error} className="mb-4" />
 
@@ -358,9 +340,8 @@ const RegisterPage = () => {
               </p>
             </div>
           </div>
-        )}
+        </div>
       </div>
-    </div>
   );
 };
 

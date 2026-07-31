@@ -24,12 +24,6 @@ const ProfileTab = ({ user }) => {
             <p className="text-xs text-text-secondary">Phone</p>
             <p className="text-sm text-text-light-bg font-medium">{user.phone || 'Not provided'}</p>
           </div>
-          <div>
-            <p className="text-xs text-text-secondary">Email Verified</p>
-            <p className="text-sm text-text-light-bg font-medium">
-              {user.emailVerifiedAt ? `Yes (${new Date(user.emailVerifiedAt).toLocaleDateString()})` : 'No'}
-            </p>
-          </div>
         </div>
       </div>
       <div>

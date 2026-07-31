@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -8,21 +8,23 @@ import {
 } from 'lucide-react';
 import { logoutUser } from '../store/slices/authSlice';
 import { connectSocket } from '../services/socketService';
+import { connectDashboardSocket } from '../services/dashboardSocket';
 import api from '../services/api';
 import Logo from '../components/common/Logo';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 const sidebarLinks = [
   { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/admin/users', icon: Users, label: 'Users' },
-  { to: '/admin/kyc', icon: ShieldCheck, label: 'KYC Verifications' },
+  { to: '/admin/users', icon: Users, label: 'Users', badge: 'users' },
+  { to: '/admin/kyc', icon: ShieldCheck, label: 'KYC Verifications', badge: 'kyc' },
   { to: '/admin/coins', icon: Coins, label: 'Coins' },
   { to: '/admin/packages', icon: Package, label: 'Packages' },
   { to: '/admin/mining-settings', icon: Settings, label: 'Mining Settings' },
-  { to: '/admin/deposits', icon: ArrowDownToLine, label: 'Deposits' },
-  { to: '/admin/withdrawals', icon: ArrowUpFromLine, label: 'Withdrawals' },
+  { to: '/admin/deposits', icon: ArrowDownToLine, label: 'Deposits', badge: 'deposits' },
+  { to: '/admin/withdrawals', icon: ArrowUpFromLine, label: 'Withdrawals', badge: 'withdrawals' },
   { to: '/admin/payment-methods', icon: FileText, label: 'Payment Methods' },
   { to: '/admin/referrals', icon: UsersRound, label: 'Referrals' },
-  { to: '/admin/audit-logs', icon: History, label: 'Audit Logs' },
+  { to: '/admin/audit-logs', icon: History, label: 'Audit Logs', badge: 'auditLogs' },
   { 
     label: 'Website CMS', 
     icon: Globe, 
@@ -35,7 +37,7 @@ const sidebarLinks = [
   { to: '/admin/support', icon: MessageCircle, label: 'Support' },
 ];
 
-const SidebarItem = ({ link, setSidebarOpen }) => {
+const SidebarItem = ({ link, setSidebarOpen, badgeCount, badgeTone }) => {
   const [isOpen, setIsOpen] = useState(false);
   
   if (link.children) {
@@ -87,7 +89,18 @@ const SidebarItem = ({ link, setSidebarOpen }) => {
       }
     >
       <link.icon size={18} />
-      {link.label}
+      <span className="flex-grow text-left">{link.label}</span>
+      {badgeCount > 0 && (
+        <span
+          className={`ml-auto inline-flex min-w-[20px] h-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold border ${
+            badgeTone === 'cyan'
+              ? 'bg-cyan-400/15 text-cyan-300 border-cyan-400/40 shadow-[0_0_8px_rgba(34,211,238,0.55)]'
+              : 'bg-amber-400/15 text-amber-300 border-amber-400/40 shadow-[0_0_8px_rgba(251,191,36,0.55)]'
+          }`}
+        >
+          {badgeCount > 99 ? '99+' : badgeCount}
+        </span>
+      )}
     </NavLink>
   );
 };
@@ -95,6 +108,7 @@ const SidebarItem = ({ link, setSidebarOpen }) => {
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const { user } = useSelector((state) => state.auth);
   const [waitingIds, setWaitingIds] = useState(() => new Set());
   const [muted, setMuted] = useState(false);
@@ -102,6 +116,7 @@ const AdminLayout = () => {
     return localStorage.getItem('admin_sound_alerts_enabled') === 'true';
   });
   const [globalSearch, setGlobalSearch] = useState('');
+  const [badges, setBadges] = useState({ users: 0, kyc: 0, deposits: 0, withdrawals: 0, auditLogs: 0 });
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -115,6 +130,57 @@ const AdminLayout = () => {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     navigate(`/admin/users?search=${encodeURIComponent(globalSearch.trim())}`);
+  };
+
+  const refreshBadges = useCallback(() => {
+    const lastSeenUsers = localStorage.getItem('admin_last_seen_users');
+    const lastSeenAuditLogs = localStorage.getItem('admin_last_seen_audit_logs');
+    const params = {};
+    if (lastSeenUsers) params.lastSeenUsers = lastSeenUsers;
+    if (lastSeenAuditLogs) params.lastSeenAuditLogs = lastSeenAuditLogs;
+    api.get('/admin/dashboard/pending-counts', { params }).then((response) => {
+      setBadges(response.data.data);
+    }).catch(() => {});
+  }, []);
+
+  // Real-time sidebar badges: live counts updated via socket events + 15s polling fallback
+  useEffect(() => {
+    refreshBadges();
+    const socket = connectDashboardSocket();
+    const refresh = () => refreshBadges();
+    const events = [
+      'admin:deposit:new',
+      'admin:deposit:status',
+      'admin:withdrawal:new',
+      'admin:withdrawal:approved',
+      'admin:withdrawal:rejected',
+      'admin:user:status',
+      'admin:contact:new',
+    ];
+    events.forEach((event) => socket.on(event, refresh));
+    const interval = setInterval(refreshBadges, 15000);
+    return () => {
+      events.forEach((event) => socket.off(event, refresh));
+      clearInterval(interval);
+    };
+  }, [refreshBadges]);
+
+  // Clear Users & Audit Logs badges on visit: store view timestamp and zero the count immediately
+  useEffect(() => {
+    if (location.pathname === '/admin/users' || location.pathname.startsWith('/admin/users/')) {
+      localStorage.setItem('admin_last_seen_users', String(Date.now()));
+      setBadges((current) => ({ ...current, users: 0 }));
+      refreshBadges();
+    } else if (location.pathname === '/admin/audit-logs') {
+      localStorage.setItem('admin_last_seen_audit_logs', String(Date.now()));
+      setBadges((current) => ({ ...current, auditLogs: 0 }));
+      refreshBadges();
+    }
+  }, [location.pathname, refreshBadges]);
+
+  const requestLogout = () => {
+    setProfileOpen(false);
+    setShowLogoutConfirm(true);
   };
 
   const handleLogout = async () => {
@@ -283,7 +349,13 @@ const AdminLayout = () => {
 
         <nav className="px-3 py-4 space-y-1 overflow-y-auto h-[calc(100vh-65px)]">
           {sidebarLinks.map((link) => (
-            <SidebarItem key={link.label} link={link} setSidebarOpen={setSidebarOpen} />
+            <SidebarItem
+              key={link.label}
+              link={link}
+              setSidebarOpen={setSidebarOpen}
+              badgeCount={link.badge ? badges[link.badge] : 0}
+              badgeTone={link.badge === 'auditLogs' ? 'cyan' : 'amber'}
+            />
           ))}
         </nav>
       </aside>
@@ -348,7 +420,7 @@ const AdminLayout = () => {
                       <p className="text-xs text-text-secondary">{user?.email}</p>
                     </div>
                     <button
-                      onClick={handleLogout}
+                      onClick={requestLogout}
                       className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-danger hover:bg-danger/5 cursor-pointer"
                     >
                       <LogOut size={16} />
@@ -383,6 +455,17 @@ const AdminLayout = () => {
           <Outlet />
         </main>
       </div>
+
+      <ConfirmModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
+        title="Logout Confirmation"
+        message="Are you sure you want to log out of the admin panel?"
+        confirmLabel="Logout"
+        cancelLabel="Cancel"
+        variant="danger"
+      />
     </div>
   );
 };

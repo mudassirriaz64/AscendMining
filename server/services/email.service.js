@@ -104,31 +104,7 @@ const sendResetPasswordEmail = async (email, username, resetLink, otp) => {
   await sendMail({ to: email, subject: 'AscendHash - Reset Password Request', html });
 };
 
-/**
- * Send email verification code during signup
- */
-const sendVerificationEmail = async (email, username, otp) => {
-  const html = `
-    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-      <h2 style="color: #745b00; margin-bottom: 20px;">Verify Your Email Address</h2>
-      <p>Hello ${username},</p>
-      <p>Thank you for registering at AscendHash. To complete your sign-up, please verify your email address using the 6-digit code below:</p>
-
-      <div style="background: #f8f9ff; border: 1px solid #d1c5ac; border-radius: 12px; padding: 20px; margin: 20px 0;">
-        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; text-align: center; font-size: 32px; letter-spacing: 12px; font-family: monospace; font-weight: 700; color: #0b1c30;">
-          ${otp}
-        </div>
-        <p style="margin: 12px 0 0 0; color: #64748b; font-size: 12px; text-align: center;">Enter this code on the verification page.</p>
-      </div>
-
-      <p style="color: #64748b; font-size: 12px; line-height: 1.5;">This verification code will expire in 15 minutes. If you did not create an account, you can safely ignore this email.</p>
-    </div>
-  `;
-  await sendMail({ to: email, subject: 'AscendHash - Verify Your Email', html });
-};
-
 module.exports = {
   sendMail,
   sendResetPasswordEmail,
-  sendVerificationEmail,
 };
