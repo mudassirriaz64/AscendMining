@@ -1,14 +1,11 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../services/api';
-import { checkAuth } from './authSlice';
 
 export const submitKYC = createAsyncThunk(
   'kyc/submitKYC',
-  async (kycData, { dispatch, rejectWithValue }) => {
+  async (kycData, { rejectWithValue }) => {
     try {
       const response = await api.post('/kyc/submit', kycData);
-      // Fetch latest profile to update auth state (including user's kycStatus)
-      dispatch(checkAuth());
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.error?.message || 'Failed to submit KYC documents.');

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -17,6 +17,8 @@ const KYCPage = () => {
 
   const { user } = useSelector((state) => state.auth);
   const { loading, error, success, actionSuccessMessage } = useSelector((state) => state.kyc);
+
+  const prevStatusRef = useRef(user?.kycStatus || 'none');
 
   const [documentType, setDocumentType] = useState('cnic');
   const [documentImage, setDocumentImage] = useState('');
@@ -39,12 +41,21 @@ const KYCPage = () => {
   }, [dispatch]);
 
   // Live-update when the admin approves/rejects KYC so the view changes
-  // without requiring a manual refresh.
+  // without requiring a manual refresh. Apply the event payload directly for
+  // an instant update (no extra round-trip that could serve stale data).
   useEffect(() => {
     const socket = connectDashboardSocket();
 
-    const handleStatusChange = () => {
-      dispatch(checkAuth());
+    const handleStatusChange = (payload) => {
+      if (payload?.kycStatus) {
+        dispatch(updateUserKycStatus({
+          kycStatus: payload.kycStatus,
+          kycRejectionReason: payload.kycRejectionReason,
+          status: payload.status,
+        }));
+      } else {
+        dispatch(checkAuth());
+      }
     };
 
     socket.on('user:status:change', handleStatusChange);
@@ -53,6 +64,15 @@ const KYCPage = () => {
       socket.off('user:status:change', handleStatusChange);
     };
   }, [dispatch]);
+
+  // Prompt the user the moment KYC flips to approved while they're viewing this page
+  useEffect(() => {
+    const current = user?.kycStatus || 'none';
+    if (prevStatusRef.current !== current && current === 'approved') {
+      toast.success('Congratulations! Your KYC has been approved. Withdrawals are now unlocked.');
+    }
+    prevStatusRef.current = current;
+  }, [user?.kycStatus]);
 
   // Polling fallback: guarantees the status view updates when the admin
   // approves/rejects, even if the socket is unavailable.

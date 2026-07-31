@@ -32,7 +32,9 @@ api.interceptors.request.use(
     }
     // Admin data is frequently mutated — never serve a cached list for it,
     // otherwise create/edit/delete changes appear stale until a full reload.
-    if (config.method === 'get' && !config.url.startsWith('/admin/')) {
+    // /auth/me is also excluded: it reflects live session state (KYC status,
+    // profile), and serving a cached snapshot would delay those updates.
+    if (config.method === 'get' && !config.url.startsWith('/admin/') && !config.url.startsWith('/auth/me')) {
       const key = cacheKey(config);
       const cached = cache.get(key);
       if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
@@ -63,8 +65,8 @@ api.interceptors.response.use(
   (response) => {
     const { method, url } = response.config;
     if (method === 'get') {
-      // Cache public GETs only; admin responses are never cached (see request interceptor).
-      if (!url.startsWith('/admin/') && !response.config._retry) {
+      // Cache public GETs only; admin + /auth/me responses are never cached.
+      if (!url.startsWith('/admin/') && !url.startsWith('/auth/me') && !response.config._retry) {
         const key = cacheKey(response.config);
         cache.set(key, { data: response.data, timestamp: Date.now() });
         if (cache.size > 100) {
