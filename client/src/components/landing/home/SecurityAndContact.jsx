@@ -84,7 +84,7 @@ const SecurityAndContact = () => {
                 label="Full Name"
                 value={contactForm.name}
                 onChange={updateField('name')}
-                placeholder="John Doe"
+                placeholder="Your full name"
                 required
                 autoComplete="name"
               />
@@ -94,7 +94,7 @@ const SecurityAndContact = () => {
                 type="email"
                 value={contactForm.email}
                 onChange={updateField('email')}
-                placeholder="john@example.com"
+                placeholder="you@email.com"
                 required
                 autoComplete="email"
               />
@@ -104,7 +104,7 @@ const SecurityAndContact = () => {
               label="Subject"
               value={contactForm.subject}
               onChange={updateField('subject')}
-              placeholder="Inquiry about custom package"
+              placeholder="How can we help?"
               required
             />
             <TextArea
@@ -113,7 +113,7 @@ const SecurityAndContact = () => {
               rows={4}
               value={contactForm.message}
               onChange={updateField('message')}
-              placeholder="Write your request details here..."
+              placeholder="Type your message here..."
               required
             />
             <GlowButton type="submit" disabled={submitting} className="w-full">
