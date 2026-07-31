@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const mongoose = require('mongoose');
-const sharp = require('sharp');
+let sharp;
+try { sharp = require('sharp'); } catch { sharp = null; }
 const cloudinary = require('../config/cloudinary');
 const depositRepository = require('../repositories/deposit.repository');
 const userRepository = require('../repositories/user.repository');
@@ -73,7 +74,7 @@ const submitDeposit = async (userId, { paymentMethodId, amount, screenshot, send
   // 4. Compress image if it is indeed an image
   let uploadBuffer = buffer;
   const isPdf = mimeType.includes('pdf');
-  if (!isPdf) {
+  if (!isPdf && sharp) {
     try {
       uploadBuffer = await sharp(buffer)
         .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
