@@ -122,9 +122,9 @@ const DepositPage = () => {
       <Header />
 
       <main className="max-w-xl w-full mx-auto px-margin-mobile md:px-margin-desktop py-gutter flex-grow space-y-gutter">
-        
+
         {/* BACK ACTION */}
-        <button 
+        <button
           onClick={() => navigate('/dashboard')}
           className="flex items-center gap-1.5 text-xs text-on-surface-variant hover:text-on-surface font-bold transition-colors cursor-pointer font-heading"
         >
@@ -159,7 +159,7 @@ const DepositPage = () => {
         {/* DEPOSIT FORM */}
         <div className="bg-white rounded-xl border border-outline-variant p-card-padding">
           <form onSubmit={handleSubmit} className="space-y-6">
-            
+
             {/* Amount input */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Deposit Amount (USD)*</label>
@@ -202,7 +202,7 @@ const DepositPage = () => {
                   <span className="text-[10px] font-bold text-tertiary bg-tertiary/10 px-2.5 py-1 rounded-full uppercase tracking-wider border border-tertiary/20">
                     Payment Transfer Destination
                   </span>
-                  <button 
+                  <button
                     type="button"
                     onClick={() => handleCopy(currentMethod.instructions)}
                     className="text-on-surface-variant hover:text-tertiary transition-colors flex items-center gap-1.5 text-xs font-bold font-heading"
@@ -226,8 +226,8 @@ const DepositPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="block text-[10px] font-bold text-on-surface-variant uppercase">Holder / Account Name*</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     required
                     value={senderHolderName}
                     onChange={(e) => setSenderHolderName(e.target.value)}
@@ -238,12 +238,12 @@ const DepositPage = () => {
 
                 <div className="space-y-1.5">
                   <label className="block text-[10px] font-bold text-on-surface-variant uppercase">Sender Phone Number*</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     required
                     value={senderPhone}
                     onChange={(e) => setSenderPhone(e.target.value)}
-                    placeholder="Enter sender phone number"
+                    placeholder="e.g., +44 7911 123456 (UK)"
                     className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-4 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition text-on-surface"
                   />
                 </div>
@@ -251,12 +251,12 @@ const DepositPage = () => {
 
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-bold text-on-surface-variant uppercase">Sender Bank / Wallet Name*</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   required
                   value={senderBankName}
                   onChange={(e) => setSenderBankName(e.target.value)}
-                  placeholder="Enter bank or wallet name"
+                  placeholder="Binance"
                   className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-4 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition text-on-surface"
                 />
               </div>
@@ -287,11 +287,11 @@ const DepositPage = () => {
                   </div>
                   <span className="text-xs font-bold text-on-surface">Select payment receipt screenshot</span>
                   <span className="text-[10px] text-on-surface-variant mt-1">PNG, JPG, or JPEG (Maximum size: 10MB)</span>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={handleFileChange} 
-                    className="hidden" 
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
                   />
                 </label>
               )}

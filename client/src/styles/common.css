@@ -58,6 +58,18 @@
   --color-text-light-bg: #0b1c30;
   --color-text-dark-bg: #cbd5e1;
 
+  /* Web3 Luxury Landing Tokens */
+  --color-bg-void: #080c14;
+  --color-bg-void-soft: #0d1420;
+  --color-gold: #ffb800;
+  --color-gold-soft: #ffd166;
+  --color-electric-cyan: #00f0ff;
+  --color-emerald: #00e699;
+  --color-surface-glass: rgba(255, 255, 255, 0.04);
+  --color-surface-glass-strong: rgba(255, 255, 255, 0.08);
+  --color-border-glass: rgba(255, 255, 255, 0.1);
+  --color-text-void: #e6edf3;
+
   /* Spacing */
   --spacing-container-max: 1280px;
   --spacing-margin-mobile: 16px;
@@ -67,8 +79,8 @@
   --spacing-base: 8px;
 
   /* Fonts */
-  --font-heading: 'Hanken Grotesk', system-ui, sans-serif;
-  --font-body: 'Hanken Grotesk', system-ui, sans-serif;
+  --font-heading: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 

@@ -242,7 +242,7 @@ const KYCPage = () => {
                       <label className="block text-xs font-semibold text-slate-600">City</label>
                       <input
                         type="text"
-                        placeholder="Enter city"
+                        placeholder="London"
                         value={personalInfo.city}
                         onChange={(e) => setPersonalInfo(p => ({ ...p, city: e.target.value }))}
                         className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-[#185adb] transition"

@@ -1,31 +1,228 @@
-/* Homepage Specific Styles */
+/* Public / Landing Site Styles */
 
-/* Testimonial slider / custom card styling overrides */
-.testimonial-card {
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+/* Scoped typography: Poppins headings + Inter body for the public site only.
+   The authenticated app keeps its global Hanken Grotesk tokens untouched. */
+.public-layout {
+  --font-heading: 'Poppins', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
 }
 
-.testimonial-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(47, 143, 234, 0.4);
+/* Glass surface helper */
+.glass-card {
+  background: rgba(13, 18, 30, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-/* Feature grid decorative border highlight */
-.feature-card-glow {
+/* Mouse-following spotlight border */
+.spotlight-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    240px circle at var(--spotlight-x, 50%) var(--spotlight-y, 50%),
+    var(--spotlight-color, rgba(255, 184, 0, 0.12)),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.spotlight-card:hover::after {
+  opacity: 1;
+}
+
+/* Animated glowing connector beam (How It Works timeline).
+   GPU-friendly: a 200%-wide gradient track translates via transform, instead
+   of animating background-position (which repaints every frame). */
+@keyframes beam-slide {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.beam-gradient {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.beam-gradient::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 200%;
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 184, 0, 0.15),
+    rgba(0, 240, 255, 0.5),
+    rgba(0, 230, 153, 0.5),
+    rgba(255, 184, 0, 0.15)
+  );
+  background-size: 50% 100%;
+  animation: beam-slide 4s linear infinite;
+  will-change: transform;
+}
+
+/* Soft pulsing glow for ambient orbs / CTAs */
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 3.5s ease-in-out infinite;
+}
+
+/* Rotating orbit rings */
+@keyframes orbit-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.orbit-ring {
+  animation: orbit-spin 60s linear infinite;
+}
+
+.orbit-ring-reverse {
+  animation: orbit-spin 40s linear infinite reverse;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .beam-gradient,
+  .animate-glow-pulse,
+  .orbit-ring,
+  .orbit-ring-reverse,
+  .animate-border-beam,
+  .animate-shimmer-button {
+    animation: none;
+  }
+}
+
+/* Border Beam hover effect styles */
+@keyframes border-beam-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.border-beam-container {
   position: relative;
 }
 
-.feature-card-glow::after {
-  content: '';
+.border-beam-wrapper {
   position: absolute;
-  inset: -1px;
-  background: linear-gradient(135deg, var(--color-secondary-blue), var(--color-secondary-end));
+  inset: 0;
   border-radius: inherit;
-  z-index: -1;
+  padding: 1.5px;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.5s ease;
+  overflow: hidden;
+  z-index: 10;
 }
 
-.feature-card-glow:hover::after {
-  opacity: 0.15;
+.border-beam-line {
+  position: absolute;
+  width: 300%;
+  height: 300%;
+  top: -100%;
+  left: -100%;
+  background: conic-gradient(from 0deg at 50% 50%, transparent 60%, #ffd700 75%, #00f0ff 90%, transparent 100%);
+  pointer-events: none;
+}
+
+.border-beam-container:hover .border-beam-wrapper {
+  opacity: 1;
+}
+
+.border-beam-container:hover .border-beam-line {
+  animation: border-beam-rotate 3.5s linear infinite;
+}
+
+/* BorderBeam (Magic UI) — continuous rotating conic border sweep.
+   Uses the shared oversized conic-gradient line; color is overridden inline. */
+.border-beam-mask {
+  border-radius: inherit;
+  padding: var(--beam-bw, 1.5px);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  overflow: hidden;
+}
+
+@keyframes border-beam-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-border-beam {
+  animation: border-beam-spin var(--beam-duration, 12s) linear infinite;
+  animation-delay: var(--beam-delay, 0s);
+  will-change: transform;
+}
+
+/* ShimmerButton (Magic UI) — sweeping light sheen (transform-only) */
+@keyframes shimmer-button {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer-button {
+  animation: shimmer-button var(--shimmer-duration, 2.4s) linear infinite;
+}
+
+/* Shimmering gradient text (hero headline + section headings) */
+@keyframes shimmer-text {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Liquid gradient sheen (CTA buttons) — GPU-friendly translate sweep */
+@keyframes liquid-shine {
+  0% {
+    transform: translateX(-130%) skewX(-15deg);
+  }
+  100% {
+    transform: translateX(230%) skewX(-15deg);
+  }
+}
+
+.animate-liquid-shine {
+  animation: liquid-shine 2.8s ease-in-out infinite;
+}
+
+.animate-shimmer-text {
+  animation: shimmer-text 5s linear infinite;
+  will-change: background-position;
 }
