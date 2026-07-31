@@ -231,7 +231,7 @@ const DepositPage = () => {
                     required
                     value={senderHolderName}
                     onChange={(e) => setSenderHolderName(e.target.value)}
-                    placeholder="e.g. John Doe"
+                    placeholder="Enter account name"
                     className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-4 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition text-on-surface"
                   />
                 </div>
@@ -243,7 +243,7 @@ const DepositPage = () => {
                     required
                     value={senderPhone}
                     onChange={(e) => setSenderPhone(e.target.value)}
-                    placeholder="e.g. 03001234567"
+                    placeholder="Enter sender phone number"
                     className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-4 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition text-on-surface"
                   />
                 </div>
@@ -256,7 +256,7 @@ const DepositPage = () => {
                   required
                   value={senderBankName}
                   onChange={(e) => setSenderBankName(e.target.value)}
-                  placeholder="e.g. EasyPaisa, CashApp, Binance Pay"
+                  placeholder="Enter bank or wallet name"
                   className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-4 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition text-on-surface"
                 />
               </div>

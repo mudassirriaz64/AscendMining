@@ -296,7 +296,7 @@ const AdminKYCPage = () => {
             label="Rejection Reason*"
             value={rejectionReason}
             onChange={(e) => setRejectionReason(e.target.value)}
-            placeholder="e.g. Photo quality is too low or text is illegible."
+            placeholder="Enter rejection reason"
           />
 
           <div className="pt-4 border-t border-slate-100 flex justify-end gap-2">

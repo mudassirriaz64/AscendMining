@@ -166,13 +166,6 @@ const ForgotPasswordPage = () => {
               <p className="text-sm text-text-secondary text-center mb-6">
                 Enter the 6-digit code sent to <span className="font-medium text-text-light-bg">{email}</span>
               </p>
-              {otp && (
-                <div className="mb-4 p-3 bg-surface-container-low rounded-lg border border-outline-variant text-center">
-                  <p className="text-xs text-text-secondary mb-1">Dev code (also in email):</p>
-                  <p className="text-2xl font-mono font-bold tracking-[0.25em] text-on-surface">{otp}</p>
-                </div>
-              )}
-
               <ErrorMessage message={error} className="mb-4" />
 
               <form onSubmit={otpForm.handleSubmit(onOTPSubmit)} className="space-y-6">

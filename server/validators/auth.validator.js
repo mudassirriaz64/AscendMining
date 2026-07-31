@@ -77,6 +77,24 @@ const verifyOTPSchema = z.object({
     .regex(/^\d{6}$/, 'OTP must be 6 digits.'),
 });
 
+const verifyEmailSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Enter a valid email address.'),
+  otp: z
+    .string()
+    .length(6, 'Verification code must be 6 digits.')
+    .regex(/^\d{6}$/, 'Verification code must be 6 digits.'),
+});
+
+const resendVerificationOTPSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Enter a valid email address.'),
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
@@ -85,4 +103,6 @@ module.exports = {
   resetPasswordSchema,
   verifyOTPSchema,
   refreshTokenSchema,
+  verifyEmailSchema,
+  resendVerificationOTPSchema,
 };

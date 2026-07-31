@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { 
+import {
   ShieldCheck, Upload, AlertCircle, FileText, CheckCircle2, Clock, ShieldAlert, ArrowLeft
 } from 'lucide-react';
 import { submitKYC, clearKYCStatus } from '../../store/slices/kycSlice';
@@ -13,7 +13,7 @@ import toast from 'react-hot-toast';
 const KYCPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
   const { user } = useSelector((state) => state.auth);
   const { loading, error, success, actionSuccessMessage } = useSelector((state) => state.kyc);
 
@@ -85,9 +85,9 @@ const KYCPage = () => {
       <Header />
 
       <main className="max-w-3xl w-full mx-auto px-6 py-10 flex-grow space-y-6">
-        
+
         {/* BACK ACTION */}
-        <button 
+        <button
           onClick={() => navigate('/dashboard')}
           className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 font-bold transition-colors cursor-pointer"
         >
@@ -151,10 +151,10 @@ const KYCPage = () => {
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               {[
-                { label: 'Full Name',       value: user.kycPersonalInfo.fullName },
-                { label: 'Date of Birth',   value: user.kycPersonalInfo.dateOfBirth },
+                { label: 'Full Name', value: user.kycPersonalInfo.fullName },
+                { label: 'Date of Birth', value: user.kycPersonalInfo.dateOfBirth },
                 { label: 'Document Number', value: user.kycPersonalInfo.documentNumber },
-                { label: 'City',            value: user.kycPersonalInfo.city },
+                { label: 'City', value: user.kycPersonalInfo.city },
               ].map(({ label, value }) => value ? (
                 <div key={label} className="space-y-0.5">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{label}</p>
@@ -170,10 +170,10 @@ const KYCPage = () => {
               <div className="col-span-full space-y-0.5">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Document Type</p>
                 <p className="font-semibold text-slate-800 capitalize">
-                  {user.kycDocumentType === 'cnic' ? 'National ID / CNIC' 
+                  {user.kycDocumentType === 'cnic' ? 'National ID / CNIC'
                     : user.kycDocumentType === 'driver_license' ? 'Driver License'
-                    : user.kycDocumentType === 'passport' ? 'Passport'
-                    : user.kycDocumentType}
+                      : user.kycDocumentType === 'passport' ? 'Passport'
+                        : user.kycDocumentType}
                 </p>
               </div>
             </div>
@@ -182,7 +182,7 @@ const KYCPage = () => {
 
         {(status === 'none' || status === 'rejected') && (
           <div className="space-y-6">
-            
+
             {status === 'rejected' && (
               <div className="bg-red-50 border border-red-200 rounded-2xl p-5 flex gap-3 text-red-800 text-xs shadow-sm">
                 <ShieldAlert size={20} className="text-red-500 flex-shrink-0 mt-0.5" />
@@ -198,11 +198,11 @@ const KYCPage = () => {
               <h2 className="text-base font-bold text-slate-950 border-b border-slate-100 pb-3">Submit Documents</h2>
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                
+
                 {/* PERSONAL INFORMATION */}
                 <div className="space-y-4 border-b border-slate-100 pb-6">
                   <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Personal Information</h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="block text-xs font-semibold text-slate-600">Full Name*</label>
@@ -227,12 +227,12 @@ const KYCPage = () => {
                     </div>
                     <div className="space-y-1.5">
                       <label className="block text-xs font-semibold text-slate-600">
-                        {documentType === 'cnic' ? 'CNIC Number' : documentType === 'driver_license' ? 'License Number' : 'Passport Number'}*
+                        {documentType === 'cnic' ? 'National ID' : documentType === 'driver_license' ? 'License Number' : 'Passport Number'}*
                       </label>
                       <input
                         type="text"
                         required
-                        placeholder={documentType === 'cnic' ? '12345-1234567-1' : 'Document number'}
+                        placeholder="Enter document number"
                         value={personalInfo.documentNumber}
                         onChange={(e) => setPersonalInfo(p => ({ ...p, documentNumber: e.target.value }))}
                         className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-[#185adb] transition"
@@ -242,7 +242,7 @@ const KYCPage = () => {
                       <label className="block text-xs font-semibold text-slate-600">City</label>
                       <input
                         type="text"
-                        placeholder="e.g. Lahore"
+                        placeholder="Enter city"
                         value={personalInfo.city}
                         onChange={(e) => setPersonalInfo(p => ({ ...p, city: e.target.value }))}
                         className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-[#185adb] transition"
@@ -271,15 +271,14 @@ const KYCPage = () => {
                         key={type}
                         type="button"
                         onClick={() => setDocumentType(type)}
-                        className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                          documentType === type
+                        className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer ${documentType === type
                             ? 'border-[#185adb] bg-blue-50/20 text-[#185adb] font-bold'
                             : 'border-slate-100 hover:border-slate-200 text-slate-500'
-                        }`}
+                          }`}
                       >
                         <FileText size={20} className="mb-1" />
                         <span className="text-[10px] uppercase tracking-wider">
-                          {type === 'cnic' ? 'National ID / CNIC' : type.replace('_', ' ')}
+                          {type === 'cnic' ? 'National ID' : type.replace('_', ' ')}
                         </span>
                       </button>
                     ))}
@@ -289,7 +288,7 @@ const KYCPage = () => {
                 {/* UPLOADER */}
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Upload Document Photo</label>
-                  
+
                   {imagePreview ? (
                     <div className="relative rounded-2xl overflow-hidden border border-slate-250 bg-slate-50 max-h-72 flex items-center justify-center group shadow-sm">
                       <img src={imagePreview} alt="Document preview" className="object-contain max-h-72 w-full p-2" />
@@ -309,11 +308,11 @@ const KYCPage = () => {
                       </div>
                       <span className="text-xs font-bold text-slate-700">Choose file or drag & drop</span>
                       <span className="text-[10px] text-slate-400 mt-1">PNG, JPG, or WEBP (Maximum size: 20MB)</span>
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        onChange={handleFileChange} 
-                        className="hidden" 
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
                       />
                     </label>
                   )}

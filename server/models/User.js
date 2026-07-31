@@ -132,6 +132,16 @@ const userSchema = new mongoose.Schema(
       default: null,
       select: false,
     },
+    emailVerificationOTPHash: {
+      type: String,
+      default: null,
+      select: false,
+    },
+    emailVerificationOTPExpires: {
+      type: Date,
+      default: null,
+      select: false,
+    },
   },
   {
     timestamps: true,

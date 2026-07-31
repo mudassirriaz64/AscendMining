@@ -11,6 +11,8 @@ const {
   forgotPasswordSchema,
   resetPasswordSchema,
   verifyOTPSchema,
+  verifyEmailSchema,
+  resendVerificationOTPSchema,
 } = require('../validators/auth.validator');
 
 router.post('/register', authLimiter, validate(registerSchema), authController.register);
@@ -18,6 +20,8 @@ router.post('/login', authLimiter, validate(loginSchema), authController.login);
 router.post('/admin/login', authLimiter, validate(adminLoginSchema), authController.adminLogin);
 router.post('/forgot-password', authLimiter, validate(forgotPasswordSchema), authController.forgotPassword);
 router.post('/verify-otp', authLimiter, validate(verifyOTPSchema), authController.verifyOTP);
+router.post('/verify-email', authLimiter, validate(verifyEmailSchema), authController.verifyEmail);
+router.post('/resend-verification-otp', authLimiter, validate(resendVerificationOTPSchema), authController.resendVerificationOTP);
 router.post('/reset-password', validate(resetPasswordSchema), authController.resetPassword);
 router.post('/refresh-token', authController.refreshToken);
 router.get('/check-availability', authController.checkAvailability);

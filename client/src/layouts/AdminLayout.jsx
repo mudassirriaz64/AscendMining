@@ -177,28 +177,59 @@ const AdminLayout = () => {
     };
   }, [audioUnlocked]);
 
-  // SLA looping tone alarm beep loop
+  // SLA looping tone alarm loop
   useEffect(() => {
     if (muted || waitingIds.size === 0 || !audioUnlocked) return undefined;
-    const beep = () => {
+    const playAlarm = () => {
       try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const context = new AudioContext();
-        const oscillator = context.createOscillator();
+        const now = context.currentTime;
+        
+        // Piercing sawtooth wave for emergency feel, paired with detuned sine for full alert effect
+        const osc1 = context.createOscillator();
+        const osc2 = context.createOscillator();
         const gain = context.createGain();
-        oscillator.frequency.value = 660;
-        gain.gain.setValueAtTime(0.12, context.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.45);
-        oscillator.connect(gain).connect(context.destination);
-        oscillator.start();
-        oscillator.stop(context.currentTime + 0.45);
-        oscillator.onended = () => context.close();
+
+        osc1.type = 'sawtooth';
+        osc2.type = 'sine';
+
+        // Sirening pitch modulation: oscillating up and down
+        osc1.frequency.setValueAtTime(700, now);
+        osc1.frequency.linearRampToValueAtTime(1000, now + 0.35);
+        osc1.frequency.linearRampToValueAtTime(700, now + 0.7);
+        osc1.frequency.linearRampToValueAtTime(1000, now + 1.05);
+        osc1.frequency.linearRampToValueAtTime(700, now + 1.4);
+
+        osc2.frequency.setValueAtTime(705, now);
+        osc2.frequency.linearRampToValueAtTime(1005, now + 0.35);
+        osc2.frequency.linearRampToValueAtTime(705, now + 0.7);
+        osc2.frequency.linearRampToValueAtTime(1005, now + 1.05);
+        osc2.frequency.linearRampToValueAtTime(705, now + 1.4);
+
+        // LOUDER alarm volume (0.35 instead of 0.12)
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.setValueAtTime(0.35, now + 1.25);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(context.destination);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 1.4);
+        osc2.stop(now + 1.4);
+
+        osc1.onended = () => {
+          context.close();
+        };
       } catch (e) {
-        console.warn('SLA beep failed:', e);
+        console.warn('SLA alarm sound failed:', e);
       }
     };
-    beep();
-    const interval = window.setInterval(beep, 3000);
+    playAlarm();
+    const interval = window.setInterval(playAlarm, 2000);
     return () => window.clearInterval(interval);
   }, [muted, waitingIds.size, audioUnlocked]);
 

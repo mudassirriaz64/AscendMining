@@ -312,7 +312,7 @@ const UserDetailPage = () => {
                 onChange={(e) => setAdjustReason(e.target.value)}
                 className="w-full px-3 py-2 border border-border-light rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
                 rows={2}
-                placeholder="e.g. Manual promotion bonus or corrected error"
+                placeholder="Enter adjustment reason"
               />
             </div>
           </div>

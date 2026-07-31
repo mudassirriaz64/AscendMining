@@ -214,10 +214,12 @@ const RegisterPage = () => {
     };
     const result = await dispatch(registerUser(userData));
     if (!result.error) {
-      setRegistrationSuccess(true);
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 2500);
+      const payload = result.payload;
+      const params = new URLSearchParams({ email: payload.email });
+      if (payload.otp) {
+        params.append('dev_otp', payload.otp);
+      }
+      navigate(`/verify-email?${params.toString()}`);
     }
   };
 

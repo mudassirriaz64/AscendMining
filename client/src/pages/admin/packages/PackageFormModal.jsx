@@ -103,7 +103,7 @@ const PackageFormModal = ({ isOpen, onClose, pkg }) => {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
-          <InputField label="Package Name*" name="name" placeholder="e.g. Gold Plan" error={errors.name?.message} {...register('name')} />
+          <InputField label="Package Name*" name="name" placeholder="Enter package name" error={errors.name?.message} {...register('name')} />
           <div>
             <label className="block text-[13px] text-text-secondary mb-1.5 font-medium">Status</label>
             <select

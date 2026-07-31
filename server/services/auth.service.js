@@ -30,6 +30,11 @@ const register = async ({ fullName, username, email, password, country, phone, r
     }
   }
 
+  // Generate registration email verification OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
+  const otpExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+
   const user = await userRepository.create({
     fullName,
     username,
@@ -39,6 +44,8 @@ const register = async ({ fullName, username, email, password, country, phone, r
     phone: phone || null,
     referralCode: uuidv4().slice(0, 8).toUpperCase(),
     referredBy,
+    emailVerificationOTPHash: otpHash,
+    emailVerificationOTPExpires: otpExpires,
   });
 
   if (referredBy) {
@@ -49,15 +56,18 @@ const register = async ({ fullName, username, email, password, country, phone, r
     });
   }
 
-  const accessToken = generateAccessToken(user);
-  const { token: refreshTokenHash, rawToken } = generateRefreshToken();
-  await refreshTokenRepository.create(refreshTokenHash, user._id);
+  // Dispatch OTP email
+  await emailService.sendVerificationEmail(user.email, user.fullName, otp);
 
-  return {
-    user,
-    accessToken,
-    refreshToken: rawToken,
+  const result = {
+    success: true,
+    email: user.email,
+    requiresVerification: true,
   };
+  if (process.env.NODE_ENV === 'development') {
+    result.otp = otp;
+  }
+  return result;
 };
 
 const login = async ({ emailOrUsername, password }) => {
@@ -77,6 +87,26 @@ const login = async ({ emailOrUsername, password }) => {
   const isMatch = await user.comparePassword(password);
   if (!isMatch) {
     throw new AppError('INVALID_CREDENTIALS', 'Invalid email/username or password.', 401);
+  }
+
+  if (!user.emailVerifiedAt) {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
+    const otpExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+
+    user.emailVerificationOTPHash = otpHash;
+    user.emailVerificationOTPExpires = otpExpires;
+    await user.save();
+
+    await emailService.sendVerificationEmail(user.email, user.fullName, otp);
+
+    const errData = {
+      email: user.email,
+    };
+    if (process.env.NODE_ENV === 'development') {
+      errData.otp = otp;
+    }
+    throw new AppError('EMAIL_NOT_VERIFIED', 'Your email address is not verified. Please verify it to log in.', 403, errData);
   }
 
   const accessToken = generateAccessToken(user);
@@ -172,7 +202,7 @@ const logout = async () => {
 const forgotPassword = async (email) => {
   const user = await userRepository.findByEmail(email);
   if (!user) {
-    return { message: 'If an account with that email exists, a reset link has been sent.' };
+    throw new AppError('USER_NOT_FOUND', 'No user with this email found.', 404);
   }
 
   const resetToken = crypto.randomBytes(32).toString('hex');
@@ -294,6 +324,69 @@ const updatePassword = async (userId, { currentPassword, newPassword }) => {
   return user;
 };
 
+const verifyEmail = async ({ email, otp }) => {
+  const user = await require('../models/User').findOne({ email: email.toLowerCase() })
+    .select('+emailVerificationOTPHash +emailVerificationOTPExpires');
+
+  if (!user || !user.emailVerificationOTPHash || !user.emailVerificationOTPExpires) {
+    throw new AppError('INVALID_OTP', 'Invalid or expired verification code. Please request a new one.', 400);
+  }
+
+  if (user.emailVerificationOTPExpires < new Date()) {
+    throw new AppError('EXPIRED_OTP', 'Verification code has expired. Please request a new one.', 400);
+  }
+
+  const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
+  if (user.emailVerificationOTPHash !== otpHash) {
+    throw new AppError('INVALID_OTP', 'Invalid verification code. Please try again.', 400);
+  }
+
+  // Mark email verified
+  user.emailVerifiedAt = new Date();
+  user.emailVerificationOTPHash = null;
+  user.emailVerificationOTPExpires = null;
+  await user.save();
+
+  // Generate active session tokens (Auto-login)
+  const accessToken = generateAccessToken(user);
+  const { token: refreshTokenHash, rawToken } = generateRefreshToken();
+  await refreshTokenRepository.create(refreshTokenHash, user._id);
+
+  return {
+    user,
+    accessToken,
+    refreshToken: rawToken,
+  };
+};
+
+const resendVerificationOTP = async ({ email }) => {
+  const user = await require('../models/User').findOne({ email: email.toLowerCase() });
+  if (!user) {
+    throw new AppError('USER_NOT_FOUND', 'User not found with this email.', 404);
+  }
+
+  if (user.emailVerifiedAt) {
+    throw new AppError('ALREADY_VERIFIED', 'This email address is already verified.', 400);
+  }
+
+  // Generate new OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
+  const otpExpires = new Date(Date.now() + 15 * 60 * 1000);
+
+  user.emailVerificationOTPHash = otpHash;
+  user.emailVerificationOTPExpires = otpExpires;
+  await user.save();
+
+  await emailService.sendVerificationEmail(user.email, user.fullName, otp);
+
+  const result = { success: true, email: user.email };
+  if (process.env.NODE_ENV === 'development') {
+    result.otp = otp;
+  }
+  return result;
+};
+
 module.exports = {
   register,
   login,
@@ -307,4 +400,6 @@ module.exports = {
   checkAvailability,
   updateProfile,
   updatePassword,
+  verifyEmail,
+  resendVerificationOTP,
 };

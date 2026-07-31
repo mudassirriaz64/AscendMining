@@ -155,8 +155,8 @@ const CoinFormModal = ({ isOpen, onClose, coin }) => {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
-          <InputField label="Coin Name*" name="name" placeholder="e.g. Bitcoin" error={errors.name?.message} {...register('name')} />
-          <InputField label="Symbol*" name="symbol" placeholder="e.g. BTC" error={errors.symbol?.message} {...register('symbol')} />
+          <InputField label="Coin Name*" name="name" placeholder="Enter coin name" error={errors.name?.message} {...register('name')} />
+          <InputField label="Symbol*" name="symbol" placeholder="Enter symbol (e.g. BTC)" error={errors.symbol?.message} {...register('symbol')} />
         </div>
 
         <InputField label="Custom Logo URL (optional)" name="logoUrl" placeholder="https://..." error={errors.logoUrl?.message} {...register('logoUrl')} />

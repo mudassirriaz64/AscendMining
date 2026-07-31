@@ -21,6 +21,8 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { loading, error } = useSelector((state) => state.auth);
   const [keepLoggedIn, setKeepLoggedIn] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
+  const [unverifiedOtp, setUnverifiedOtp] = useState('');
 
   const {
     register,
@@ -33,9 +35,19 @@ const LoginPage = () => {
 
   const onSubmit = async (data) => {
     dispatch(clearError());
+    setUnverifiedEmail('');
+    setUnverifiedOtp('');
     const result = await dispatch(login({ ...data, keepLoggedIn }));
     if (!result.error) {
       navigate('/dashboard');
+    } else {
+      const payload = result.payload;
+      if (payload?.error?.code === 'EMAIL_NOT_VERIFIED') {
+        setUnverifiedEmail(payload.error.email);
+        if (payload.error.otp) {
+          setUnverifiedOtp(payload.error.otp);
+        }
+      }
     }
   };
 
@@ -54,6 +66,39 @@ const LoginPage = () => {
           </p>
 
           <ErrorMessage message={error} className="mb-4" />
+
+          {unverifiedEmail && (
+            <div className="mb-4 p-4 bg-primary/10 border border-primary/30 rounded-xl text-center space-y-3">
+              <p className="text-sm text-text-light-bg font-medium">
+                Your email address is not verified. Verify it now?
+              </p>
+              <div className="flex justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const params = new URLSearchParams({ email: unverifiedEmail });
+                    if (unverifiedOtp) {
+                      params.append('dev_otp', unverifiedOtp);
+                    }
+                    navigate(`/verify-email?${params.toString()}`);
+                  }}
+                  className="px-4 py-1.5 bg-primary hover:bg-primary-hover text-on-primary font-bold text-xs rounded-lg transition-colors cursor-pointer border-none"
+                >
+                  Yes, Verify
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUnverifiedEmail('');
+                    setUnverifiedOtp('');
+                  }}
+                  className="px-4 py-1.5 bg-gray-200 text-gray-700 font-bold text-xs rounded-lg hover:bg-gray-300 transition-colors cursor-pointer border-none"
+                >
+                  No, Cancel
+                </button>
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <InputField
@@ -106,7 +151,7 @@ const LoginPage = () => {
               </Link>
             </p>
             <p className="text-xs text-text-secondary">
-              <Link to="/resend-verification" className="text-secondary hover:underline no-underline">
+              <Link to="/verify-email" className="text-secondary hover:underline no-underline">
                 Activation account Resend Email
               </Link>
             </p>

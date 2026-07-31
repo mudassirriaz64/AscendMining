@@ -227,7 +227,7 @@ const AdminWithdrawalsPage = () => {
               onChange={(e) => setRejectionReason(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition-all resize-none"
               rows={3}
-              placeholder="e.g., Invalid wallet address, Suspected fraudulent activity..."
+              placeholder="Enter rejection reason"
             />
           </div>
           <div className="flex justify-end gap-3 pt-4">

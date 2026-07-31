@@ -234,7 +234,7 @@ const AdminDepositsPage = () => {
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               className="w-full px-4 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              placeholder="e.g. Blurry screenshot, incorrect amount, etc."
+              placeholder="Enter rejection reason"
               autoFocus
             />
           </div>

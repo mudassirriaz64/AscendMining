@@ -175,7 +175,7 @@ const MiningSettingsPage = () => {
               min="1"
               value={timerDuration}
               onChange={(e) => setTimerDuration(e.target.value)}
-              placeholder="e.g. 24"
+              placeholder="Enter cooldown hours"
             />
           </div>
 

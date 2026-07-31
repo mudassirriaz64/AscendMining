@@ -190,7 +190,7 @@ const AdminPaymentMethodsPage = () => {
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#083358]"
               required
-              placeholder="e.g., JazzCash / Binance BTC"
+              placeholder="Enter payment method name"
             />
           </div>
 
@@ -240,7 +240,7 @@ const AdminPaymentMethodsPage = () => {
               onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#083358] resize-none"
               rows={4}
-              placeholder="e.g., Send funds to 0300-1234567, then upload a screenshot..."
+              placeholder="Enter transfer instructions for user"
             />
           </div>
 
