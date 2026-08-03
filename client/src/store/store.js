@@ -17,6 +17,8 @@ import adminDashboardStatsReducer from './slices/adminDashboardSlice';
 import notificationReducer from './slices/notificationSlice';
 import adminMiningSettingsReducer from './slices/adminMiningSettingsSlice';
 import kycReducer from './slices/kycSlice';
+import walletChangeReducer from './slices/walletChangeSlice';
+import adminWalletChangeReducer from './slices/adminWalletChangeSlice';
 
 const store = configureStore({
   reducer: {
@@ -38,6 +40,8 @@ const store = configureStore({
     adminServices: adminServiceReducer,
     adminContactMessages: adminContactMessageReducer,
     adminDashboardStats: adminDashboardStatsReducer,
+    walletChange: walletChangeReducer,
+    adminWalletRequests: adminWalletChangeReducer,
   },
 });
 

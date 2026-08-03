@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import {
   LayoutDashboard, Users, Package, Coins, ArrowDownToLine, ArrowUpFromLine,
   FileText, MessageCircle, ShieldCheck, Bell, Search,
-  Menu, X, LogOut, ChevronDown, Volume2, VolumeX, ChevronRight, Globe, Settings, History
+  Menu, X, LogOut, ChevronDown, Volume2, VolumeX, ChevronRight, Globe, Settings, History, Wallet
 } from 'lucide-react';
 import { logoutUser } from '../store/slices/authSlice';
 import { connectSocket } from '../services/socketService';
@@ -25,6 +25,7 @@ const sidebarLinks = [
   { to: '/admin/mining-settings', icon: Settings, label: 'Mining Settings' },
   { to: '/admin/deposits', icon: ArrowDownToLine, label: 'Deposits', badge: 'deposits' },
   { to: '/admin/withdrawals', icon: ArrowUpFromLine, label: 'Withdrawals', badge: 'withdrawals' },
+  { to: '/admin/wallet-requests', icon: Wallet, label: 'Wallet Requests', badge: 'walletRequests' },
   { to: '/admin/payment-methods', icon: FileText, label: 'Payment Methods' },
   { to: '/admin/audit-logs', icon: History, label: 'Audit Logs', badge: 'auditLogs' },
   { 
@@ -119,7 +120,7 @@ const AdminLayout = () => {
     return localStorage.getItem('admin_sound_alerts_enabled') === 'true';
   });
   const [globalSearch, setGlobalSearch] = useState('');
-  const [badges, setBadges] = useState({ users: 0, kyc: 0, deposits: 0, withdrawals: 0, auditLogs: 0 });
+  const [badges, setBadges] = useState({ users: 0, kyc: 0, deposits: 0, withdrawals: 0, auditLogs: 0, walletRequests: 0 });
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -159,6 +160,8 @@ const AdminLayout = () => {
       'admin:withdrawal:rejected',
       'admin:user:status',
       'admin:contact:new',
+      'admin:wallet:change:new',
+      'admin:wallet:change:status',
     ];
     events.forEach((event) => socket.on(event, refresh));
     const interval = setInterval(refreshBadges, 15000);

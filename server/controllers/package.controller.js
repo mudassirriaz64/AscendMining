@@ -59,24 +59,6 @@ const purchasePackage = async (req, res, next) => {
       });
     }
 
-    // Check if user already has an active package of this type
-    const existingActive = await UserPackage.findOne({
-      userId,
-      packageId: pkg._id,
-      status: 'active'
-    });
-
-    if (existingActive) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'ACTIVE_PLAN_EXISTS',
-          message: `You already have an active ${pkg.name} plan. You cannot purchase another one until your current plan expires.`,
-          status: 400,
-        },
-      });
-    }
-
     if (user.walletBalance < pkg.price) {
       return res.status(400).json({
         success: false,

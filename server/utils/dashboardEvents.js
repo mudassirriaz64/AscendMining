@@ -75,6 +75,21 @@ const emitGlobalMiningSettingsUpdate = (app, miningSettings) => {
   }
 };
 
+const emitWalletChangeStatus = (app, userId, data) => {
+  const ns = getDashboardNamespace(app);
+  if (ns) {
+    ns.to(`user:${userId}`).emit('wallet:change:status', data);
+    ns.to('admins').emit('admin:wallet:change:status', { userId, ...data });
+  }
+};
+
+const emitWalletChangeNew = (app, data) => {
+  const ns = getDashboardNamespace(app);
+  if (ns) {
+    ns.to('admins').emit('admin:wallet:change:new', data);
+  }
+};
+
 module.exports = {
   emitBalanceUpdate,
   emitMiningUpdate,
@@ -86,4 +101,6 @@ module.exports = {
   emitAdminUpdate,
   emitWithdrawalStatusChange,
   emitGlobalMiningSettingsUpdate,
+  emitWalletChangeStatus,
+  emitWalletChangeNew,
 };

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -74,14 +74,26 @@ const ActivePackageCard = ({ pkg }) => {
     }).join(' + ');
   };
 
-  const getTotalMinedForCoins = () => {
+  const totalMinedForInstance = useMemo(() => {
     const coins = pkg.packageId?.coins || [];
     if (coins.length === 0) return '0.0000 TX';
+
+    const startedAt = pkg.cycleStartedAt || pkg.startDate || pkg.createdAt;
+    if (!startedAt) return coins.map((coin) => `0.0000 ${coin.symbol}`).join(' + ');
+
+    const elapsedMs = Date.now() - new Date(startedAt).getTime();
+    const elapsedDaysRaw = elapsedMs / (1000 * 60 * 60 * 24);
+    const maxDays = typeof pkg.durationSnapshot === 'number' ? pkg.durationSnapshot : Infinity;
+    const elapsedDays = Math.max(0, Math.min(maxDays, elapsedDaysRaw));
+
     return coins.map((coin) => {
-      const balance = balances.miningBalances?.[coin.symbol] || 0;
-      return `${balance.toFixed(4)} ${coin.symbol}`;
+      const coinRate = coin.usdRate || 1.0;
+      const usdProfit = pkg.purchaseAmount * (pkg.dailyROISnapshot / 100);
+      const coinProfit = usdProfit / coinRate;
+      const total = elapsedDays * coinProfit;
+      return `${total.toFixed(4)} ${coin.symbol}`;
     }).join(' + ');
-  };
+  }, [pkg, progressPercent]);
 
   const hashRate = pkg.hashRateSnapshot || pkg.packageId?.hashRate || 0;
 
@@ -183,7 +195,7 @@ const ActivePackageCard = ({ pkg }) => {
             </div>
             <div className="bg-page-fill border border-page-border-soft p-6 rounded-xl text-center space-y-1 hover:border-primary/50 transition-colors">
               <p className="font-data-lg text-data-lg text-page-text font-mono">
-                {getTotalMinedForCoins()}
+                {totalMinedForInstance}
               </p>
               <p className="font-label-caps text-[10px] text-page-text-soft uppercase font-bold mt-1">Total Mined</p>
             </div>

@@ -51,7 +51,7 @@ const HeroSection = () => {
   const trustY = useTransform(scrollY, [0, 800], [0, -30]);
 
   return (
-    <section id="hero-section" className="relative overflow-hidden pt-24 pb-28 lg:pt-36 lg:pb-40">
+    <section id="hero-section" className="relative overflow-hidden pt-4 pb-28 lg:pt-6 lg:pb-40">
       {/* Continuous Ambient Background & Mesh Aurora (Gold, Cyan, Emerald morphing clouds).
           Static radial gradients — animating filter: blur() orbs repaints huge regions every frame. */}
       <div

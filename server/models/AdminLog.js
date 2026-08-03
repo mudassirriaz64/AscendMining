@@ -34,6 +34,8 @@ const adminLogSchema = new mongoose.Schema(
         'service_deleted',
         'kyc_approved',
         'kyc_rejected',
+        'wallet_change_approved',
+        'wallet_change_rejected',
       ],
       required: true,
     },

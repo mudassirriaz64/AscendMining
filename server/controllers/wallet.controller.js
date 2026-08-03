@@ -1,35 +1,49 @@
-const User = require('../models/User');
+const walletChangeRequestService = require('../services/walletChangeRequest.service');
+const { emitWalletChangeNew } = require('../utils/dashboardEvents');
 
-const updateWalletAddress = async (req, res, next) => {
+/**
+ * POST /api/wallets/request-change
+ * User submits a wallet address change request (requires admin approval).
+ */
+const submitWalletChangeRequest = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const { coinSymbol, address } = req.body;
+    const { coinSymbol, requestedWalletAddress } = req.body;
 
-    if (!coinSymbol || !address) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'INVALID_INPUT',
-          message: 'Please provide both coin symbol and address.',
-          status: 400,
-        },
-      });
-    }
+    const request = await walletChangeRequestService.submitRequest(userId, {
+      coinSymbol,
+      requestedWalletAddress,
+    });
 
-    const user = await User.findById(userId);
-    if (!user.walletAddresses) {
-      user.walletAddresses = new Map();
-    }
+    // Notify admins of new pending request for badge refresh
+    emitWalletChangeNew(req.app, {
+      requestId: request._id,
+      userId,
+      coinSymbol: request.coinSymbol,
+    });
 
-    user.walletAddresses.set(coinSymbol, address.trim());
-    await user.save();
+    res.status(201).json({
+      success: true,
+      message: `Your ${request.coinSymbol} wallet address change request has been submitted and is pending admin review.`,
+      data: { request },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/wallets/change-requests
+ * Fetch all wallet change requests for the authenticated user.
+ */
+const getMyWalletChangeRequests = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const requests = await walletChangeRequestService.getMyRequests(userId);
 
     res.status(200).json({
       success: true,
-      message: `${coinSymbol} wallet address updated successfully.`,
-      data: {
-        walletAddresses: Object.fromEntries(user.walletAddresses),
-      },
+      data: { requests },
     });
   } catch (error) {
     next(error);
@@ -37,5 +51,6 @@ const updateWalletAddress = async (req, res, next) => {
 };
 
 module.exports = {
-  updateWalletAddress,
+  submitWalletChangeRequest,
+  getMyWalletChangeRequests,
 };

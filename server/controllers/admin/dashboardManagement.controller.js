@@ -4,6 +4,7 @@ const Deposit = require('../../models/Deposit');
 const Withdrawal = require('../../models/Withdrawal');
 const AdminLog = require('../../models/AdminLog');
 const SystemSetting = require('../../models/SystemSetting');
+const WalletChangeRequest = require('../../models/WalletChangeRequest');
 
 const getPendingCounts = async (req, res, next) => {
   try {
@@ -15,12 +16,13 @@ const getPendingCounts = async (req, res, next) => {
     const usersSince = toDate(req.query.lastSeenUsers, dayAgo);
     const logsSince = toDate(req.query.lastSeenAuditLogs, dayAgo);
 
-    const [newUsers, pendingKYCs, pendingDeposits, pendingWithdrawals, recentLogs] = await Promise.all([
+    const [newUsers, pendingKYCs, pendingDeposits, pendingWithdrawals, recentLogs, pendingWalletRequests] = await Promise.all([
       User.countDocuments({ role: 'investor', createdAt: { $gt: usersSince } }),
       User.countDocuments({ role: 'investor', kycStatus: 'pending' }),
       Deposit.countDocuments({ status: 'pending' }),
       Withdrawal.countDocuments({ status: 'pending' }),
       AdminLog.countDocuments({ createdAt: { $gt: logsSince } }),
+      WalletChangeRequest.countDocuments({ status: 'pending' }),
     ]);
 
     res.status(200).json({
@@ -31,6 +33,7 @@ const getPendingCounts = async (req, res, next) => {
         deposits: pendingDeposits,
         withdrawals: pendingWithdrawals,
         auditLogs: recentLogs,
+        walletRequests: pendingWalletRequests,
       },
     });
   } catch (error) {
