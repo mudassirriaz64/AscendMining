@@ -25,7 +25,29 @@ const listUsers = async ({ search, status, page = 1, limit = 20 }) => {
 const getUserDetail = async (userId) => {
   const user = await userRepository.findById(userId);
   if (!user) throw new AppError('USER_NOT_FOUND', 'User not found.', 404);
-  return user;
+
+  const Deposit = require('../../models/Deposit');
+  const Withdrawal = require('../../models/Withdrawal');
+
+  const [depositSummary, withdrawalSummary] = await Promise.all([
+    Deposit.aggregate([
+      { $match: { userId: new mongoose.Types.ObjectId(userId), status: 'approved' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ]),
+    Withdrawal.aggregate([
+      { $match: { userId: new mongoose.Types.ObjectId(userId), status: 'completed' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ])
+  ]);
+
+  const totalDeposits = depositSummary[0]?.total || 0;
+  const totalPayouts = withdrawalSummary[0]?.total || 0;
+
+  const userObj = user.toObject ? user.toObject() : user;
+  userObj.totalDeposits = totalDeposits;
+  userObj.totalPayouts = totalPayouts;
+
+  return userObj;
 };
 
 const getUserPackages = async (userId, { page = 1, limit = 20 }) => {

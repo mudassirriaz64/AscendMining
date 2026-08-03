@@ -183,13 +183,13 @@ const UserDetailPage = () => {
                 <div className="bg-white/[0.02] border border-white/5 rounded-xl p-2.5">
                   <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold block mb-0.5">Total Deposits</span>
                   <span className="text-xs font-mono font-bold text-slate-200">
-                    ${(userDeposits?.data || []).reduce((acc, curr) => curr.status === 'approved' ? acc + curr.amount : acc, 0).toLocaleString()}
+                    ${(userDetail.totalDeposits || 0).toLocaleString()}
                   </span>
                 </div>
                 <div className="bg-white/[0.02] border border-white/5 rounded-xl p-2.5">
                   <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold block mb-0.5">Total Payouts</span>
                   <span className="text-xs font-mono font-bold text-slate-200">
-                    ${(userWithdrawals?.data || []).reduce((acc, curr) => curr.status === 'completed' ? acc + curr.amount : acc, 0).toLocaleString()}
+                    ${(userDetail.totalPayouts || 0).toLocaleString()}
                   </span>
                 </div>
               </div>
