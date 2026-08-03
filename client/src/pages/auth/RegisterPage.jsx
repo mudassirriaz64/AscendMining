@@ -215,10 +215,10 @@ const RegisterPage = () => {
       title="Join AscendHash & Start Mining"
       subtitle="Create your free account in minutes and deploy high-hash mining power instantly from your wallet balance."
     >
-      <h1 className="text-2xl font-heading font-semibold text-white mb-1">
+      <h1 className="text-2xl font-heading font-semibold text-page-text mb-1">
         Create An Account
       </h1>
-      <p className="text-sm text-slate-400 mb-6">
+      <p className="text-sm text-page-text-muted mb-6">
         Registration is fully free using email or username
       </p>
 

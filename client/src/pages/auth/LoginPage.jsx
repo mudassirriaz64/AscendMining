@@ -44,10 +44,10 @@ const LoginPage = () => {
       title="Welcome Back to AscendHash"
       subtitle="Sign in to manage your mining operations, track payouts, and grow your passive income from anywhere."
     >
-      <h1 className="text-2xl font-heading font-semibold text-white mb-1">
+      <h1 className="text-2xl font-heading font-semibold text-page-text mb-1">
         Login To Your Account
       </h1>
-      <p className="text-sm text-slate-400 mb-6">
+      <p className="text-sm text-page-text-muted mb-6">
         Sign in using your email or username
       </p>
 
@@ -81,7 +81,7 @@ const LoginPage = () => {
               onChange={(e) => setKeepLoggedIn(e.target.checked)}
               className="w-4 h-4 rounded bg-slate-900/60 border-slate-700 accent-amber-400 cursor-pointer"
             />
-            <span className="text-sm text-slate-400">Keep me logged in</span>
+            <span className="text-sm text-page-text-muted">Keep me logged in</span>
           </label>
           <Link
             to="/forgot-password"
@@ -97,7 +97,7 @@ const LoginPage = () => {
       </form>
 
       <div className="mt-6 text-center">
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-page-text-muted">
           Don't have any account?{' '}
           <Link
             to="/register"
