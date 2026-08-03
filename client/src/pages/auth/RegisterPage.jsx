@@ -312,7 +312,7 @@ const RegisterPage = () => {
       </form>
 
       <div className="mt-6 text-center">
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-page-text-muted">
           Already have an account?{' '}
           <Link
             to="/login"
