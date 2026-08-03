@@ -1,11 +1,11 @@
 import { cn } from '../../utils/cn';
 
 const baseFieldClass = cn(
-  'w-full rounded-xl bg-white/[0.04] border border-border-glass px-4 py-3',
-  'text-sm text-slate-100 placeholder:text-slate-500',
+  'w-full rounded-xl bg-page-input border border-page-input-border px-4 py-3',
+  'text-sm text-page-text placeholder:text-page-text-faint',
   'transition duration-300 outline-none',
-  'focus:bg-white/[0.06] focus:border-electric-cyan/60 focus:ring-2 focus:ring-electric-cyan/40 focus:shadow-[0_0_20px_rgba(0,240,255,0.12)]',
-  'hover:border-white/20'
+  'focus:bg-page-input focus:border-electric-cyan/60 focus:ring-2 focus:ring-electric-cyan/40 focus:shadow-[0_0_20px_rgba(0,240,255,0.12)]',
+  'hover:border-page-text-faint'
 );
 
 export const TextField = ({
@@ -24,7 +24,7 @@ export const TextField = ({
 
   return (
     <div className={cn('space-y-1.5', className)}>
-      <label htmlFor={id} className="block text-xs font-semibold text-slate-300">
+      <label htmlFor={id} className="block text-xs font-semibold text-page-text-muted">
         {label}
         {required ? <span className="text-gold ml-0.5">*</span> : null}
       </label>
@@ -64,7 +64,7 @@ export const TextArea = ({
 
   return (
     <div className={cn('space-y-1.5', className)}>
-      <label htmlFor={id} className="block text-xs font-semibold text-slate-300">
+      <label htmlFor={id} className="block text-xs font-semibold text-page-text-muted">
         {label}
         {required ? <span className="text-gold ml-0.5">*</span> : null}
       </label>

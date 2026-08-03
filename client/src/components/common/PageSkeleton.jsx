@@ -31,7 +31,7 @@ const PageSkeleton = () => {
           {[1, 2, 3].map((i) => (
             <div 
               key={i} 
-              className="bg-white p-card-padding rounded-xl border border-outline-variant h-[180px] flex flex-col justify-between"
+              className="bg-surface-container-lowest p-card-padding rounded-xl border border-outline-variant h-[180px] flex flex-col justify-between"
             >
               <div className="w-12 h-12 bg-surface-container-high rounded animate-pulse"></div>
               <div className="space-y-2">
@@ -43,7 +43,7 @@ const PageSkeleton = () => {
         </div>
 
         {/* Large Block Placeholder */}
-        <div className="bg-white border border-outline-variant rounded-xl p-card-padding space-y-6">
+        <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding space-y-6">
           <div className="w-40 h-5 bg-surface-container-high rounded animate-pulse"></div>
           <div className="space-y-4">
             <div className="w-full h-4 bg-surface-container-low rounded animate-pulse"></div>

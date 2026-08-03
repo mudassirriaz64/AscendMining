@@ -65,8 +65,8 @@ const UserListPage = () => {
       label: 'Name',
       render: (val, row) => (
         <div>
-          <p className="font-medium text-text-light-bg">{val}</p>
-          <p className="text-xs text-text-secondary">@{row.username}</p>
+          <p className="font-semibold text-white">{val}</p>
+          <p className="text-xs text-slate-400">@{row.username}</p>
         </div>
       ),
     },
@@ -78,8 +78,8 @@ const UserListPage = () => {
       key: 'role',
       label: 'Role',
       render: (val) => (
-        <span className="flex items-center gap-1 text-xs">
-          {val === 'admin' && <ShieldCheck size={14} className="text-secondary" />}
+        <span className="flex items-center gap-1 text-xs text-slate-300">
+          {val === 'admin' && <ShieldCheck size={14} className="text-amber-400" />}
           {val === 'support_agent' ? 'Support Agent' : val?.charAt(0).toUpperCase() + val?.slice(1)}
         </span>
       ),
@@ -93,7 +93,7 @@ const UserListPage = () => {
       key: 'walletBalance',
       label: 'Balance',
       render: (val) => (
-        <span className="font-mono text-sm">${(val || 0).toLocaleString()}</span>
+        <span className="font-mono text-sm text-slate-200 font-bold">${(val || 0).toLocaleString()}</span>
       ),
     },
     {
@@ -107,18 +107,18 @@ const UserListPage = () => {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <Users size={20} className="text-primary" />
+          <div className="w-10 h-10 rounded-xl bg-primary-container/10 border border-primary-container/20 flex items-center justify-center text-primary-fixed-dim shrink-0 shadow-inner">
+            <Users size={20} className="text-primary-fixed-dim" />
           </div>
           <div>
-            <h1 className="text-xl font-heading font-semibold text-text-light-bg">Users</h1>
-            <p className="text-sm text-text-secondary">{usersTotal} total users</p>
+            <h1 className="text-xl font-heading font-semibold text-white">Users</h1>
+            <p className="text-sm text-slate-400">{usersTotal} total users</p>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-border-light">
-        <div className="px-4 py-3 border-b border-border-light flex flex-col sm:flex-row gap-3">
+      <div className="bg-[#0d1420]/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl overflow-hidden text-white">
+        <div className="px-6 py-4 border-b border-white/5 flex flex-col sm:flex-row gap-3">
           <SearchInput
             value={search}
             onChange={handleSearch}
@@ -137,7 +137,7 @@ const UserListPage = () => {
           onRowClick={(row) => navigate(`/admin/users/${row._id}`)}
         />
 
-        <div className="px-4">
+        <div className="px-6 border-t border-white/5">
           <Pagination page={usersPage} total={usersTotal} limit={usersLimit} onPageChange={setPage} />
         </div>
       </div>

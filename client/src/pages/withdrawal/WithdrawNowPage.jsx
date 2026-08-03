@@ -10,10 +10,8 @@ import { fetchDashboardSummary, updateBalance } from '../../store/slices/dashboa
 import { requestWithdrawal, clearWithdrawalError } from '../../store/slices/withdrawalSlice';
 import { logoutUser } from '../../store/slices/authSlice';
 import { connectDashboardSocket, disconnectDashboardSocket } from '../../services/dashboardSocket';
-import Logo from '../../components/common/Logo';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageSkeleton from '../../components/common/PageSkeleton';
-import Header from '../../components/common/Header';
 import Button from '../../components/common/Button';
 
 const WithdrawNowPage = () => {
@@ -135,14 +133,9 @@ const WithdrawNowPage = () => {
   const kycStatus = user?.kycStatus || 'none';
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-on-surface font-sans antialiased">
-      
-      <Header />
+    <div className="max-w-4xl w-full mx-auto px-margin-mobile md:px-margin-desktop py-gutter flex-1 space-y-gutter">
 
-      {/* MAIN CONTAINER */}
-      <main className="max-w-4xl w-full mx-auto px-margin-mobile md:px-margin-desktop py-gutter flex-grow space-y-gutter">
-        
-        <div className="border-b border-outline-variant pb-4">
+      <div className="border-b border-outline-variant pb-4">
           <h1 className="text-2xl font-extrabold text-primary tracking-tight uppercase">
             Withdraw <span className="text-primary font-extrabold">Funds</span>
           </h1>
@@ -150,8 +143,8 @@ const WithdrawNowPage = () => {
         </div>
 
         {kycStatus !== 'approved' ? (
-          <div className="bg-white rounded-xl border border-outline-variant p-card-padding text-center max-w-lg mx-auto space-y-6 my-10">
-            <div className="bg-amber-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto text-amber-500">
+          <div className="bg-white dark:bg-surface-container-lowest rounded-xl border border-outline-variant p-card-padding text-center max-w-lg mx-auto space-y-6 my-10">
+            <div className="bg-amber-50 dark:bg-amber-500/15 w-16 h-16 rounded-full flex items-center justify-center mx-auto text-amber-500 dark:text-amber-400">
               <ShieldAlert size={36} />
             </div>
             <div className="space-y-2">
@@ -179,7 +172,7 @@ const WithdrawNowPage = () => {
           /* COIN WALLET CARDS LIST */
           <section className="space-y-6">
             {!coins || coins.length === 0 ? (
-              <div className="bg-white border border-outline-variant rounded-xl p-10 text-center text-on-surface-variant font-medium text-sm">
+              <div className="bg-white dark:bg-surface-container-lowest border border-outline-variant rounded-xl p-10 text-center text-on-surface-variant font-medium text-sm">
                 No active mining coins available.
               </div>
             ) : (
@@ -190,7 +183,7 @@ const WithdrawNowPage = () => {
               return (
                 <div 
                   key={coin._id}
-                  className="bg-white border border-outline-variant rounded-xl p-card-padding hover:shadow-[0px_4px_20px_rgba(11,18,32,0.05)] transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-6"
+                  className="bg-white dark:bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding hover:shadow-[0px_4px_20px_rgba(11,18,32,0.05)] transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-6"
                 >
                   <div className="space-y-4 flex-grow">
                     <div className="flex items-center space-x-3.5">
@@ -253,12 +246,11 @@ const WithdrawNowPage = () => {
         </section>
         )}
 
-      </main>
 
       {/* WITHDRAW MODAL */}
       {isModalOpen && selectedCoin && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl max-w-md w-full shadow-2xl overflow-hidden border border-outline-variant transform scale-100 transition-all duration-300">
+          <div className="bg-white dark:bg-surface-container-lowest rounded-xl max-w-md w-full shadow-2xl overflow-hidden border border-outline-variant transform scale-100 transition-all duration-300">
             
             {/* Modal Header */}
             <div className="bg-on-secondary-fixed text-white p-6 flex justify-between items-center border-b border-outline-variant">
@@ -339,16 +331,6 @@ const WithdrawNowPage = () => {
           </div>
         </div>
       )}
-
-      {/* Footer */}
-      <footer className="bg-on-secondary-fixed text-white/50 py-8 border-t border-outline-variant/20 mt-12">
-        <div className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop flex flex-col items-center gap-4">
-          <Logo variant="dark" size="sm" className="h-8 opacity-80" />
-          <p className="font-body-sm text-body-sm text-center">
-            &copy; 2026 <span className="font-semibold text-white">AscendHash</span>. All rights reserved.
-          </p>
-        </div>
-      </footer>
 
     </div>
   );

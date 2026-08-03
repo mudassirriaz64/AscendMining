@@ -50,9 +50,9 @@ const PackagesPage = () => {
           </div>
         ) : packages.length === 0 ? (
           <div className="glass-card rounded-2xl p-12 text-center max-w-md mx-auto">
-            <Layers className="mx-auto text-slate-600 mb-4" size={48} />
-            <h3 className="text-lg font-heading font-semibold text-white mb-2">No Packages Available</h3>
-            <p className="text-xs text-slate-400">We are currently configuring new hardware contracts. Please contact support or check back soon.</p>
+            <Layers className="mx-auto text-page-text-faint mb-4" size={48} />
+            <h3 className="text-lg font-heading font-semibold text-page-text mb-2">No Packages Available</h3>
+            <p className="text-xs text-page-text-soft">We are currently configuring new hardware contracts. Please contact support or check back soon.</p>
           </div>
         ) : (
           <m.div
@@ -87,7 +87,7 @@ const PackagesPage = () => {
                   <div className="space-y-6">
                     {/* Title & Badge */}
                     <div className="flex justify-between items-start gap-3">
-                      <h3 className="text-xl font-heading font-semibold text-white">{pkg.name}</h3>
+                      <h3 className="text-xl font-heading font-semibold text-page-text">{pkg.name}</h3>
                       <div className="flex flex-wrap gap-1 justify-end">
                         {(pkg.coins || []).map((coin) => (
                           <span key={coin._id || coin} className="px-2.5 py-1 rounded-full bg-electric-cyan/10 border border-electric-cyan/25 text-[10px] font-bold text-electric-cyan uppercase">
@@ -98,23 +98,23 @@ const PackagesPage = () => {
                     </div>
 
                     {/* Pricing Details */}
-                    <div className="border-y border-border-glass py-4 space-y-2">
+                    <div className="border-y border-page-border py-4 space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-400 font-medium">Price</span>
-                        <span className="font-mono font-semibold text-white">${pkg.price?.toLocaleString()} USD</span>
+                        <span className="text-page-text-soft font-medium">Price</span>
+                        <span className="font-mono font-semibold text-page-text">${pkg.price?.toLocaleString()} USD</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-400 font-medium">Daily ROI</span>
+                        <span className="text-page-text-soft font-medium">Daily ROI</span>
                         <span className="font-mono font-semibold text-emerald">+{pkg.dailyROI}%</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-400 font-medium">Duration</span>
-                        <span className="font-mono font-semibold text-white">{pkg.duration} Days</span>
+                        <span className="text-page-text-soft font-medium">Duration</span>
+                        <span className="font-mono font-semibold text-page-text">{pkg.duration} Days</span>
                       </div>
                     </div>
 
                     {/* Description */}
-                    <p className="text-sm text-slate-400 leading-relaxed">
+                    <p className="text-sm text-page-text-soft leading-relaxed">
                       {pkg.description || 'Access dedicated high-efficiency cloud computing grids.'}
                     </p>
                   </div>

@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { fetchAdminDashboardStats, updateSystemStatusThunk } from '../../../store/slices/adminDashboardSlice';
 import LoadingSpinner from '../../../components/common/LoadingSpinner';
 
-const StatCard = ({ title, value, label, icon: Icon, to, menu }) => {
+const StatCard = ({ title, value, label, icon: Icon, to, menu, themeColor = 'gold' }) => {
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -20,21 +20,28 @@ const StatCard = ({ title, value, label, icon: Icon, to, menu }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const baseClass = 'bg-[#131b2e] border border-white/5 rounded-2xl p-6 shadow-xl flex items-center justify-between transition-all';
+  const borderHighlight = themeColor === 'gold' 
+    ? 'border-amber-550/20 hover:border-amber-400/50 shadow-[inset_0_0_15px_rgba(245,197,24,0.03)] hover:shadow-[0_0_20px_rgba(245,197,24,0.15)]' 
+    : 'border-cyan-550/20 hover:border-cyan-400/50 shadow-[inset_0_0_15px_rgba(6,182,212,0.03)] hover:shadow-[0_0_20px_rgba(6,182,212,0.15)]';
+
+  const baseClass = `bg-[#0d1420]/65 backdrop-blur-xl border ${borderHighlight} rounded-2xl p-6 flex items-center justify-between transition-all duration-300`;
+  const valueColor = themeColor === 'gold' ? 'text-amber-400' : 'text-cyan-400';
+  const iconBg = themeColor === 'gold' ? 'bg-amber-400/10 border-amber-400/20 text-amber-450' : 'bg-cyan-400/10 border-cyan-400/20 text-cyan-450';
+  const viewMoreText = themeColor === 'gold' ? 'text-amber-400/70 group-hover:text-amber-400' : 'text-cyan-400/70 group-hover:text-cyan-400';
 
   const content = (
     <>
       <div className="space-y-2">
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{title}</p>
         <div className="flex items-baseline gap-2">
-          <h3 className="text-3xl font-bold text-white font-mono">{value}</h3>
+          <h3 className={`text-3xl font-bold font-mono ${valueColor}`}>{value}</h3>
           {label && <span className="text-xs font-semibold text-emerald-400">{label}</span>}
         </div>
-        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary/70 uppercase tracking-wider group-hover:text-primary transition-colors">
+        <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider ${viewMoreText} transition-colors`}>
           View More <ArrowRight size={12} />
         </span>
       </div>
-      <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-inner">
+      <div className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 shadow-inner ${iconBg}`}>
         <Icon size={24} />
       </div>
     </>
@@ -44,7 +51,7 @@ const StatCard = ({ title, value, label, icon: Icon, to, menu }) => {
     return (
       <div
         ref={menuRef}
-        className={`relative ${baseClass} group cursor-pointer ${open ? 'border-primary/40 shadow-2xl' : 'hover:border-primary/40 hover:shadow-2xl'}`}
+        className={`relative ${baseClass} group cursor-pointer ${open ? 'border-amber-400/40 shadow-2xl' : 'hover:border-amber-400/40 hover:shadow-2xl'}`}
       >
         <button
           type="button"
@@ -52,15 +59,15 @@ const StatCard = ({ title, value, label, icon: Icon, to, menu }) => {
           className="absolute inset-0 z-10 cursor-pointer"
           aria-label={`${title} - view more`}
         />
-        <div className="pointer-events-none">{content}</div>
+        <div className="pointer-events-none w-full flex items-center justify-between">{content}</div>
         {open && (
-          <div className="absolute right-4 top-[calc(100%-8px)] z-20 w-56 bg-white rounded-xl shadow-2xl border border-slate-100 py-1.5">
+          <div className="absolute right-4 top-[calc(100%-8px)] z-20 w-56 bg-[#0d1420]/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 py-1.5 animate-fade-in text-white">
             {menu.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
                 onClick={() => setOpen(false)}
-                className="flex items-center justify-between px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                className="flex items-center justify-between px-4 py-2.5 text-xs font-semibold text-slate-350 hover:text-white hover:bg-white/5 transition-colors"
               >
                 {item.label}
                 <ArrowRight size={12} className="text-slate-400" />
@@ -75,7 +82,7 @@ const StatCard = ({ title, value, label, icon: Icon, to, menu }) => {
   return (
     <Link
       to={to}
-      className={`${baseClass} group hover:border-primary/40 hover:shadow-2xl`}
+      className={`${baseClass} group hover:shadow-2xl`}
     >
       {content}
     </Link>
@@ -129,18 +136,18 @@ const SVGLineChart = ({ data, dataKey, strokeColor = '#F5C518', height = 140 }) 
       `}</style>
       <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible" preserveAspectRatio="none">
         <defs>
-          <linearGradient id={`grad-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={strokeColor} stopOpacity={0.18} />
+          <linearGradient id={`grad-${dataKey}-${strokeColor.replace('#', '')}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={strokeColor} stopOpacity={0.25} />
             <stop offset="100%" stopColor={strokeColor} stopOpacity={0.0} />
           </linearGradient>
         </defs>
         
         {/* Helper grid lines */}
-        <line x1={getX(0)} y1={getY(maxVal)} x2={getX(data.length - 1)} y2={getY(maxVal)} stroke="rgba(0,0,0,0.02)" strokeDasharray="3,3" />
-        <line x1={getX(0)} y1={getY(maxVal / 2)} x2={getX(data.length - 1)} y2={getY(maxVal / 2)} stroke="rgba(0,0,0,0.02)" strokeDasharray="3,3" />
+        <line x1={getX(0)} y1={getY(maxVal)} x2={getX(data.length - 1)} y2={getY(maxVal)} stroke="rgba(255,255,255,0.03)" strokeDasharray="3,3" />
+        <line x1={getX(0)} y1={getY(maxVal / 2)} x2={getX(data.length - 1)} y2={getY(maxVal / 2)} stroke="rgba(255,255,255,0.03)" strokeDasharray="3,3" />
 
         {/* Fill Area under chart line */}
-        <path d={areaD} fill={`url(#grad-${dataKey})`} />
+        <path d={areaD} fill={`url(#grad-${dataKey}-${strokeColor.replace('#', '')})`} />
 
         {/* Glowing Background Blur Line Path */}
         <path 
@@ -185,7 +192,7 @@ const SVGLineChart = ({ data, dataKey, strokeColor = '#F5C518', height = 140 }) 
               cy={getY(values[data.length - 1])} 
               r={4} 
               fill={strokeColor} 
-              stroke="#ffffff" 
+              stroke="#0d1420" 
               strokeWidth={1.5}
               style={{ filter: `drop-shadow(0 0 3px ${strokeColor})` }}
             />
@@ -200,13 +207,15 @@ const Switch = ({ checked, onChange }) => (
   <button
     type="button"
     onClick={onChange}
-    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-      checked ? 'bg-primary' : 'bg-slate-200'
+    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-all duration-200 ease-in-out focus:outline-none ${
+      checked 
+        ? 'bg-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.5)] border border-amber-400' 
+        : 'bg-white/5 border border-white/10'
     }`}
   >
     <span
-      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-        checked ? 'translate-x-5' : 'translate-x-0'
+      className={`pointer-events-none inline-block h-[18px] w-[18px] mt-[1px] ml-[1px] transform rounded-full shadow transition duration-200 ease-in-out ${
+        checked ? 'translate-x-5 bg-slate-950' : 'translate-x-0 bg-white/40'
       }`}
     />
   </button>
@@ -261,6 +270,7 @@ const AdminDashboardPage = () => {
           value={stats.totalUsers?.toLocaleString() || 0} 
           icon={Users} 
           to="/admin/users"
+          themeColor="cyan"
         />
         <StatCard 
           title="Platform Liquidity" 
@@ -268,6 +278,7 @@ const AdminDashboardPage = () => {
           label="USD"
           icon={Wallet} 
           to="/admin/deposits"
+          themeColor="gold"
         />
         <StatCard 
           title="Active Mining Nodes" 
@@ -275,12 +286,14 @@ const AdminDashboardPage = () => {
           label="Online"
           icon={Cpu} 
           to="/admin/packages"
+          themeColor="cyan"
         />
         <StatCard 
           title="Pending Approvals" 
           value={stats.pendingApprovals || 0} 
           label="Requests"
           icon={CheckSquare} 
+          themeColor="gold"
           menu={[
             { label: 'Pending KYC Verifications', to: '/admin/kyc' },
             { label: 'Pending Deposits', to: '/admin/deposits' },
@@ -291,18 +304,18 @@ const AdminDashboardPage = () => {
 
       {/* Middle Row Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
-          <h3 className="text-base font-bold text-slate-800">Total Activity (Platform)</h3>
+        <div className="bg-[#0d1420]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl text-white">
+          <h3 className="text-base font-bold text-white">Total Activity (Platform)</h3>
           <p className="text-xs text-slate-400 mt-1">Aggregate platform engagement & user growth (Last 30 days)</p>
-          <SVGLineChart data={activityTrend} dataKey="count" strokeColor="#F5C518" />
+          <SVGLineChart data={activityTrend} dataKey="count" strokeColor="#06b6d4" />
         </div>
-        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+        <div className="bg-[#0d1420]/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl flex flex-col justify-between text-white">
           <div>
-            <h3 className="text-base font-bold text-slate-800">Global Deposit Trends</h3>
+            <h3 className="text-base font-bold text-white">Global Deposit Trends</h3>
             <p className="text-xs text-slate-400 mt-1">Total platform deposits vs Pending (Weekly)</p>
           </div>
           <SVGLineChart data={depositTrend} dataKey="amount" strokeColor="#F5C518" />
-          <div className="flex justify-between items-center text-[10px] font-mono text-slate-400 px-4 mt-2 border-t border-slate-50 pt-2">
+          <div className="flex justify-between items-center text-[10px] font-mono text-slate-400 px-4 mt-2 border-t border-white/5 pt-2">
             <span>W1</span>
             <span>W2</span>
             <span>W3</span>
@@ -313,13 +326,13 @@ const AdminDashboardPage = () => {
       {/* Bottom Grid: System Status & Recent Registrations */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* System Status Controls */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
-          <h3 className="text-base font-bold text-slate-800 mb-6">System Status</h3>
+        <div className="bg-[#0d1420]/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl text-white">
+          <h3 className="text-base font-bold text-white mb-6">System Status</h3>
           
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-sm font-semibold text-slate-800">Maintenance Mode</h4>
+                <h4 className="text-sm font-semibold text-white">Maintenance Mode</h4>
                 <p className="text-xs text-slate-400">Lock all user features</p>
               </div>
               <Switch 
@@ -330,7 +343,7 @@ const AdminDashboardPage = () => {
             
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-sm font-semibold text-slate-800">New Registrations</h4>
+                <h4 className="text-sm font-semibold text-white">New Registrations</h4>
                 <p className="text-xs text-slate-400">Allow new user signups</p>
               </div>
               <Switch 
@@ -341,7 +354,7 @@ const AdminDashboardPage = () => {
             
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-sm font-semibold text-slate-800">Withdrawal Processing</h4>
+                <h4 className="text-sm font-semibold text-white">Withdrawal Processing</h4>
                 <p className="text-xs text-slate-400">Global payout gateway</p>
               </div>
               <Switch 
@@ -353,42 +366,42 @@ const AdminDashboardPage = () => {
         </div>
 
         {/* Recent Registrations Table */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm lg:col-span-2 flex flex-col justify-between">
+        <div className="bg-[#0d1420]/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl lg:col-span-2 flex flex-col justify-between text-white">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-base font-bold text-slate-800">Recent Registrations</h3>
-            <Link to="/admin/users" className="text-xs font-semibold text-primary hover:underline">
+            <h3 className="text-base font-bold text-white">Recent Registrations</h3>
+            <Link to="/admin/users" className="text-xs font-semibold text-amber-400 hover:underline">
               View Directory
             </Link>
           </div>
-
+ 
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <tr className="border-b border-white/10 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   <th className="py-2.5">User</th>
                   <th className="py-2.5">Email</th>
                   <th className="py-2.5">Plan</th>
                   <th className="py-2.5 text-right">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50 text-sm">
+              <tbody className="divide-y divide-white/5 text-sm">
                 {recentRegistrations.length === 0 ? (
                   <tr>
                     <td colSpan="4" className="py-4 text-center text-slate-400 text-xs">No registrations found</td>
                   </tr>
                 ) : (
                   recentRegistrations.map((user, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="py-3 font-medium text-slate-800">{user.username}</td>
-                      <td className="py-3 text-slate-500 font-mono text-xs">{user.email}</td>
-                      <td className="py-3 text-slate-600 font-medium">{user.plan}</td>
+                    <tr key={idx} className="hover:bg-[#ffffff]/[0.02] transition-colors">
+                      <td className="py-3 font-medium text-slate-200">{user.username}</td>
+                      <td className="py-3 text-slate-400 font-mono text-xs">{user.email}</td>
+                      <td className="py-3 text-slate-300 font-medium">{user.plan}</td>
                       <td className="py-3 text-right">
                         <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${
                           user.status === 'approved' 
-                            ? 'bg-green-500/10 text-green-600 border-green-500/20'
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 shadow-[0_0_10px_rgba(0,230,153,0.2)]'
                             : user.status === 'pending'
-                            ? 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20'
-                            : 'bg-slate-100 text-slate-500 border-slate-200'
+                            ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 shadow-[0_0_10px_rgba(255,184,0,0.2)]'
+                            : 'bg-white/5 text-slate-400 border-white/10'
                         }`}>
                           {user.status === 'approved' ? 'Verified' : user.status === 'pending' ? 'Pending' : 'None'}
                         </span>
@@ -403,20 +416,20 @@ const AdminDashboardPage = () => {
       </div>
 
       {/* Platform Transactions Table */}
-      <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex flex-col">
+      <div className="bg-[#0d1420]/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl flex flex-col text-white">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider">
             Platform Transactions
           </h3>
-          <Link to="/admin/deposits" className="text-xs font-semibold text-primary hover:underline">
+          <Link to="/admin/deposits" className="text-xs font-semibold text-amber-400 hover:underline">
             Master Ledger →
           </Link>
         </div>
-
+ 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <tr className="border-b border-white/10 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 <th className="py-3">User ID</th>
                 <th className="py-3">TRX ID</th>
                 <th className="py-3">Date / Time</th>
@@ -425,17 +438,17 @@ const AdminDashboardPage = () => {
                 <th className="py-3 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50 text-sm">
+            <tbody className="divide-y divide-white/5 text-sm">
               {platformTransactions.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="py-6 text-center text-slate-400 text-xs">No transaction records found</td>
                 </tr>
               ) : (
                 platformTransactions.map((tx, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-3.5 font-medium text-slate-800">{tx.userId}</td>
-                    <td className="py-3.5 font-mono text-xs text-slate-400">{tx.trxId}</td>
-                    <td className="py-3.5 text-slate-500 font-mono text-xs">
+                  <tr key={idx} className="hover:bg-[#ffffff]/[0.02] transition-colors">
+                    <td className="py-3.5 font-medium text-slate-200">{tx.userId}</td>
+                    <td className="py-3.5 font-mono text-xs text-slate-450">{tx.trxId}</td>
+                    <td className="py-3.5 text-slate-400 font-mono text-xs">
                       {new Date(tx.dateTime).toLocaleString('en-US', {
                         month: '2-digit',
                         day: '2-digit',
@@ -446,19 +459,19 @@ const AdminDashboardPage = () => {
                       })}
                     </td>
                     <td className="py-3.5">
-                      <span className={`inline-flex px-2.5 py-0.5 rounded-md text-xs font-mono font-bold ${
+                      <span className={`inline-flex px-2.5 py-0.5 rounded-md text-xs font-mono font-bold border ${
                         tx.amount > 0 
-                          ? 'bg-green-500/10 text-green-600' 
-                          : 'bg-red-500/10 text-red-600'
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                          : 'bg-red-500/10 text-red-400 border-red-500/20'
                       }`}>
                         {tx.amount > 0 ? `+${tx.amount.toLocaleString()}` : tx.amount.toLocaleString()} USD
                       </span>
                     </td>
-                    <td className="py-3.5 text-slate-600 italic font-light">{tx.description}</td>
+                    <td className="py-3.5 text-slate-400 italic font-light">{tx.description}</td>
                     <td className="py-3.5 text-right">
                       <Link 
                         to={tx.type === 'deposit' ? '/admin/deposits' : '/admin/withdrawals'} 
-                        className="text-xs font-bold text-primary hover:underline"
+                        className="text-xs font-bold text-amber-400 hover:underline"
                       >
                         REVIEW
                       </Link>
@@ -468,8 +481,8 @@ const AdminDashboardPage = () => {
               )}
             </tbody>
           </table>
-        </div>
       </div>
+    </div>
     </div>
   );
 };

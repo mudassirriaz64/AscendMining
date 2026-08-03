@@ -8,12 +8,12 @@ const variants = {
     'shadow-[0_0_24px_rgba(255,184,0,0.25)] hover:shadow-[0_0_36px_rgba(255,184,0,0.45)]'
   ),
   outline: cn(
-    'border border-white/10 bg-white/[0.03] text-slate-200 backdrop-blur-md',
-    'hover:border-white/20 hover:text-white hover:bg-white/[0.07]'
+    'border border-page-border bg-page-fill text-page-text-muted backdrop-blur-md',
+    'hover:border-page-text-faint hover:text-page-text hover:bg-page-fill'
   ),
   white: cn(
-    'bg-white text-bg-void hover:bg-white/95 text-slate-950 font-bold',
-    'shadow-[0_4px_20px_rgba(255,255,255,0.12)] hover:shadow-[0_4px_28px_rgba(255,255,255,0.2)]'
+    'bg-page-text text-page-bg hover:bg-page-text font-bold',
+    'shadow-[0_4px_20px_rgba(0,0,0,0.12)] hover:shadow-[0_4px_28px_rgba(0,0,0,0.2)]'
   ),
   cyan: cn(
     'bg-gradient-to-r from-electric-cyan to-emerald text-[#080c14]',
@@ -25,7 +25,7 @@ const GlowButton = ({ children, to, variant = 'gold', shine = false, className, 
   const classes = cn(
     'inline-flex items-center justify-center gap-2 rounded-full px-7 py-3',
     'text-sm font-semibold transition duration-300 relative overflow-hidden group',
-    'focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-void',
+    'focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-page-bg',
     'active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer',
     variants[variant],
     className

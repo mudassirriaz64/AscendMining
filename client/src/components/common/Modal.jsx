@@ -30,15 +30,15 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md"
       onClick={(e) => e.target === overlayRef.current && onClose()}
     >
-      <div className={`bg-white rounded-2xl shadow-xl w-full ${sizes[size]} max-h-[90vh] flex flex-col`}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border-light">
-          <h2 className="text-lg font-heading font-semibold text-text-light-bg">{title}</h2>
+      <div className={`bg-[#0d1420]/90 backdrop-blur-2xl border border-white/10 text-white shadow-2xl rounded-3xl w-full ${sizes[size]} max-h-[90vh] flex flex-col`}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+          <h2 className="text-lg font-heading font-semibold text-white">{title}</h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-text-secondary hover:bg-bg-light-alt cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-400 hover:bg-white/10 cursor-pointer transition-colors"
           >
             <X size={20} />
           </button>

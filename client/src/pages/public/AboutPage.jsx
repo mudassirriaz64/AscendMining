@@ -43,11 +43,11 @@ const AboutPage = () => {
 
         {/* Story Section */}
         <div className="glass-card rounded-3xl p-8 lg:p-12 space-y-6">
-          <h2 className="text-2xl font-heading font-semibold text-white">Our Journey</h2>
-          <p className="text-sm text-slate-400 leading-relaxed">
+          <h2 className="text-2xl font-heading font-semibold text-page-text">Our Journey</h2>
+          <p className="text-sm text-page-text-soft leading-relaxed">
             Founded by a dedicated team of hardware engineers, data center architects, and cryptocurrency advocates, AscendHash was built to offer transparent hash power rentals. We own and operate physical mining facilities across multiple regions, optimizing for clean energy sources like solar and hydroelectric power.
           </p>
-          <p className="text-sm text-slate-400 leading-relaxed">
+          <p className="text-sm text-page-text-soft leading-relaxed">
             By aggregating massive computational hardware in high-stability grids, we offer our users fractional hash rentals starting directly from their wallet balances. No maintenance fees, no hardware deterioration, and no cooling setup. We handle the operations; you secure the hash rewards.
           </p>
         </div>
@@ -62,8 +62,8 @@ const AboutPage = () => {
                   <Icon size={22} />
                 </div>
                 <div>
-                  <h3 className="text-base font-heading font-semibold text-white mb-2">{card.title}</h3>
-                  <p className="text-xs text-slate-400 leading-relaxed">{card.desc}</p>
+                  <h3 className="text-base font-heading font-semibold text-page-text mb-2">{card.title}</h3>
+                  <p className="text-xs text-page-text-soft leading-relaxed">{card.desc}</p>
                 </div>
               </div>
             );
@@ -71,11 +71,11 @@ const AboutPage = () => {
         </div>
 
         {/* CTA */}
-        <div className="relative text-center rounded-3xl p-10 lg:p-14 overflow-hidden border border-border-glass bg-gradient-to-br from-gold/[0.08] via-transparent to-electric-cyan/[0.06]">
+        <div className="relative text-center rounded-3xl p-10 lg:p-14 overflow-hidden border border-page-border bg-gradient-to-br from-gold/[0.08] via-transparent to-electric-cyan/[0.06]">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-gold/10 rounded-full blur-[90px] pointer-events-none" />
           <div className="relative space-y-6">
-            <h2 className="text-2xl lg:text-3xl font-heading font-bold text-white">Ready to Start Your Mining Journey?</h2>
-            <p className="text-xs text-slate-400 max-w-md mx-auto">
+            <h2 className="text-2xl lg:text-3xl font-heading font-bold text-page-text">Ready to Start Your Mining Journey?</h2>
+            <p className="text-xs text-page-text-soft max-w-md mx-auto">
               Create your account today, verify KYC, top up your wallet balance, and purchase your first high-ROI track instantly.
             </p>
             <div className="flex justify-center gap-4">

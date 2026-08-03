@@ -23,12 +23,12 @@ const SectionHeading = ({ eyebrow, title, subtitle, align = 'center', as: Tag = 
         </span>
       ) : null}
       {title ? (
-        <Tag className="text-4xl md:text-5xl font-heading font-semibold text-white tracking-tight">
+        <Tag className="text-4xl md:text-5xl font-heading font-semibold text-page-text tracking-tight">
           {title}
         </Tag>
       ) : null}
       {subtitle ? (
-        <p className="text-sm md:text-base text-slate-400 leading-relaxed max-w-2xl">
+        <p className="text-sm md:text-base text-page-text-soft leading-relaxed max-w-2xl">
           {subtitle}
         </p>
       ) : null}

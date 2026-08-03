@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Class-based dark mode (Tailwind v4): .dark on <html> enables dark: variants */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Aureus Design Token Modules */
 @import "./styles/common.css";
 

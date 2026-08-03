@@ -108,8 +108,8 @@ const AdminDepositsPage = () => {
       label: 'User',
       render: (_, row) => (
         <div>
-          <p className="font-medium text-text-light-bg">{row.userId?.fullName || 'N/A'}</p>
-          <p className="text-xs text-text-secondary">@{row.userId?.username || 'Unknown'}</p>
+          <p className="font-semibold text-white">{row.userId?.fullName || 'N/A'}</p>
+          <p className="text-xs text-slate-400">@{row.userId?.username || 'Unknown'}</p>
         </div>
       ),
     },
@@ -118,11 +118,11 @@ const AdminDepositsPage = () => {
       label: 'Amount / Type',
       render: (val, row) => (
         <div>
-          <p className="font-medium text-text-light-bg">${row.amount.toLocaleString()}</p>
+          <p className="font-mono text-amber-400 font-semibold">${row.amount.toLocaleString()}</p>
           {row.packageId ? (
-            <p className="text-xs text-text-secondary">Plan: {row.packageId.packageId?.name || row.packageId.name || 'N/A'}</p>
+            <p className="text-xs text-slate-400">Plan: {row.packageId.packageId?.name || row.packageId.name || 'N/A'}</p>
           ) : (
-            <span className="text-[9px] font-black text-[#185adb] bg-blue-50 border border-blue-100 rounded px-1.5 py-0.5 inline-block uppercase tracking-wider mt-0.5">
+            <span className="text-[9px] font-black text-amber-450 bg-white/5 border border-white/10 rounded px-1.5 py-0.5 inline-block uppercase tracking-wider mt-0.5 shadow-[0_0_10px_rgba(255,184,0,0.1)]">
               Wallet Top-up
             </span>
           )}
@@ -133,8 +133,8 @@ const AdminDepositsPage = () => {
       key: 'method',
       label: 'Method details',
       render: (_, row) => (
-        <div className="text-xs text-text-secondary">
-          <p>{row.paymentMethod?.name || 'Manual'}</p>
+        <div className="text-xs text-slate-400">
+          <p className="font-medium text-slate-200">{row.paymentMethod?.name || 'Manual'}</p>
           {row.senderBankName && <p>{row.senderBankName}</p>}
           {row.senderHolderName && <p>{row.senderHolderName}</p>}
         </div>
@@ -149,7 +149,7 @@ const AdminDepositsPage = () => {
       key: 'date',
       label: 'Date',
       render: (_, row) => (
-        <span className="text-text-secondary text-sm">
+        <span className="text-slate-400 text-sm">
           {new Date(row.createdAt).toLocaleDateString()}
         </span>
       ),
@@ -162,10 +162,10 @@ const AdminDepositsPage = () => {
           {row.screenshot && (
             <button
               onClick={() => setSelectedScreenshot(row.screenshot)}
-              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md cursor-pointer transition-colors"
+              className="p-2 text-amber-400 hover:bg-white/5 rounded-xl border border-white/10 cursor-pointer transition-all hover:shadow-[0_0_10px_rgba(255,184,0,0.15)]"
               title="View Screenshot"
             >
-              <ImageIcon size={18} />
+              <ImageIcon size={14} />
             </button>
           )}
           {row.status === 'pending' && (
@@ -184,19 +184,19 @@ const AdminDepositsPage = () => {
   ], [loading]);
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in text-white">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-heading font-semibold text-text-light-bg mb-1">Payments Verification</h1>
-          <p className="text-text-secondary">Review and approve user deposits and plan purchases</p>
+          <h1 className="text-xl font-heading font-semibold text-white mb-1">Payments Verification</h1>
+          <p className="text-sm text-slate-400">Review and approve user deposits and plan purchases</p>
         </div>
-        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
-          <ArrowDownToLine size={24} />
+        <div className="w-10 h-10 bg-primary-container/10 border border-primary-container/20 text-primary-fixed-dim rounded-xl flex items-center justify-center shrink-0 shadow-inner">
+          <ArrowDownToLine size={20} />
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-border-light shadow-sm mb-6">
-        <div className="p-4 border-b border-border-light flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-[#0d1420]/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl mb-6 text-white overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <FilterChips options={statusFilters} active={status} onChange={handleStatusFilter} />
         </div>
 
@@ -220,32 +220,32 @@ const AdminDepositsPage = () => {
       <Modal isOpen={!!selectedScreenshot} onClose={() => setSelectedScreenshot(null)} title="Payment Screenshot">
         <div className="p-4 flex justify-center">
           {selectedScreenshot && (
-            <img src={selectedScreenshot} alt="Payment Proof" className="max-w-full max-h-[70vh] rounded-lg shadow-sm" />
+            <img src={selectedScreenshot} alt="Payment Proof" className="max-w-full max-h-[70vh] rounded-2xl border border-white/10 shadow-2xl" />
           )}
         </div>
-        <div className="px-6 py-4 border-t border-border-light flex justify-end">
+        <div className="px-6 py-4 border-t border-white/5 flex justify-end">
           <Button variant="ghost" onClick={() => setSelectedScreenshot(null)}>Close</Button>
         </div>
       </Modal>
 
       <Modal isOpen={rejectModal.open} onClose={() => setRejectModal({ open: false, depositId: null })} title="Reject Payment">
         <div className="p-6">
-          <p className="text-sm text-text-secondary mb-4">
+          <p className="text-sm text-slate-400 mb-4">
             Please provide a reason for rejecting this payment. The user will see this reason in their dashboard.
           </p>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-text-light-bg mb-1">Reason</label>
+            <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Reason</label>
             <input
               type="text"
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
-              className="w-full px-4 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/30 focus:bg-white/10 transition"
               placeholder="Enter rejection reason"
               autoFocus
             />
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-border-light flex justify-end gap-3">
+        <div className="px-6 py-4 border-t border-white/5 flex justify-end gap-3">
           <Button variant="secondary" onClick={() => setRejectModal({ open: false, depositId: null })}>Cancel</Button>
           <Button variant="danger" onClick={handleReject} disabled={!rejectionReason.trim() || loading}>Reject Payment</Button>
         </div>

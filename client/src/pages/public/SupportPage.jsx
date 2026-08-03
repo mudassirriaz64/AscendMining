@@ -199,7 +199,7 @@ const SupportPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
           {/* FAQ Column */}
           <div className="lg:col-span-2 space-y-6">
-            <h2 className="text-lg font-heading font-semibold text-white flex items-center gap-2 border-b border-border-glass pb-2">
+            <h2 className="text-lg font-heading font-semibold text-page-text flex items-center gap-2 border-b border-page-border pb-2">
               <MessageCircle className="text-gold" size={20} /> Self-Serve FAQs
             </h2>
             {loadingFaqs ? (
@@ -207,7 +207,7 @@ const SupportPage = () => {
                 <LoadingSpinner />
               </div>
             ) : faqs.length === 0 ? (
-              <p className="text-xs text-slate-400">No self-serve FAQs configured yet.</p>
+              <p className="text-xs text-page-text-soft">No self-serve FAQs configured yet.</p>
             ) : (
               <FAQAccordion
                 items={faqs.map((faq) => ({ id: faq._id, question: faq.question, answer: faq.answer }))}
@@ -216,8 +216,8 @@ const SupportPage = () => {
               />
             )}
             <div className="glass-card rounded-2xl p-5 space-y-3">
-              <h4 className="text-xs font-semibold text-white">Looking for general inquiries?</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <h4 className="text-xs font-semibold text-page-text">Looking for general inquiries?</h4>
+              <p className="text-xs text-page-text-soft leading-relaxed">
                 If you have non-technical questions regarding business partnership opportunities, checkout our{' '}
                 <Link to="/contact" className="text-gold hover:underline">
                   Contact Page
@@ -234,8 +234,8 @@ const SupportPage = () => {
                 <div className="w-16 h-16 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto text-gold">
                   <MessageCircle size={32} />
                 </div>
-                <h3 className="text-lg font-heading font-semibold text-white">You Are Logged In</h3>
-                <p className="text-sm text-slate-400 leading-relaxed max-w-sm mx-auto">
+                <h3 className="text-lg font-heading font-semibold text-page-text">You Are Logged In</h3>
+                <p className="text-sm text-page-text-soft leading-relaxed max-w-sm mx-auto">
                   Registered investors get direct dedicated support with priority queue routing. Visit your dashboard to manage your conversations.
                 </p>
                 <div className="flex justify-center">
@@ -249,8 +249,8 @@ const SupportPage = () => {
                     <MessageCircle size={20} />
                   </div>
                   <div>
-                    <h3 className="text-base font-heading font-semibold text-white">Start Guest Support Chat</h3>
-                    <p className="text-xs text-slate-400">Fill in your details to connect with a support agent.</p>
+                    <h3 className="text-base font-heading font-semibold text-page-text">Start Guest Support Chat</h3>
+                    <p className="text-xs text-page-text-soft">Fill in your details to connect with a support agent.</p>
                   </div>
                 </div>
 

@@ -141,75 +141,100 @@ const UserDetailPage = () => {
     <div>
       <button
         onClick={() => navigate('/admin/users')}
-        className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-light-bg mb-4 cursor-pointer"
+        className="flex items-center gap-2 text-sm text-slate-400 hover:text-white mb-4 cursor-pointer transition-colors"
       >
         <ArrowLeft size={16} />
         Back to Users
       </button>
 
-      <div className="bg-white rounded-xl border border-border-light mb-6">
+      <div className="bg-[#0d1420]/60 backdrop-blur-xl border border-white/10 rounded-2xl mb-6 shadow-xl text-white">
         <div className="p-6">
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xl font-semibold shrink-0">
-                {userDetail.fullName?.charAt(0)}
-              </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <h1 className="text-xl font-heading font-semibold text-text-light-bg">{userDetail.fullName}</h1>
-                  <StatusBadge status={userDetail.status} />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 divide-y lg:divide-y-0 lg:divide-x divide-white/10">
+            {/* Column 1: Profile Core */}
+            <div className="space-y-4 pb-6 lg:pb-0 lg:pr-6">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-cyan-400/10 border border-cyan-400/30 flex items-center justify-center text-cyan-400 text-xl font-bold shrink-0 shadow-inner">
+                  {userDetail.fullName?.charAt(0)}
                 </div>
-                <p className="text-sm text-text-secondary mb-2">@{userDetail.username}</p>
-                <div className="flex flex-wrap gap-4 text-sm text-text-secondary">
-                  <span className="flex items-center gap-1"><Mail size={14} /> {userDetail.email}</span>
-                  {userDetail.phone && <span className="flex items-center gap-1"><Phone size={14} /> {userDetail.phone}</span>}
-                  <span className="flex items-center gap-1"><Calendar size={14} /> Joined {new Date(userDetail.createdAt).toLocaleDateString()}</span>
+                <div>
+                  <h1 className="text-lg font-bold text-white leading-tight">{userDetail.fullName}</h1>
+                  <p className="text-xs text-slate-400">@{userDetail.username}</p>
+                  <div className="mt-1.5">
+                    <StatusBadge status={userDetail.status} />
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2 text-xs text-slate-400 pt-2">
+                <div className="flex items-center gap-2"><Mail size={14} className="text-slate-500" /> {userDetail.email}</div>
+                {userDetail.phone && <div className="flex items-center gap-2"><Phone size={14} className="text-slate-500" /> {userDetail.phone}</div>}
+                <div className="flex items-center gap-2"><Calendar size={14} className="text-slate-500" /> Joined {new Date(userDetail.createdAt).toLocaleDateString()}</div>
+              </div>
+            </div>
+
+            {/* Column 2: Balance Ledger */}
+            <div className="space-y-4 py-6 lg:py-0 lg:px-6 flex flex-col justify-center">
+              <div>
+                <p className="text-[10px] font-bold text-slate-450 uppercase tracking-widest mb-1">Wallet Balance</p>
+                <p className="text-3xl font-mono font-bold text-amber-400">
+                  ${(userDetail.walletBalance || 0).toLocaleString()}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                <div className="bg-white/[0.02] border border-white/5 rounded-xl p-2.5">
+                  <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold block mb-0.5">Total Deposits</span>
+                  <span className="text-xs font-mono font-bold text-slate-200">
+                    ${(userDeposits?.data || []).reduce((acc, curr) => curr.status === 'approved' ? acc + curr.amount : acc, 0).toLocaleString()}
+                  </span>
+                </div>
+                <div className="bg-white/[0.02] border border-white/5 rounded-xl p-2.5">
+                  <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold block mb-0.5">Total Payouts</span>
+                  <span className="text-xs font-mono font-bold text-slate-200">
+                    ${(userWithdrawals?.data || []).reduce((acc, curr) => curr.status === 'completed' ? acc + curr.amount : acc, 0).toLocaleString()}
+                  </span>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <div className="text-right mr-4">
-                <p className="text-xs text-text-secondary">Wallet Balance</p>
-                <p className="text-lg font-mono font-semibold text-text-light-bg">
-                  ${(userDetail.walletBalance || 0).toLocaleString()}
-                </p>
+            {/* Column 3: Action Console */}
+            <div className="space-y-3 py-6 lg:py-0 lg:pl-6 flex flex-col justify-center">
+              <p className="text-[10px] font-bold text-slate-450 uppercase tracking-widest mb-1">Action Console</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {userDetail.status === 'suspended' ? (
+                  <Button variant="primary" size="sm" onClick={handleReactivate} className="w-full">
+                    <RotateCcw size={14} className="mr-1.5" /> Activate
+                  </Button>
+                ) : (
+                  <Button variant="danger" size="sm" onClick={() => setSuspendModal(true)} className="w-full">
+                    <Ban size={14} className="mr-1.5" /> Suspend
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" onClick={() => { setResetModal(true); setNewPassword(''); }} className="w-full">
+                  <KeyRound size={14} className="mr-1.5" /> Reset Pass
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setBalanceModal(true)} className="w-full sm:col-span-2">
+                  <DollarSign size={14} className="mr-1.5" /> Adjust Balance
+                </Button>
               </div>
-              {userDetail.status === 'suspended' ? (
-                <Button variant="primary" size="sm" onClick={handleReactivate}>
-                  <RotateCcw size={14} className="mr-1" /> Activate
-                </Button>
-              ) : (
-                <Button variant="danger" size="sm" onClick={() => setSuspendModal(true)}>
-                  <Ban size={14} className="mr-1" /> Suspend
-                </Button>
-              )}
-              <Button variant="outline" size="sm" onClick={() => { setResetModal(true); setNewPassword(''); }}>
-                <KeyRound size={14} className="mr-1" /> Reset Password
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setBalanceModal(true)}>
-                <DollarSign size={14} className="mr-1" /> Adjust Balance
-              </Button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-border-light">
+      <div className="bg-[#0d1420]/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl overflow-hidden">
         <Tabs tabs={tabs} defaultTab="packages" />
       </div>
 
       <Modal isOpen={suspendModal} onClose={() => setSuspendModal(false)} title="Suspend User" size="sm">
         <div className="space-y-4">
-          <p className="text-sm text-text-secondary">
+          <p className="text-sm text-slate-400">
             This will immediately block <strong>{userDetail.username}</strong> from logging in and performing any actions.
           </p>
           <div>
-            <label className="block text-sm font-medium text-text-light-bg mb-1">Reason (required)</label>
+            <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Reason (required)</label>
             <textarea
               value={suspendReason}
               onChange={(e) => setSuspendReason(e.target.value)}
-              className="w-full px-3 py-2 border border-border-light rounded-lg text-sm outline-none focus:border-danger focus:ring-2 focus:ring-danger/20"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-danger focus:ring-1 focus:ring-danger/30 focus:bg-white/10 transition"
               rows={3}
               placeholder="Enter reason for suspension..."
             />
@@ -225,21 +250,21 @@ const UserDetailPage = () => {
 
       <Modal isOpen={resetModal} onClose={() => setResetModal(false)} title="Reset Password" size="sm">
         <div className="space-y-4">
-          <p className="text-sm text-text-secondary">
+          <p className="text-sm text-slate-400">
             Set a new password directly for <strong>{userDetail.username}</strong> ({userDetail.email}).
           </p>
           <div>
-            <label className="block text-xs font-semibold text-text-light-bg mb-1">New Password (min 6 chars)*</label>
+            <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">New Password (min 6 chars)*</label>
             <input
               type="password"
               required
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Enter new password"
-              className="w-full px-3 py-2 border border-border-light rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white text-text-light-bg"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/30 focus:bg-white/10 transition"
             />
           </div>
-          <div className="flex justify-end gap-2 pt-2 border-t border-border-light">
+          <div className="flex justify-end gap-2 pt-2 border-t border-white/5">
             <Button variant="secondary" onClick={() => setResetModal(false)}>Cancel</Button>
             <Button variant="primary" onClick={handleResetPassword} disabled={!newPassword || newPassword.length < 6}>
               Reset Password
@@ -250,21 +275,21 @@ const UserDetailPage = () => {
 
       <Modal isOpen={balanceModal} onClose={() => setBalanceModal(false)} title="Adjust Wallet Balance" size="sm">
         <div className="space-y-4">
-          <p className="text-sm text-text-secondary">
+          <p className="text-sm text-slate-400">
             Adjust the wallet balance of <strong>{userDetail.username}</strong>. Current balance: <strong>${(userDetail.walletBalance || 0).toFixed(2)}</strong>.
           </p>
 
-          <div className="space-y-3">
+          <div className="space-y-3 text-left">
             <div>
-              <label className="block text-xs font-semibold text-text-light-bg mb-1">Adjustment Type</label>
+              <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Adjustment Type</label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setAdjustType('add')}
-                  className={`py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                  className={`py-2.5 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
                     adjustType === 'add'
-                      ? 'bg-green-500 border-green-500 text-white font-bold'
-                      : 'bg-white border-border-light text-slate-655 hover:bg-slate-50'
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_10px_rgba(0,230,153,0.15)] font-bold'
+                      : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'
                   }`}
                 >
                   Add Funds
@@ -272,10 +297,10 @@ const UserDetailPage = () => {
                 <button
                   type="button"
                   onClick={() => setAdjustType('deduct')}
-                  className={`py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                  className={`py-2.5 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
                     adjustType === 'deduct'
-                      ? 'bg-red-500 border-red-500 text-white font-bold'
-                      : 'bg-white border-border-light text-slate-655 hover:bg-slate-50'
+                      ? 'bg-red-500/10 border-red-500/30 text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.15)] font-bold'
+                      : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'
                   }`}
                 >
                   Deduct Funds
@@ -284,7 +309,7 @@ const UserDetailPage = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-light-bg mb-1">Amount (USD)*</label>
+              <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Amount (USD)*</label>
               <input
                 type="number"
                 min="0.01"
@@ -293,23 +318,23 @@ const UserDetailPage = () => {
                 value={adjustAmount}
                 onChange={(e) => setAdjustAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-full px-3 py-2 border border-border-light rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/30 focus:bg-white/10 transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-light-bg mb-1">Reason / Description</label>
+              <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Reason / Description</label>
               <textarea
                 value={adjustReason}
                 onChange={(e) => setAdjustReason(e.target.value)}
-                className="w-full px-3 py-2 border border-border-light rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/30 focus:bg-white/10 transition resize-none"
                 rows={2}
                 placeholder="Enter adjustment reason"
               />
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-border-light">
+          <div className="flex justify-end gap-2 pt-2 border-t border-white/5">
             <Button variant="secondary" onClick={() => setBalanceModal(false)}>Cancel</Button>
             <Button
               variant={adjustType === 'add' ? 'primary' : 'danger'}

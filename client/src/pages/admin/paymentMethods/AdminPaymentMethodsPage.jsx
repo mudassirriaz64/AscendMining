@@ -106,8 +106,8 @@ const AdminPaymentMethodsPage = () => {
       label: 'Name',
       render: (val, row) => (
         <div>
-          <p className="font-medium text-slate-800">{val}</p>
-          <p className="text-xs text-slate-500 capitalize">{row.type.replace('_', ' ')}</p>
+          <p className="font-semibold text-white">{val}</p>
+          <p className="text-xs text-slate-400 capitalize">{row.type.replace('_', ' ')}</p>
         </div>
       )
     },
@@ -115,7 +115,7 @@ const AdminPaymentMethodsPage = () => {
       key: 'limits',
       label: 'Limits',
       render: (_, row) => (
-        <p className="text-slate-600 text-sm">
+        <p className="text-slate-350 text-sm font-semibold">
           ${row.minDeposit} - ${row.maxDeposit}
         </p>
       )
@@ -128,7 +128,7 @@ const AdminPaymentMethodsPage = () => {
     {
       key: 'createdAt',
       label: 'Created',
-      render: (val) => <p className="text-sm text-slate-500">{formatDate(val)}</p>
+      render: (val) => <p className="text-sm text-slate-400">{formatDate(val)}</p>
     },
     {
       key: 'actions',
@@ -155,11 +155,11 @@ const AdminPaymentMethodsPage = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-white">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Payment Methods</h1>
-          <p className="text-slate-500 text-sm">Manage bank accounts, mobile wallets, and crypto methods.</p>
+          <h1 className="text-xl font-bold text-white">Payment Methods</h1>
+          <p className="text-slate-400 text-sm">Manage bank accounts, mobile wallets, and crypto methods.</p>
         </div>
         <Button onClick={() => handleOpenModal()} className="flex items-center gap-2">
           <Plus size={18} />
@@ -167,7 +167,7 @@ const AdminPaymentMethodsPage = () => {
         </Button>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+      <div className="bg-[#0d1420]/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6">
         <DataTable
           columns={columns}
           data={paymentMethods}
@@ -183,68 +183,68 @@ const AdminPaymentMethodsPage = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
+            <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Name</label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#083358]"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/30 focus:bg-white/10 transition"
               required
               placeholder="Enter payment method name"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Type</label>
+            <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Type</label>
             <select
               value={formData.type}
               onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#083358]"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/30 focus:bg-[#0d1420] transition"
               required
             >
-              {methodTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+              {methodTypes.map(t => <option key={t.value} value={t.value} className="bg-[#0d1420] text-white">{t.label}</option>)}
             </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Min Deposit ($)</label>
+              <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Min Deposit ($)</label>
               <input
                 type="number"
                 min="0"
                 step="any"
                 value={formData.minDeposit}
                 onChange={(e) => setFormData({ ...formData, minDeposit: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#083358]"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/30 focus:bg-white/10 transition"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Max Deposit ($)</label>
+              <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Max Deposit ($)</label>
               <input
                 type="number"
                 min="0"
                 step="any"
                 value={formData.maxDeposit}
                 onChange={(e) => setFormData({ ...formData, maxDeposit: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#083358]"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/30 focus:bg-white/10 transition"
                 required
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Instructions (For User)</label>
+            <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Instructions (For User)</label>
             <textarea
               value={formData.instructions}
               onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#083358] resize-none"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/30 focus:bg-white/10 transition-all resize-none"
               rows={4}
               placeholder="Enter transfer instructions for user"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
             <Button variant="secondary" type="button" onClick={() => setModalOpen(false)}>
               Cancel
             </Button>

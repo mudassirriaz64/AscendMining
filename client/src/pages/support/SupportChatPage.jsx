@@ -415,17 +415,14 @@ const SupportChatPage = () => {
   if (loading && !conversation) return <PageSkeleton />;
 
   return (
-    <div className="min-h-screen bg-[#f0f2f5] flex flex-col font-sans">
-      <Header />
-
-      <div className="flex-1 max-w-3xl mx-auto w-full px-4 py-8 flex flex-col gap-6">
-        <div className="flex items-center justify-between">
+    <div className="flex-1 max-w-3xl mx-auto w-full px-4 py-8 flex flex-col gap-6">
+      <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[#001f3f] flex items-center gap-2">
-              <MessageCircle size={26} className="text-[#083358]" />
+            <h1 className="text-2xl font-bold text-[#001f3f] dark:text-on-surface flex items-center gap-2">
+              <MessageCircle size={26} className="text-[#083358] dark:text-primary" />
               Support Chat
             </h1>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-slate-500 dark:text-on-surface-variant mt-1">
               {agentsOnline ? 'Support agents are online. We reply within 30 minutes.' : 'Support is away. We typically reply within 30 minutes.'}
             </p>
           </div>
@@ -434,7 +431,7 @@ const SupportChatPage = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-100 flex flex-col overflow-hidden relative" style={{ height: '68vh' }}>
+        <div className="bg-white dark:bg-surface-container-lowest rounded-2xl shadow-lg border border-slate-100 dark:border-surface-container-highest flex flex-col overflow-hidden relative" style={{ height: '68vh' }}>
           <div className="px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-[#001f3f] to-[#083358] flex items-center gap-3">
             <button
               type="button"
@@ -463,21 +460,21 @@ const SupportChatPage = () => {
 
           {/* Session Sidebar */}
           {showSidebar && (
-            <div className="border-b border-slate-100 bg-slate-50 max-h-48 overflow-y-auto">
+            <div className="border-b border-slate-100 dark:border-surface-container-highest bg-slate-50 dark:bg-surface-container-low max-h-48 overflow-y-auto">
               {sessions.map((session) => (
                 <div
                   key={session._id}
-                  className={`flex items-center gap-3 px-5 py-2.5 border-b border-slate-100 last:border-0 cursor-pointer hover:bg-slate-100 transition-colors ${session._id === activeSessionId ? 'bg-blue-50' : ''}`}
+                  className={`flex items-center gap-3 px-5 py-2.5 border-b border-slate-100 dark:border-surface-container-highest last:border-0 cursor-pointer hover:bg-slate-100 dark:hover:bg-surface-container transition-colors ${session._id === activeSessionId ? 'bg-blue-50 dark:bg-primary/10' : ''}`}
                   onClick={() => switchSession(session._id)}
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-800 truncate">{session.title}</p>
-                    <p className="text-xs text-slate-400">{formatDate(session.createdAt)}</p>
+                    <p className="text-sm font-medium text-slate-800 dark:text-on-surface truncate">{session.title}</p>
+                    <p className="text-xs text-slate-400 dark:text-on-surface-variant">{formatDate(session.createdAt)}</p>
                   </div>
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); handleDeleteSession(session._id); }}
-                    className="text-slate-300 hover:text-red-500 transition-colors cursor-pointer p-1"
+                    className="text-slate-300 dark:text-on-surface-variant hover:text-red-500 transition-colors cursor-pointer p-1"
                     aria-label="Delete session"
                   >
                     <Trash2 size={14} />
@@ -488,7 +485,7 @@ const SupportChatPage = () => {
           )}
 
           {escalationAvailable && (
-            <div className="mx-4 mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-950 ring-1 ring-amber-200" role="status">
+            <div className="mx-4 mt-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 p-3 text-sm text-amber-950 dark:text-amber-200 ring-1 ring-amber-200 dark:ring-amber-500/30" role="status">
               <div className="flex gap-2">
                 <AlertCircle className="mt-0.5 shrink-0" size={17} />
                 <p>Our team hasn't replied yet — create a support ticket and we'll follow up.</p>
@@ -511,7 +508,7 @@ const SupportChatPage = () => {
                   type="button"
                   disabled={loadingMore}
                   onClick={loadMore}
-                  className="text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200 px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer disabled:opacity-50"
+                  className="text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-surface-container-low dark:text-on-surface-variant dark:hover:bg-surface-container border border-slate-200 dark:border-outline-variant px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer disabled:opacity-50"
                 >
                   {loadingMore ? 'Loading...' : 'Load older messages'}
                 </button>
@@ -520,20 +517,20 @@ const SupportChatPage = () => {
 
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full text-center">
-                <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-                  <MessageCircle size={28} className="text-slate-300" />
+                <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-surface-container-low flex items-center justify-center mb-4">
+                  <MessageCircle size={28} className="text-slate-300 dark:text-on-surface-variant" />
                 </div>
-                <p className="text-slate-500 font-medium">No messages yet</p>
-                <p className="text-slate-400 text-sm mt-1">Start the conversation below.</p>
+                <p className="text-slate-500 dark:text-on-surface-variant font-medium">No messages yet</p>
+                <p className="text-slate-400 dark:text-on-surface-variant text-sm mt-1">Start the conversation below.</p>
               </div>
             )}
 
             {Object.entries(groupedMessages).map(([dateLabel, msgs]) => (
               <div key={dateLabel}>
                 <div className="flex items-center gap-3 my-4">
-                  <div className="flex-1 h-px bg-slate-100" />
-                  <span className="text-xs text-slate-400 font-medium px-2">{dateLabel}</span>
-                  <div className="flex-1 h-px bg-slate-100" />
+                  <div className="flex-1 h-px bg-slate-100 dark:bg-surface-container-highest" />
+                  <span className="text-xs text-slate-400 dark:text-on-surface-variant font-medium px-2">{dateLabel}</span>
+                  <div className="flex-1 h-px bg-slate-100 dark:bg-surface-container-highest" />
                 </div>
 
                 {msgs.map((msg, idx) => {
@@ -548,7 +545,7 @@ const SupportChatPage = () => {
                   if (isSystem) {
                     return (
                       <div key={msg._id} className="flex justify-center my-3 w-full animate-fade-in">
-                        <span className="text-xs text-slate-400 bg-slate-100 px-3 py-1.5 rounded-full font-medium shadow-sm border border-slate-200/50">
+                        <span className="text-xs text-slate-400 dark:text-on-surface-variant bg-slate-100 dark:bg-surface-container-low px-3 py-1.5 rounded-full font-medium shadow-sm border border-slate-200/50 dark:border-outline-variant">
                           {msg.body.replace('[SYSTEM] ', '')}
                         </span>
                       </div>
@@ -558,7 +555,7 @@ const SupportChatPage = () => {
                   return (
                     <div key={msg._id} className={`flex flex-col ${consecutive ? 'mb-1.5' : 'mb-4'} ${isMe ? 'items-end' : 'items-start'}`}>
                       {!consecutive && (
-                        <span className={`text-[10px] font-semibold mb-1 px-1 ${isMe ? 'text-right text-slate-500' : 'text-left text-slate-500'}`}>
+                        <span className={`text-[10px] font-semibold mb-1 px-1 ${isMe ? 'text-right text-slate-500 dark:text-on-surface-variant' : 'text-left text-slate-500 dark:text-on-surface-variant'}`}>
                           {senderLabel}
                         </span>
                       )}
@@ -578,13 +575,13 @@ const SupportChatPage = () => {
                             className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed break-words w-fit max-w-full cursor-help ${
                               isMe
                                 ? 'bg-gradient-to-br from-[#001f3f] to-[#083358] text-white rounded-br-sm'
-                                : 'bg-white text-slate-800 rounded-bl-sm ring-1 ring-slate-200'
+                                : 'bg-white text-slate-800 dark:bg-surface-container-lowest dark:text-on-surface rounded-bl-sm ring-1 ring-slate-200 dark:ring-surface-container-highest'
                             }`}
                           >
                             {msg.body && <p className="whitespace-pre-wrap">{typeof msg.body === 'string' ? msg.body : String(msg.body ?? '')}</p>}
                             
                             {msg.attachmentUrl && msg.attachmentType === 'image' && (
-                              <div className={`max-w-sm rounded-lg overflow-hidden border border-slate-200/50 shadow-sm cursor-zoom-in ${msg.body ? 'mt-2' : ''}`}>
+                              <div className={`max-w-sm rounded-lg overflow-hidden border border-slate-200/50 dark:border-outline-variant shadow-sm cursor-zoom-in ${msg.body ? 'mt-2' : ''}`}>
                                 <img
                                   src={msg.attachmentUrl}
                                   alt={msg.attachmentFileName || 'Attachment'}
@@ -602,7 +599,7 @@ const SupportChatPage = () => {
                                 className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold transition-all hover:bg-slate-50/50 ${msg.body ? 'mt-2' : ''} ${
                                   isMe
                                     ? 'bg-[#083358]/20 border-white/20 text-white hover:text-[#e2b007]'
-                                    : 'bg-slate-50 border-slate-200 text-[#001f3f] hover:text-[#e2b007]'
+                                    : 'bg-slate-50 border-slate-200 text-[#001f3f] hover:text-[#e2b007] dark:bg-surface-container-low dark:border-outline-variant dark:text-on-surface dark:hover:text-primary'
                                 }`}
                               >
                                 <FileText size={16} />
@@ -612,7 +609,7 @@ const SupportChatPage = () => {
                             )}
 
                             {msg.attachmentUrl && msg.attachmentType === 'video' && (
-                              <div className={`max-w-sm rounded-lg overflow-hidden border border-slate-200/50 shadow-sm ${msg.body ? 'mt-2' : ''}`}>
+                              <div className={`max-w-sm rounded-lg overflow-hidden border border-slate-200/50 dark:border-outline-variant shadow-sm ${msg.body ? 'mt-2' : ''}`}>
                                 <video
                                   src={msg.attachmentUrl}
                                   controls
@@ -623,12 +620,12 @@ const SupportChatPage = () => {
                             )}
                           </div>
                           {isMe && isLastSent ? (
-                            <span className="text-[10px] text-slate-400 mt-1 px-1 flex items-center gap-0.5 font-medium" title={formatFullTimestamp(msg.sentAt || msg.createdAt)}>
+                            <span className="text-[10px] text-slate-400 dark:text-on-surface-variant mt-1 px-1 flex items-center gap-0.5 font-medium" title={formatFullTimestamp(msg.sentAt || msg.createdAt)}>
                               {msg.readAt ? '✓✓ Seen' : '✓ Sent'}
                             </span>
                           ) : (
                             (!consecutive || idx === msgs.length - 1) && (
-                              <span className="text-[10px] text-slate-400 mt-1 px-1" title={formatFullTimestamp(msg.sentAt || msg.createdAt)}>
+                              <span className="text-[10px] text-slate-400 dark:text-on-surface-variant mt-1 px-1" title={formatFullTimestamp(msg.sentAt || msg.createdAt)}>
                                 {formatRelativeTime(msg.sentAt || msg.createdAt)}
                               </span>
                             )
@@ -641,10 +638,10 @@ const SupportChatPage = () => {
               </div>
             ))}
             {isTyping && (
-              <div className="flex items-center gap-1.5 px-6 py-2 text-xs text-slate-400 animate-pulse">
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+              <div className="flex items-center gap-1.5 px-6 py-2 text-xs text-slate-400 dark:text-on-surface-variant animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-on-surface-variant animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-on-surface-variant animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-on-surface-variant animate-bounce" style={{ animationDelay: '300ms' }} />
                 <span className="ml-1 font-medium">Support is typing...</span>
               </div>
             )}
@@ -664,9 +661,9 @@ const SupportChatPage = () => {
             </button>
           )}
 
-          <div className="border-t border-slate-100 p-4 bg-white flex flex-col relative">
+          <div className="border-t border-slate-100 dark:border-surface-container-highest p-4 bg-white dark:bg-surface-container-lowest flex flex-col relative">
             {pendingAttachment && (
-              <div className="flex items-center justify-between bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs text-slate-600 mb-2 w-full animate-fade-in">
+              <div className="flex items-center justify-between bg-slate-50 dark:bg-surface-container-low border border-slate-200 dark:border-outline-variant px-3 py-1.5 rounded-lg text-xs text-slate-600 dark:text-on-surface-variant mb-2 w-full animate-fade-in">
                 <div className="flex items-center gap-1.5 truncate">
                   {pendingAttachment.attachmentType === 'image' ? <ImageIcon size={14} /> : (pendingAttachment.attachmentType === 'video' ? <Video size={14} /> : <FileText size={14} />)}
                   <span className="truncate font-medium">{pendingAttachment.attachmentFileName}</span>
@@ -674,7 +671,7 @@ const SupportChatPage = () => {
                 <button
                   type="button"
                   onClick={() => setPendingAttachment(null)}
-                  className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                  className="text-slate-400 dark:text-on-surface-variant hover:text-slate-600 dark:hover:text-on-surface p-0.5 cursor-pointer"
                 >
                   <X size={14} />
                 </button>
@@ -693,7 +690,7 @@ const SupportChatPage = () => {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading || sending}
-                className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 disabled:opacity-50 transition-all cursor-pointer shrink-0 mb-0.5"
+                className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 dark:bg-surface-container-low dark:text-on-surface-variant dark:hover:bg-surface-container dark:hover:text-on-surface disabled:opacity-50 transition-all cursor-pointer shrink-0 mb-0.5"
                 title="Attach JPG, PNG, PDF, or Video file (up to 200MB)"
               >
                 {uploading ? (
@@ -711,7 +708,7 @@ const SupportChatPage = () => {
                 placeholder="Type a message... (Max 200MB attachment)"
                 rows={1}
                 maxLength={500}
-                className="flex-1 resize-none bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-[#083358] focus:ring-2 focus:ring-[#083358]/15 transition-all placeholder-slate-400 max-h-32 overflow-y-auto animate-fade-in"
+                className="flex-1 resize-none bg-white dark:bg-input-bg border border-slate-200 dark:border-surface-container-highest rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-on-surface outline-none focus:border-[#083358] dark:focus:border-primary focus:ring-2 focus:ring-[#083358]/15 dark:focus:ring-primary/20 transition-all placeholder-slate-400 dark:placeholder:text-on-surface-variant max-h-32 overflow-y-auto animate-fade-in"
                 style={{ minHeight: '40px', height: 'auto' }}
               />
               <button
@@ -723,13 +720,13 @@ const SupportChatPage = () => {
               </button>
             </div>
             {input.length > 400 && (
-              <span className="text-[10px] text-slate-400 self-end px-1 absolute bottom-1.5 right-16">
+              <span className="text-[10px] text-slate-400 dark:text-on-surface-variant self-end px-1 absolute bottom-1.5 right-16">
                 {input.length}/500
               </span>
             )}
           </div>
         </div>
-      </div>
+
 
       {/* Lightbox Overlay */}
       {enlargedImage && (

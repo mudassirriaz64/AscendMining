@@ -46,15 +46,15 @@ const FAQsPage = () => {
           </div>
         ) : faqs.length === 0 ? (
           <div className="glass-card rounded-2xl p-12 text-center max-w-md mx-auto">
-            <HelpCircle className="mx-auto text-slate-600 mb-4" size={48} />
-            <h3 className="text-lg font-heading font-semibold text-white mb-2">No FAQs Yet</h3>
-            <p className="text-xs text-slate-400">Please check back soon. Our FAQs are currently being compiled.</p>
+            <HelpCircle className="mx-auto text-page-text-faint mb-4" size={48} />
+            <h3 className="text-lg font-heading font-semibold text-page-text mb-2">No FAQs Yet</h3>
+            <p className="text-xs text-page-text-soft">Please check back soon. Our FAQs are currently being compiled.</p>
           </div>
         ) : (
           <div className="space-y-12">
             {Object.keys(groupedFaqs).map((category) => (
               <div key={category} className="space-y-5">
-                <h2 className="text-lg font-heading font-semibold text-gold tracking-wide border-b border-border-glass pb-2 uppercase">
+                <h2 className="text-lg font-heading font-semibold text-gold tracking-wide border-b border-page-border pb-2 uppercase">
                   {category}
                 </h2>
                 <FAQAccordion

@@ -87,17 +87,17 @@ const AdminFAQsPage = () => {
     {
       key: 'order',
       label: 'Order',
-      render: (val) => <p className="font-medium text-slate-800">{val}</p>
+      render: (val) => <p className="font-semibold text-slate-200">{val}</p>
     },
     {
       key: 'question',
       label: 'Question',
-      render: (val) => <p className="font-medium text-slate-800 max-w-xs truncate" title={val}>{val}</p>
+      render: (val) => <p className="font-semibold text-white max-w-xs truncate" title={val}>{val}</p>
     },
     {
       key: 'answer',
       label: 'Answer',
-      render: (val) => <p className="text-sm text-slate-500 max-w-md truncate" title={val}>{val}</p>
+      render: (val) => <p className="text-sm text-slate-400 max-w-md truncate" title={val}>{val}</p>
     },
     {
       key: 'isActive',
@@ -121,11 +121,11 @@ const AdminFAQsPage = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-white">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">FAQs</h1>
-          <p className="text-slate-500 text-sm">Manage frequently asked questions.</p>
+          <h1 className="text-xl font-bold text-white">FAQs</h1>
+          <p className="text-slate-400 text-sm">Manage frequently asked questions.</p>
         </div>
         <Button onClick={() => handleOpenModal()} className="flex items-center gap-2">
           <Plus size={18} />
@@ -133,7 +133,7 @@ const AdminFAQsPage = () => {
         </Button>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+      <div className="bg-[#0d1420]/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6">
         <DataTable
           columns={columns}
           data={faqs}
@@ -149,22 +149,22 @@ const AdminFAQsPage = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Question</label>
+            <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Question</label>
             <input
               type="text"
               value={formData.question}
               onChange={(e) => setFormData({ ...formData, question: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#083358]"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/30 focus:bg-white/10 transition"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Answer</label>
+            <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Answer</label>
             <textarea
               value={formData.answer}
               onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#083358] resize-none"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/30 focus:bg-white/10 transition-all resize-none"
               rows={4}
               required
             />
@@ -172,13 +172,13 @@ const AdminFAQsPage = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Display Order</label>
+              <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Display Order</label>
               <input
                 type="number"
                 min="0"
                 value={formData.order}
                 onChange={(e) => setFormData({ ...formData, order: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#083358]"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/30 focus:bg-white/10 transition"
                 required
               />
             </div>
@@ -188,14 +188,14 @@ const AdminFAQsPage = () => {
                   type="checkbox"
                   checked={formData.isActive}
                   onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                  className="w-5 h-5 text-[#083358] rounded focus:ring-[#083358]"
+                  className="w-4 h-4 rounded accent-amber-400 bg-white/5 border border-white/10"
                 />
-                <span className="text-sm font-medium text-slate-700">Is Active</span>
+                <span className="text-sm font-semibold text-slate-400">Is Active</span>
               </label>
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
             <Button variant="secondary" type="button" onClick={() => setModalOpen(false)}>
               Cancel
             </Button>

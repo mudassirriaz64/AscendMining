@@ -3,8 +3,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff, Lock } from 'lucide-react';
 import { updatePassword } from '../../store/slices/authSlice';
-import Header from '../../components/common/Header';
-import Logo from '../../components/common/Logo';
 
 const ChangePasswordPage = () => {
   const dispatch = useDispatch();
@@ -44,10 +42,7 @@ const ChangePasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-on-surface font-sans antialiased">
-      <Header />
-      
-      <main className="max-w-xl w-full mx-auto px-margin-mobile md:px-margin-desktop py-gutter flex-grow space-y-gutter">
+    <div className="max-w-xl w-full mx-auto px-margin-mobile md:px-margin-desktop py-gutter flex-1 space-y-gutter">
         {/* PAGE HEADER */}
         <div className="border-b border-outline-variant pb-4">
           <h1 className="text-2xl font-extrabold text-primary tracking-tight uppercase flex items-center gap-2">
@@ -58,7 +53,7 @@ const ChangePasswordPage = () => {
         </div>
 
         {/* FORM CONTAINER */}
-        <div className="bg-white rounded-xl border border-outline-variant p-card-padding">
+        <div className="bg-white dark:bg-surface-container-lowest rounded-xl border border-outline-variant p-card-padding">
           <form onSubmit={handleSubmit} className="space-y-6">
             
             {/* Current Password */}
@@ -146,17 +141,6 @@ const ChangePasswordPage = () => {
             </div>
           </form>
         </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-on-secondary-fixed text-white/50 py-8 border-t border-outline-variant/20 mt-12">
-        <div className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop flex flex-col items-center gap-4">
-          <Logo variant="dark" size="sm" className="h-8 opacity-80" />
-          <p className="font-body-sm text-body-sm text-center">
-            &copy; 2026 <span className="font-semibold text-white">AscendHash</span>. All rights reserved.
-          </p>
-        </div>
-      </footer>
     </div>
   );
 };

@@ -10,7 +10,7 @@ const AuthField = forwardRef(({ label, error, success, icon: Icon, className = '
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-[13px] text-slate-400 mb-1.5 font-medium">
+        <label className="block text-[13px] text-page-text-soft mb-1.5 font-medium">
           {label}
         </label>
       )}
@@ -23,7 +23,7 @@ const AuthField = forwardRef(({ label, error, success, icon: Icon, className = '
         <input
           ref={ref}
           type={inputType}
-          className={`w-full px-4 py-3 rounded-xl text-sm text-white bg-slate-900/60 border placeholder:text-slate-500 outline-none transition-all duration-150
+          className={`w-full px-4 py-3 rounded-xl text-sm text-page-text bg-page-input border placeholder:text-page-text-faint outline-none transition-all duration-150
             ${Icon ? 'pl-10' : ''}
             ${isPassword || success ? 'pr-10' : ''}
             ${
@@ -31,7 +31,7 @@ const AuthField = forwardRef(({ label, error, success, icon: Icon, className = '
                 ? 'border-red-500/60 focus:border-red-500 focus:ring-1 focus:ring-red-500/40'
                 : success
                 ? 'border-emerald-500/60 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/40'
-                : 'border-slate-700/60 focus:border-amber-400 focus:ring-1 focus:ring-amber-400'
+                : 'border-page-input-border focus:border-amber-400 focus:ring-1 focus:ring-amber-400'
             }
             disabled:opacity-50 disabled:cursor-not-allowed
             ${className}`}
@@ -43,7 +43,7 @@ const AuthField = forwardRef(({ label, error, success, icon: Icon, className = '
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white focus:outline-none cursor-pointer flex items-center justify-center"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-page-text-faint hover:text-page-text focus:outline-none cursor-pointer flex items-center justify-center"
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>

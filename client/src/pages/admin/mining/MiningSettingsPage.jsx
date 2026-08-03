@@ -101,21 +101,21 @@ const MiningSettingsPage = () => {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-8 font-sans antialiased text-slate-800">
+    <div className="p-6 max-w-6xl mx-auto space-y-8 font-sans antialiased text-white">
       
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Mining Reward System Settings</h1>
-          <p className="text-slate-500 text-sm mt-1">Configure global mining parameters, system states, and adjust active user packages.</p>
+          <h1 className="text-xl font-bold tracking-tight text-white">Mining Reward System Settings</h1>
+          <p className="text-slate-400 text-sm mt-1">Configure global mining parameters, system states, and adjust active user packages.</p>
         </div>
       </div>
 
       {/* GLOBAL SYSTEM SETTINGS CARD */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden grid grid-cols-1 md:grid-cols-2">
-        <div className="p-8 border-b md:border-b-0 md:border-r border-slate-100 space-y-6">
-          <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <ShieldAlert size={20} className="text-yellow-500" />
+      <div className="bg-[#0d1420]/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-2 text-white">
+        <div className="p-8 border-b md:border-b-0 md:border-r border-white/5 space-y-6">
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <ShieldAlert size={20} className="text-amber-400" />
             Global Mining System Control
           </h2>
           
@@ -128,8 +128,8 @@ const MiningSettingsPage = () => {
                   onClick={() => setSystemState('active')}
                   className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all cursor-pointer ${
                     systemState === 'active'
-                      ? 'border-green-500 bg-green-50/50 text-green-700'
-                      : 'border-slate-100 hover:border-slate-200 text-slate-500'
+                      ? 'border-emerald-400 bg-emerald-500/10 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)]'
+                      : 'border-white/10 hover:border-white/20 text-slate-400 hover:bg-white/5'
                   }`}
                 >
                   <Play size={20} className="mb-1" />
@@ -141,8 +141,8 @@ const MiningSettingsPage = () => {
                   onClick={() => setSystemState('paused')}
                   className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all cursor-pointer ${
                     systemState === 'paused'
-                      ? 'border-amber-500 bg-amber-50/50 text-amber-700'
-                      : 'border-slate-100 hover:border-slate-200 text-slate-500'
+                      ? 'border-amber-400 bg-amber-500/10 text-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)]'
+                      : 'border-white/10 hover:border-white/20 text-slate-400 hover:bg-white/5'
                   }`}
                 >
                   <Pause size={20} className="mb-1" />
@@ -154,8 +154,8 @@ const MiningSettingsPage = () => {
                   onClick={() => setSystemState('disabled')}
                   className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all cursor-pointer ${
                     systemState === 'disabled'
-                      ? 'border-red-500 bg-red-50/50 text-red-700'
-                      : 'border-slate-100 hover:border-slate-200 text-slate-500'
+                      ? 'border-red-400 bg-red-500/10 text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.3)]'
+                      : 'border-white/10 hover:border-white/20 text-slate-400 hover:bg-white/5'
                   }`}
                 >
                   <EyeOff size={20} className="mb-1" />
@@ -179,7 +179,7 @@ const MiningSettingsPage = () => {
             />
           </div>
 
-          <div className="pt-4 border-t border-slate-50 flex justify-end">
+          <div className="pt-4 border-t border-white/5 flex justify-end">
             <Button
               variant="primary"
               onClick={handleSaveSettings}
@@ -190,26 +190,26 @@ const MiningSettingsPage = () => {
           </div>
         </div>
 
-        <div className="bg-slate-50/60 p-8 flex flex-col justify-center space-y-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200/60 space-y-4">
-            <h3 className="font-bold text-slate-900 text-sm">Active Configuration Summary</h3>
-            <div className="divide-y divide-slate-100 text-xs">
+        <div className="bg-white/[0.02] p-8 flex flex-col justify-center space-y-6">
+          <div className="bg-[#0d1420]/60 p-6 rounded-2xl border border-white/10 space-y-4 shadow-md">
+            <h3 className="font-bold text-white text-sm">Active Configuration Summary</h3>
+            <div className="divide-y divide-white/5 text-xs">
               <div className="py-2.5 flex justify-between">
-                <span className="text-slate-500">System State</span>
+                <span className="text-slate-400">System State</span>
                 <span className={`font-bold capitalize ${
-                  systemState === 'active' ? 'text-green-600' :
-                  systemState === 'paused' ? 'text-amber-600' : 'text-red-600'
+                  systemState === 'active' ? 'text-emerald-405' :
+                  systemState === 'paused' ? 'text-amber-450' : 'text-red-450'
                 }`}>
                   {systemState}
                 </span>
               </div>
               <div className="py-2.5 flex justify-between">
-                <span className="text-slate-500">Timer Duration</span>
-                <span className="font-bold text-slate-800">{timerDuration} Hours</span>
+                <span className="text-slate-400">Timer Duration</span>
+                <span className="font-bold text-slate-200">{timerDuration} Hours</span>
               </div>
               <div className="py-2.5 flex justify-between">
-                <span className="text-slate-500">Active User Packages</span>
-                <span className="font-bold text-slate-800">
+                <span className="text-slate-400">Active User Packages</span>
+                <span className="font-bold text-slate-200">
                   {userPackages.filter(p => p.status === 'active').length}
                 </span>
               </div>
@@ -221,12 +221,12 @@ const MiningSettingsPage = () => {
       {/* USER PACKAGES LIST */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <h2 className="text-lg font-bold text-slate-950 uppercase tracking-tight">
-            Active User <span className="text-yellow-500">Mining Packages</span>
+          <h2 className="text-lg font-bold text-white uppercase tracking-tight">
+            Active User <span className="text-amber-400">Mining Packages</span>
           </h2>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="bg-[#0d1420]/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl overflow-hidden text-white">
           <div className="overflow-x-auto">
             {userPackages.length === 0 ? (
               <div className="p-8 text-center text-slate-400 text-sm">
@@ -234,7 +234,7 @@ const MiningSettingsPage = () => {
               </div>
             ) : (
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#f8fafc] border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider">
+                <thead className="bg-white/[0.03] border-b border-white/10 text-slate-400 font-bold uppercase tracking-wider">
                   <tr>
                     <th className="px-6 py-4">User</th>
                     <th className="px-6 py-4">Package</th>
@@ -246,33 +246,33 @@ const MiningSettingsPage = () => {
                     <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-white/5">
                   {userPackages.map((pkg) => (
-                    <tr key={pkg._id} className="hover:bg-slate-50/50 transition-colors">
+                    <tr key={pkg._id} className="hover:bg-white/[0.02] transition-colors">
                       <td className="px-6 py-4">
-                        <p className="font-bold text-slate-800">{pkg.userId?.fullName || 'N/A'}</p>
+                        <p className="font-bold text-slate-200">{pkg.userId?.fullName || 'N/A'}</p>
                         <p className="text-slate-400 text-[10px]">{pkg.userId?.email || 'N/A'}</p>
                       </td>
-                      <td className="px-6 py-4 font-bold text-slate-800">
+                      <td className="px-6 py-4 font-bold text-slate-350">
                         {pkg.packageId?.name || 'N/A'}
                       </td>
-                      <td className="px-6 py-4 font-mono text-slate-800 font-bold">
+                      <td className="px-6 py-4 font-mono text-amber-400 font-bold">
                         ${pkg.purchaseAmount?.toFixed(2)}
                       </td>
-                      <td className="px-6 py-4 font-mono font-bold text-green-600">
+                      <td className="px-6 py-4 font-mono font-bold text-emerald-405">
                         {pkg.dailyROISnapshot}%
                       </td>
-                      <td className="px-6 py-4 text-slate-650">
+                      <td className="px-6 py-4 text-slate-350 font-mono">
                         {pkg.durationSnapshot} Days
                       </td>
-                      <td className="px-6 py-4 font-mono text-slate-500">
+                      <td className="px-6 py-4 font-mono text-amber-400">
                         {pkg.nextMiningAt ? new Date(pkg.nextMiningAt).toLocaleString() : 'N/A'}
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                          pkg.status === 'active' ? 'bg-green-100 text-green-700' :
-                          pkg.status === 'pending_deposit' ? 'bg-amber-100 text-amber-700' :
-                          pkg.status === 'completed' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                          pkg.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
+                          pkg.status === 'pending_deposit' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' :
+                          pkg.status === 'completed' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' : 'bg-red-500/10 text-red-400 border-red-500/30'
                         }`}>
                           {pkg.status}
                         </span>
@@ -280,10 +280,10 @@ const MiningSettingsPage = () => {
                       <td className="px-6 py-4 text-right">
                         <button
                           onClick={() => handleOpenEditPkg(pkg)}
-                          className="p-1.5 rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors inline-flex items-center justify-center cursor-pointer"
+                          className="p-2 text-amber-400 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl transition-all cursor-pointer inline-flex items-center justify-center hover:shadow-[0_0_10px_rgba(255,184,0,0.15)]"
                           title="Edit ROI & Cooldown"
                         >
-                          <Edit2 size={14} />
+                          <Edit2 size={12} />
                         </button>
                       </td>
                     </tr>
@@ -318,16 +318,16 @@ const MiningSettingsPage = () => {
               onChange={(e) => setEditDuration(e.target.value)}
             />
             <div>
-              <label className="block text-slate-500 mb-1 font-bold">Status</label>
+              <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Status</label>
               <select
                 value={editStatus}
                 onChange={(e) => setEditStatus(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg p-2 bg-white text-xs outline-none focus:border-primary"
+                className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/30 focus:bg-[#0d1420] transition"
               >
-                <option value="pending_deposit">Pending Deposit</option>
-                <option value="active">Active</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
+                <option value="pending_deposit" className="bg-[#0d1420] text-white">Pending Deposit</option>
+                <option value="active" className="bg-[#0d1420] text-white">Active</option>
+                <option value="completed" className="bg-[#0d1420] text-white">Completed</option>
+                <option value="cancelled" className="bg-[#0d1420] text-white">Cancelled</option>
               </select>
             </div>
             <InputField
@@ -337,7 +337,7 @@ const MiningSettingsPage = () => {
               onChange={(e) => setEditNextMining(e.target.value)}
             />
 
-            <div className="pt-4 flex justify-end gap-2">
+            <div className="pt-4 flex justify-end gap-2 border-t border-white/5">
               <Button
                 variant="secondary"
                 onClick={() => setEditModalOpen(false)}

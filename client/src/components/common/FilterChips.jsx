@@ -10,7 +10,7 @@ const FilterChips = ({ options, active, onChange }) => {
           className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors cursor-pointer
             ${active === option.value
               ? 'bg-primary text-text-light-bg border-primary'
-              : 'bg-white text-text-secondary border-border-light hover:border-primary/50'}`}
+              : 'bg-surface-container-lowest text-text-secondary border-border-light hover:border-primary/50'}`}
         >
           {option.label}
           {option.count !== undefined && (

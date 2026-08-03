@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../services/api';
 import { fetchDashboardSummary } from './dashboardSlice';
+import { checkAuth } from './authSlice';
 
 export const fetchPackages = createAsyncThunk(
   'package/fetchPackages',
@@ -44,6 +45,7 @@ export const purchasePlan = createAsyncThunk(
     try {
       const response = await api.post('/packages/purchase', purchaseData);
       dispatch(fetchDashboardSummary());
+      dispatch(checkAuth());
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || { message: 'Failed to submit purchase request.' });

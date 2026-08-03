@@ -18,7 +18,7 @@ const StatsBar = () => {
                 <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gold">
                   <CountUp target={stat.target} suffix={stat.suffix} decimals={stat.decimals} />
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-400 font-medium tracking-wide uppercase">
+                <p className="text-xs sm:text-sm text-page-text-soft font-medium tracking-wide uppercase">
                   {stat.label}
                 </p>
               </div>

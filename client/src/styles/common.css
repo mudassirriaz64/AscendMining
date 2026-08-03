@@ -57,6 +57,8 @@
   --color-secondary-end: #6c5ce7;
   --color-text-light-bg: #0b1c30;
   --color-text-dark-bg: #cbd5e1;
+  --color-text-secondary: #4b5563;
+  --color-border-light: #e2e5ea;
 
   /* Web3 Luxury Landing Tokens */
   --color-bg-void: #080c14;
@@ -82,6 +84,171 @@
   --font-heading: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Semantic Page Tokens (public + auth). Dark defaults; overridden in .light */
+  --color-page-bg: #050811;
+  --color-page-bg-40: rgba(5, 8, 17, 0.4);
+  --color-page-bg-60: rgba(5, 8, 17, 0.6);
+  --color-page-bg-90: rgba(5, 8, 17, 0.9);
+  --color-page-text: #ffffff;
+  --color-page-text-muted: #cbd5e1;
+  --color-page-text-soft: #94a3b8;
+  --color-page-text-faint: #64748b;
+  --color-page-text-dimmer: #475569;
+  --color-page-card: rgba(8, 12, 20, 0.6);
+  --color-page-card-strong: rgba(8, 12, 20, 0.85);
+  --color-page-card-solid: #080c14;
+  --color-page-input: rgba(15, 23, 42, 0.6);
+  --color-page-input-border: rgba(51, 65, 85, 0.6);
+  --color-page-border: rgba(255, 255, 255, 0.1);
+  --color-page-border-soft: rgba(255, 255, 255, 0.05);
+  --color-page-grid: rgba(255, 255, 255, 0.015);
+  --color-page-fill: rgba(255, 255, 255, 0.02);
+
+  /* Form control backgrounds (light default; overridden in .dark/.force-light) */
+  --color-input-bg: #ffffff;
+}
+
+/* ============================================================
+   Theme overrides.
+   Applied as classes on <html> by ThemeProvider (default: .dark).
+   Unlayered on purpose so they win over the layered @theme tokens.
+   ============================================================ */
+
+/* Client dashboard / shared component tokens under dark mode.
+   Derived from the Web3 void palette so the dashboard matches the site. */
+.dark {
+  --color-background: #080c14;
+  --color-bg-light-alt: #0d1420;
+  --color-bg-dark: #080c14;
+  --color-surface: #0d1420;
+  --color-surface-bright: #101828;
+  --color-surface-dim: #0a1019;
+  --color-surface-container-lowest: #0d1420;
+  --color-surface-container-low: #141c2b;
+  --color-surface-container: #1a2436;
+  --color-surface-container-high: #223046;
+  --color-surface-container-highest: #2a3a54;
+  --color-surface-variant: #1a2436;
+  --color-on-surface: #e6edf3;
+  --color-on-surface-variant: #9aa7b8;
+  --color-on-background: #e6edf3;
+  --color-text-light-bg: #e6edf3;
+  --color-text-dark-bg: #cbd5e1;
+  --color-text-secondary: #9aa7b8;
+  --color-border-light: #2a3a54;
+  --color-outline: #64748b;
+  --color-outline-variant: #293548;
+  --color-secondary: #9aa7b8;
+  --color-secondary-container: #223046;
+  --color-on-secondary: #0d1420;
+  --color-on-secondary-container: #cbd5e1;
+  --color-on-secondary-fixed: #0d1420;
+  --color-on-secondary-fixed-variant: #aab4c8;
+  --color-secondary-fixed: #223046;
+  --color-secondary-fixed-dim: #7c8698;
+  --color-primary: #ffb800;
+  --color-on-primary: #241a00;
+  --color-primary-container: #f5c518;
+  --color-on-primary-container: #241a00;
+  --color-input-bg: #1a2436;
+  --color-primary-fixed: #ffe08b;
+  --color-primary-fixed-dim: #f0c110;
+  --color-on-primary-fixed: #241a00;
+  --color-on-primary-fixed-variant: #584400;
+  --color-inverse-primary: #f0c110;
+  --color-inverse-surface: #e6edf3;
+  --color-inverse-on-surface: #0d1420;
+  --color-surface-tint: #f0c110;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+  --color-tertiary: #7ab8e8;
+  --color-tertiary-container: #00477f;
+  --color-on-tertiary: #002f4e;
+  --color-on-tertiary-container: #cfe5ff;
+  --color-tertiary-fixed: #cfe5ff;
+  --color-tertiary-fixed-dim: #7ab8e8;
+  --color-on-tertiary-fixed: #001c33;
+  --color-on-tertiary-fixed-variant: #0047a8;
+}
+
+/* Public + auth pages under light mode. */
+.light {
+  --color-page-bg: #f6f8fb;
+  --color-page-bg-40: rgba(255, 255, 255, 0.55);
+  --color-page-bg-60: rgba(255, 255, 255, 0.72);
+  --color-page-bg-90: rgba(255, 255, 255, 0.96);
+  --color-page-text: #0b1c30;
+  --color-page-text-muted: #334155;
+  --color-page-text-soft: #475569;
+  --color-page-text-faint: #64748b;
+  --color-page-text-dimmer: #94a3b8;
+  --color-page-card: rgba(255, 255, 255, 0.72);
+  --color-page-card-strong: rgba(255, 255, 255, 0.92);
+  --color-page-card-solid: #ffffff;
+  --color-page-input: rgba(255, 255, 255, 0.9);
+  --color-page-input-border: rgba(203, 213, 225, 0.9);
+  --color-page-border: rgba(15, 23, 42, 0.1);
+  --color-page-border-soft: rgba(15, 23, 42, 0.05);
+  --color-page-grid: rgba(15, 23, 42, 0.04);
+  --color-page-fill: rgba(15, 23, 42, 0.03);
+}
+
+/* Admin panel is excluded from theming: pin the light token values so it
+   renders identically regardless of the active theme. */
+.force-light {
+  --color-background: #f8f9ff;
+  --color-bg-light-alt: #f4f6f9;
+  --color-bg-dark: #0b1220;
+  --color-input-bg: #ffffff;
+  --color-surface: #f8f9ff;
+  --color-surface-bright: #f8f9ff;
+  --color-surface-dim: #cbdbf5;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #eff4ff;
+  --color-surface-container: #e5eeff;
+  --color-surface-container-high: #dce9ff;
+  --color-surface-container-highest: #d3e4fe;
+  --color-surface-variant: #d3e4fe;
+  --color-on-surface: #0b1c30;
+  --color-on-surface-variant: #4e4633;
+  --color-on-background: #0b1c30;
+  --color-text-light-bg: #0b1c30;
+  --color-text-dark-bg: #cbd5e1;
+  --color-text-secondary: #4b5563;
+  --color-border-light: #e2e5ea;
+  --color-outline: #807660;
+  --color-outline-variant: #d1c5ac;
+  --color-secondary: #585e6f;
+  --color-secondary-container: #d9dff4;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #5c6274;
+  --color-on-secondary-fixed: #151b2a;
+  --color-on-secondary-fixed-variant: #404757;
+  --color-secondary-fixed: #dce2f6;
+  --color-secondary-fixed-dim: #c0c6da;
+  --color-primary: #745b00;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #f5c518;
+  --color-on-primary-container: #695200;
+  --color-primary-fixed: #ffe08b;
+  --color-primary-fixed-dim: #f0c110;
+  --color-on-primary-fixed: #241a00;
+  --color-on-primary-fixed-variant: #584400;
+  --color-inverse-primary: #f0c110;
+  --color-inverse-surface: #213145;
+  --color-inverse-on-surface: #eaf1ff;
+  --color-surface-tint: #745b00;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-tertiary: #318db4;
+  --color-tertiary-container: #bac9ff;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-container: #004bc7;
+  --color-tertiary-fixed: #dbe1ff;
+  --color-tertiary-fixed-dim: #b4c5ff;
+  --color-on-tertiary-fixed: #00174b;
+  --color-on-tertiary-fixed-variant: #003ea8;
 }
 
 @layer base {

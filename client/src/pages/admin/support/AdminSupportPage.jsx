@@ -10,10 +10,10 @@ import ConfirmModal from '../../../components/common/ConfirmModal';
 import PromptModal from '../../../components/common/PromptModal';
 
 const STATUS = {
-  open: ['Open', 'bg-amber-50 text-amber-800'],
-  in_progress: ['In progress', 'bg-blue-50 text-blue-800'],
-  resolved: ['Resolved', 'bg-emerald-50 text-emerald-800'],
-  closed: ['Closed', 'bg-slate-100 text-slate-700'],
+  open: ['Open', 'bg-amber-500/10 text-amber-400 border border-amber-500/30 shadow-[0_0_8px_rgba(255,184,0,0.15)]'],
+  in_progress: ['In progress', 'bg-blue-500/10 text-blue-450 border border-blue-500/30 shadow-[0_0_8px_rgba(59,130,246,0.15)]'],
+  resolved: ['Resolved', 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-[0_0_8px_rgba(16,185,129,0.15)]'],
+  closed: ['Closed', 'bg-white/5 text-slate-400 border border-white/10'],
 };
 
 const CANNED_RESPONSES = [
@@ -513,33 +513,62 @@ const AdminSupportPage = () => {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-112px)] lg:h-[calc(100vh-128px)] min-h-0 space-y-4">
+    <div className="flex flex-col h-[calc(100vh-112px)] lg:h-[calc(100vh-128px)] min-h-0 space-y-4 text-white">
       <div className="flex flex-wrap items-end justify-between gap-4 shrink-0">
-        <div><h1 className="text-2xl font-semibold">Support</h1><p className="mt-1 text-sm text-text-secondary">Live investor conversations and escalated tickets.</p></div>
-        <div className="flex rounded-xl bg-white p-1 ring-1 ring-border-light" role="tablist">
-          <button type="button" role="tab" aria-selected={view === 'conversations'} onClick={() => setView('conversations')} className={`rounded-lg px-3 py-2 text-sm font-medium ${view === 'conversations' ? 'bg-bg-dark text-white' : 'text-text-secondary'}`}><MessageCircle className="mr-1.5 inline" size={15} />Conversations</button>
-          <button type="button" role="tab" aria-selected={view === 'tickets'} onClick={() => setView('tickets')} className={`rounded-lg px-3 py-2 text-sm font-medium ${view === 'tickets' ? 'bg-bg-dark text-white' : 'text-text-secondary'}`}><Ticket className="mr-1.5 inline" size={15} />Tickets</button>
+        <div>
+          <h1 className="text-xl font-bold text-white">Support</h1>
+          <p className="mt-1 text-sm text-slate-400">Live investor conversations and escalated tickets.</p>
+        </div>
+        <div className="flex rounded-xl bg-[#050811] p-1 border border-white/10 shadow-inner" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === 'conversations'}
+            onClick={() => setView('conversations')}
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+              view === 'conversations'
+                ? 'bg-primary-container text-slate-950 font-semibold shadow-[0_0_15px_rgba(255,184,0,0.25)]'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <MessageCircle className="mr-1.5 inline animate-pulse" size={15} />
+            Conversations
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === 'tickets'}
+            onClick={() => setView('tickets')}
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+              view === 'tickets'
+                ? 'bg-primary-container text-slate-950 font-semibold shadow-[0_0_15px_rgba(255,184,0,0.25)]'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Ticket className="mr-1.5 inline" size={15} />
+            Tickets
+          </button>
         </div>
       </div>
 
       {alarmIds.size > 0 && !alarmDismissed && (
-        <div className="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-xl px-5 py-3 flex items-center justify-between animate-pulse shrink-0">
+        <div className="bg-gradient-to-r from-red-950/20 to-red-900/10 border border-red-500/30 rounded-xl px-5 py-3 flex items-center justify-between animate-pulse shrink-0 shadow-[0_0_15px_rgba(239,68,68,0.15)]">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center">
-              <AlertTriangle size={18} className="text-red-600" />
+            <div className="w-9 h-9 rounded-full bg-red-500/20 border border-red-500/20 text-red-400 flex items-center justify-center">
+              <AlertTriangle size={18} />
             </div>
             <div>
-              <p className="text-sm font-bold text-red-800">
+              <p className="text-sm font-bold text-red-200">
                 SLA Alert — {alarmIds.size} conversation{alarmIds.size > 1 ? 's' : ''} waiting 30+ min
               </p>
-              <p className="text-xs text-red-600 mt-0.5">
+              <p className="text-xs text-red-400 mt-0.5">
                 Respond now to silence the alarm
               </p>
             </div>
           </div>
           <button
             onClick={() => setAlarmDismissed(true)}
-            className="px-3 py-1.5 rounded-lg bg-red-200/60 text-red-700 text-xs font-semibold hover:bg-red-200 transition-all cursor-pointer"
+            className="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 text-xs font-semibold hover:bg-red-500/30 border border-red-500/30 transition-all cursor-pointer"
           >
             Dismiss
           </button>
@@ -547,30 +576,30 @@ const AdminSupportPage = () => {
       )}
 
       {view === 'conversations' ? (
-        <div className="flex flex-1 flex-col overflow-hidden rounded-xl bg-white ring-1 ring-border-light lg:flex-row min-h-0">
-          <aside className="max-h-72 w-full border-b border-border-light lg:max-h-none lg:w-80 lg:border-b-0 lg:border-r lg:h-full flex flex-col min-h-0 shrink-0">
-            <div className="border-b border-border-light px-4 py-3 text-xs font-semibold text-text-secondary shrink-0">Urgent first · {conversations.length} conversations</div>
-            <div className="flex-grow overflow-y-auto divide-y divide-border-light">
+        <div className="flex flex-1 flex-col overflow-hidden rounded-2xl bg-[#0d1420]/40 backdrop-blur-xl border border-white/10 shadow-xl lg:flex-row min-h-0">
+          <aside className="max-h-72 w-full border-b border-white/5 lg:max-h-none lg:w-80 lg:border-b-0 lg:border-r lg:h-full flex flex-col min-h-0 shrink-0 bg-white/[0.01]">
+            <div className="border-b border-white/5 px-4 py-3 text-xs font-semibold text-slate-400 shrink-0 bg-white/[0.01]">Urgent first · {conversations.length} conversations</div>
+            <div className="flex-grow overflow-y-auto divide-y divide-white/5">
               {conversations.map((conversation) => {
                 const user = conversation.user || conversation.userId;
                 const ringing = Boolean(conversation.awaitingAgentSince);
                 const overdue = conversation.escalationAvailable;
                 return (
-                  <button type="button" key={conversation._id} onClick={() => openConversation(conversation._id)} className={`relative w-full border-b border-border-light px-4 py-3 text-left hover:bg-bg-light-alt focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary ${selectedId === conversation._id ? 'bg-bg-light-alt' : ''}`}>
+                  <button type="button" key={conversation._id} onClick={() => openConversation(conversation._id)} className={`relative w-full border-b border-white/5 px-4 py-4.5 text-left hover:bg-white/5 transition-all focus:outline-none ${selectedId === conversation._id ? 'bg-white/5 text-white' : 'text-slate-400'}`}>
                     <div className="flex items-center gap-2">
-                      <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${ringing ? 'animate-pulse bg-danger motion-reduce:animate-none' : conversation.unreadByAdmin ? 'bg-primary' : 'bg-slate-300'}`} />
+                      <span className={`h-2 w-2 shrink-0 rounded-full ${ringing ? 'animate-ping bg-red-500' : conversation.unreadByAdmin ? 'bg-amber-400 shadow-[0_0_8px_rgba(255,184,0,0.5)]' : 'bg-slate-700'}`} />
                       <p className="truncate text-sm font-semibold">
                         {conversation.isGuest 
                           ? conversation.guestName 
                           : (user?.fullName || user?.username || 'Investor')}
                       </p>
                       {conversation.isGuest && (
-                        <span className="rounded bg-slate-100 border border-slate-200 px-1 py-0.5 text-[9px] font-bold text-text-secondary">Guest</span>
+                        <span className="rounded bg-white/5 border border-white/10 px-1.5 py-0.5 text-[9px] font-bold text-slate-400">Guest</span>
                       )}
-                      {overdue ? <span className="ml-auto rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700">30m+</span> : null}
+                      {overdue ? <span className="ml-auto rounded-full bg-red-500/15 border border-red-500/30 px-2 py-0.5 text-[9px] font-bold text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.3)]">30m+</span> : null}
                     </div>
-                    <p className="mt-1 truncate pl-[18px] text-xs text-text-secondary">{conversation.lastMessagePreview || 'No messages'}</p>
-                    {ringing ? <span className="absolute inset-y-2 left-0 w-1 rounded-r bg-danger" aria-hidden="true" /> : null}
+                    <p className="mt-1.5 truncate pl-[16px] text-xs text-slate-500">{conversation.lastMessagePreview || 'No messages'}</p>
+                    {ringing ? <span className="absolute inset-y-2 left-0 w-1 rounded-r bg-red-500" aria-hidden="true" /> : null}
                   </button>
                 );
               })}
@@ -579,27 +608,27 @@ const AdminSupportPage = () => {
 
           <section className="flex flex-1 flex-col relative h-full min-h-0">
             {selected ? <>
-              <header className="border-b border-border-light px-5 py-3">
+              <header className="border-b border-white/5 px-5 py-3 bg-white/[0.01]">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-sm font-semibold">
+                    <h2 className="text-sm font-semibold text-white">
                       {selected.isGuest 
                         ? `${selected.guestName} (Guest)` 
                         : ((selected.user || selected.userId)?.fullName || 'Investor')}
                     </h2>
                     {selected.isGuest ? (
-                      <p className="text-xs text-text-secondary">
+                      <p className="text-xs text-slate-400">
                         Email: {selected.guestEmail} {selected.guestPhone && `· Phone: ${selected.guestPhone}`}
                       </p>
                     ) : (
-                      <p className="text-xs text-text-secondary">One conversation · {activeSessions.length} session{activeSessions.length !== 1 ? 's' : ''}</p>
+                      <p className="text-xs text-slate-400">One conversation · {activeSessions.length} session{activeSessions.length !== 1 ? 's' : ''}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => setPromptCreateSession(true)}
-                      className="rounded-lg border border-border-light bg-white px-3 py-1.5 text-xs font-semibold text-text-main shadow-sm hover:bg-bg-light-alt transition-colors flex items-center gap-1 cursor-pointer"
+                      className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-250 shadow-sm hover:bg-white/10 transition-all flex items-center gap-1 cursor-pointer"
                     >
                       <Plus size={13} />
                       New Session
@@ -607,7 +636,7 @@ const AdminSupportPage = () => {
                     <button
                       type="button"
                       onClick={handleDeleteConversation}
-                      className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 shadow-sm hover:bg-red-100 transition-colors flex items-center gap-1 cursor-pointer"
+                      className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-400 shadow-sm hover:bg-red-500/20 transition-all flex items-center gap-1 cursor-pointer"
                     >
                       <Trash2 size={13} />
                       Delete Conversation
@@ -615,14 +644,14 @@ const AdminSupportPage = () => {
                   </div>
                 </div>
               </header>
-              <div ref={chatContainerRef} onScroll={handleScroll} className="flex-1 space-y-3 overflow-y-auto bg-bg-light-alt px-5 py-4 relative">
+              <div ref={chatContainerRef} onScroll={handleScroll} className="flex-1 space-y-3 overflow-y-auto bg-[#050811] px-5 py-4 relative">
                 {hasMore && messages.length >= 50 && (
                   <div className="flex justify-center my-2 shrink-0">
                     <button
                       type="button"
                       disabled={loadingMore}
                       onClick={loadMore}
-                      className="text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200 px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer disabled:opacity-50"
+                      className="text-xs bg-white/5 text-slate-350 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer disabled:opacity-50"
                     >
                       {loadingMore ? 'Loading...' : 'Load older messages'}
                     </button>
@@ -635,16 +664,16 @@ const AdminSupportPage = () => {
                     const closedAtStr = isClosed ? new Date(item.session.closedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
                     return (
                       <div key={item.key} className="flex items-center gap-3 my-3">
-                        <div className="flex-1 h-px bg-slate-200" />
-                        <div className="flex items-center gap-2 text-xs text-text-secondary">
-                          <span className="font-medium">{item.session?.title || 'Unknown session'}</span>
+                        <div className="flex-1 h-px bg-white/5" />
+                        <div className="flex items-center gap-2 text-xs text-slate-400 font-mono text-[11px]">
+                          <span className="font-semibold text-slate-300">{item.session?.title || 'Unknown session'}</span>
                           {sessionDate && <span>({sessionDate})</span>}
-                           {isClosed && <span className="text-slate-400">— Closed {closedAtStr}</span>}
+                           {isClosed && <span className="text-slate-500">— Closed {closedAtStr}</span>}
                           {!isClosed && (
                             <button
                               type="button"
                               onClick={() => handleCloseSession(item.sessionId)}
-                              className="text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer text-[10px] font-bold bg-slate-100 px-2 py-0.5 rounded ml-1"
+                              className="text-slate-400 hover:text-amber-405 hover:bg-amber-500/10 transition-colors cursor-pointer text-[10px] font-bold border border-white/10 bg-white/5 px-2.5 py-0.5 rounded ml-1"
                               title="Close session"
                             >
                               Close
@@ -653,13 +682,13 @@ const AdminSupportPage = () => {
                           <button
                             type="button"
                             onClick={() => deleteSession(item.sessionId)}
-                            className="text-slate-300 hover:text-red-500 transition-colors cursor-pointer p-0.5 ml-1"
+                            className="text-slate-500 hover:text-red-400 transition-colors cursor-pointer p-0.5 ml-1"
                             title="Delete session"
                           >
                             <Trash2 size={12} />
                           </button>
                         </div>
-                        <div className="flex-1 h-px bg-slate-200" />
+                        <div className="flex-grow h-px bg-white/5" />
                       </div>
                     );
                   }
@@ -676,7 +705,7 @@ const AdminSupportPage = () => {
                   if (isSystem) {
                     return (
                       <div key={item.key} className="flex justify-center my-3 w-full animate-fade-in shrink-0">
-                        <span className="text-xs text-slate-400 bg-slate-100 px-3 py-1.5 rounded-full font-medium shadow-sm border border-slate-200/50">
+                        <span className="text-xs text-slate-400 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full font-medium shadow-sm font-mono text-[11px]">
                           {msg.body.replace('[SYSTEM] ', '')}
                         </span>
                       </div>
@@ -693,12 +722,12 @@ const AdminSupportPage = () => {
                       <div className={`w-full flex ${isAgent ? 'justify-end' : 'justify-start'}`}>
                         <div
                           title={formatFullTimestamp(msg.sentAt || msg.createdAt)}
-                          className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm cursor-help ${isAgent ? 'rounded-br-sm bg-gradient-to-br from-[#001f3f] to-[#083358] text-white' : 'rounded-bl-sm bg-white text-slate-800 ring-1 ring-slate-200'}`}
+                          className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm cursor-help ${isAgent ? 'rounded-br-sm bg-amber-400/10 border border-amber-400/20 text-amber-300' : 'rounded-bl-sm bg-white/5 text-white border border-white/10'}`}
                         >
                           {msg.body && <p className="whitespace-pre-wrap break-words w-fit max-w-full">{typeof msg.body === 'string' ? msg.body : String(msg.body ?? '')}</p>}
                           
                           {msg.attachmentUrl && msg.attachmentType === 'image' && (
-                            <div className={`max-w-sm rounded-lg overflow-hidden border border-slate-200 shadow-sm cursor-zoom-in ${msg.body ? 'mt-2' : ''}`}>
+                            <div className={`max-w-sm rounded-lg overflow-hidden border border-white/10 shadow-sm cursor-zoom-in ${msg.body ? 'mt-2' : ''}`}>
                               <img
                                 src={msg.attachmentUrl}
                                 alt={msg.attachmentFileName || 'Attachment'}
@@ -713,10 +742,10 @@ const AdminSupportPage = () => {
                               href={msg.attachmentUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold transition-all hover:bg-slate-50/50 ${msg.body ? 'mt-2' : ''} ${
+                              className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold transition-all ${msg.body ? 'mt-2' : ''} ${
                                 isAgent
-                                  ? 'bg-[#083358]/20 border-white/20 text-white hover:text-[#e2b007]'
-                                    : 'bg-slate-50 border-slate-200 text-[#001f3f] hover:text-[#e2b007]'
+                                  ? 'bg-amber-400/5 border border-amber-400/20 text-amber-400 hover:bg-amber-400/10'
+                                  : 'bg-white/5 border border-white/10 text-slate-300 hover:text-amber-400'
                               }`}
                             >
                               <FileText size={16} />
@@ -726,7 +755,7 @@ const AdminSupportPage = () => {
                           )}
 
                           {msg.attachmentUrl && msg.attachmentType === 'video' && (
-                            <div className={`max-w-sm rounded-lg overflow-hidden border border-slate-200 shadow-sm ${msg.body ? 'mt-2' : ''}`}>
+                            <div className={`max-w-sm rounded-lg overflow-hidden border border-white/10 shadow-sm ${msg.body ? 'mt-2' : ''}`}>
                               <video
                                 src={msg.attachmentUrl}
                                 controls
@@ -737,12 +766,12 @@ const AdminSupportPage = () => {
                           )}
 
                           {isAgent && isLastSent ? (
-                            <time className="mt-1 block text-[10px] text-right font-medium flex items-center justify-end gap-0.5" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                            <time className="mt-1 block text-[10px] text-right font-semibold flex items-center justify-end gap-0.5 text-amber-400/60">
                               {msg.readAt ? '✓✓ Seen' : '✓ Sent'}
                             </time>
                           ) : (
                             (!consecutive || msgIdx === messages.length - 1) && (
-                              <time className="mt-1 block text-[10px]" style={{ color: isAgent ? 'rgba(255,255,255,0.6)' : '#94a3b8' }}>
+                              <time className="mt-1 block text-[10px]" style={{ color: isAgent ? 'rgba(251,191,36,0.6)' : '#64748b' }}>
                                 {formatRelativeTime(msg.sentAt || msg.createdAt)}
                               </time>
                             )
@@ -753,11 +782,11 @@ const AdminSupportPage = () => {
                   );
                 })}
                 {isTyping && (
-                  <div className="flex items-center gap-1.5 px-6 py-2 text-xs text-slate-400 animate-pulse shrink-0">
+                  <div className="flex items-center gap-1.5 px-6 py-2 text-xs text-slate-450 animate-pulse shrink-0">
                     <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0ms' }} />
                     <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '150ms' }} />
                     <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '300ms' }} />
-                    <span className="ml-1 font-medium">Investor is typing...</span>
+                    <span className="ml-1 font-semibold">Investor is typing...</span>
                   </div>
                 )}
                 <div ref={endRef} />
@@ -769,14 +798,14 @@ const AdminSupportPage = () => {
                     chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: 'smooth' });
                     setShowScrollPill(false);
                   }}
-                  className="absolute bottom-16 left-1/2 -translate-x-1/2 bg-[#083358] text-white px-4 py-2 rounded-full text-xs font-semibold shadow-lg hover:bg-[#001f3f] transition-all flex items-center gap-1 cursor-pointer animate-bounce z-10"
+                  className="absolute bottom-16 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 px-4 py-2 rounded-full text-xs font-semibold shadow-lg hover:bg-amber-600 transition-all flex items-center gap-1 cursor-pointer animate-bounce z-10 font-bold"
                 >
                   ↓ New message
                 </button>
               )}
-              <div className="flex flex-col gap-1.5 border-t border-border-light p-3 relative bg-white">
+              <div className="flex flex-col gap-1.5 border-t border-white/5 p-4 relative bg-[#0d1420]/85 backdrop-blur-md">
                 {pendingAttachment && (
-                  <div className="flex items-center justify-between bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs text-slate-600 mb-2 w-full animate-fade-in">
+                  <div className="flex items-center justify-between bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg text-xs text-slate-300 mb-2 w-full animate-fade-in">
                     <div className="flex items-center gap-1.5 truncate">
                       {pendingAttachment.attachmentType === 'image' ? <ImageIcon size={14} /> : (pendingAttachment.attachmentType === 'video' ? <Video size={14} /> : <FileText size={14} />)}
                       <span className="truncate font-medium">{pendingAttachment.attachmentFileName}</span>
@@ -784,7 +813,7 @@ const AdminSupportPage = () => {
                     <button
                       type="button"
                       onClick={() => setPendingAttachment(null)}
-                      className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                      className="text-slate-400 hover:text-slate-200 p-0.5 cursor-pointer"
                     >
                       <X size={14} />
                     </button>
@@ -803,7 +832,7 @@ const AdminSupportPage = () => {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading || sending}
-                    className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 disabled:opacity-50 transition-all cursor-pointer shrink-0 mb-0.5"
+                    className="grid h-10 w-10 place-items-center rounded-xl bg-white/5 border border-white/10 text-slate-450 hover:bg-white/10 hover:text-white disabled:opacity-50 transition-all cursor-pointer shrink-0 mb-0.5"
                     title="Attach JPG, PNG, PDF, or Video file (up to 200MB)"
                   >
                     {uploading ? (
@@ -822,7 +851,7 @@ const AdminSupportPage = () => {
                     maxLength={500}
                     aria-label="Reply"
                     placeholder="Reply to investor (Max 200MB attachment)"
-                    className="min-h-10 flex-1 resize-none rounded-xl border border-border-light px-3 py-2 text-sm outline-none placeholder:text-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/25 cursor-pointer max-h-24 overflow-y-auto"
+                    className="min-h-10 flex-1 resize-none rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/30 focus:bg-white/10 transition-all cursor-pointer max-h-24 overflow-y-auto"
                     style={{ height: 'auto' }}
                   />
 
@@ -842,18 +871,18 @@ const AdminSupportPage = () => {
                           }
                         }
                       }}
-                      className="h-10 px-2.5 rounded-xl border border-border-light text-xs font-semibold bg-slate-50 text-slate-600 hover:bg-slate-100 outline-none cursor-pointer max-w-[125px] shrink-0"
+                      className="h-10 px-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-slate-300 hover:bg-white/10 outline-none cursor-pointer max-w-[125px] shrink-0 focus:bg-[#0d1420]"
                     >
-                      <option value="">⚡ Quick Reply</option>
+                      <option value="" className="bg-[#0d1420] text-white">⚡ Quick Reply</option>
                       {CANNED_RESPONSES.map((res) => (
-                        <option key={res.label} value={res.text}>
+                        <option key={res.label} value={res.text} className="bg-[#0d1420] text-white">
                           {res.label}
                         </option>
                       ))}
                     </select>
                   </div>
 
-                  <button type="button" onClick={sendReply} disabled={(!reply.trim() && !pendingAttachment) || sending || uploading} aria-label="Send reply" className="grid h-10 w-10 place-items-center rounded-xl bg-primary text-bg-dark disabled:opacity-50 cursor-pointer shrink-0 mb-0.5"><Send size={17} /></button>
+                  <button type="button" onClick={sendReply} disabled={(!reply.trim() && !pendingAttachment) || sending || uploading} aria-label="Send reply" className="grid h-10 w-10 place-items-center rounded-xl bg-primary-container text-slate-950 font-bold disabled:opacity-50 cursor-pointer shrink-0 mb-0.5 hover:shadow-[0_0_15px_rgba(255,184,0,0.25)] transition-all"><Send size={15} /></button>
                 </div>
                 {reply.length > 400 && (
                   <span className="text-[10px] text-slate-400 self-end px-1 absolute bottom-0.5 right-14">
@@ -861,11 +890,43 @@ const AdminSupportPage = () => {
                   </span>
                 )}
               </div>
-            </> : <div className="grid flex-1 place-items-center text-center"><div><MessageCircle className="mx-auto text-text-secondary" /><p className="mt-3 text-sm font-medium">Choose a conversation</p><p className="mt-1 text-xs text-text-secondary">Opening it clears that conversation's alarm for every agent.</p></div></div>}
+            </> : <div className="grid flex-1 place-items-center text-center"><div><MessageCircle className="mx-auto text-slate-550" size={32} /><p className="mt-3 text-sm font-medium text-slate-300">Choose a conversation</p><p className="mt-1 text-xs text-slate-500">Opening it clears that conversation's alarm for every agent.</p></div></div>}
           </section>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl bg-white ring-1 ring-border-light"><table className="w-full text-sm"><thead><tr className="border-b border-border-light text-left text-xs text-text-secondary"><th className="px-4 py-3">Investor</th><th className="px-4 py-3">Subject</th><th className="px-4 py-3">Created</th><th className="px-4 py-3">Status</th></tr></thead><tbody className="divide-y divide-border-light">{tickets.map((ticket) => <tr key={ticket._id}><td className="px-4 py-3 font-medium">{ticket.userId?.fullName || ticket.userId?.username || 'Investor'}</td><td className="px-4 py-3">{ticket.subject}</td><td className="px-4 py-3 text-text-secondary">{new Date(ticket.createdAt).toLocaleDateString()}</td><td className="px-4 py-3"><select value={ticket.status} onChange={(event) => updateTicket(ticket._id, event.target.value)} className={`rounded-lg border-0 px-2 py-1 text-xs font-semibold ${STATUS[ticket.status]?.[1]}`}><option value="open">Open</option><option value="in_progress">In progress</option><option value="resolved">Resolved</option><option value="closed">Closed</option></select></td></tr>)}</tbody></table></div>
+        <div className="overflow-x-auto rounded-2xl bg-[#0d1420]/40 border border-white/10 shadow-xl">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-white/[0.03] border-b border-white/10 text-left text-xs text-slate-400 font-semibold uppercase tracking-wider">
+                <th className="px-6 py-3">Investor</th>
+                <th className="px-6 py-3">Subject</th>
+                <th className="px-6 py-3">Created</th>
+                <th className="px-6 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {tickets.map((ticket) => (
+                <tr key={ticket._id} className="hover:bg-white/[0.01] transition-colors">
+                  <td className="px-6 py-4 font-semibold text-slate-200">{ticket.userId?.fullName || ticket.userId?.username || 'Investor'}</td>
+                  <td className="px-6 py-4 text-slate-300">{ticket.subject}</td>
+                  <td className="px-6 py-4 text-slate-400">{new Date(ticket.createdAt).toLocaleDateString()}</td>
+                  <td className="px-6 py-4">
+                    <select
+                      value={ticket.status}
+                      onChange={(event) => updateTicket(ticket._id, event.target.value)}
+                      className={`rounded-lg border border-white/10 px-2.5 py-1 text-xs font-semibold ${STATUS[ticket.status]?.[1] || 'bg-white/5 text-white'}`}
+                    >
+                      <option value="open" className="bg-[#0d1420] text-white">Open</option>
+                      <option value="in_progress" className="bg-[#0d1420] text-white">In progress</option>
+                      <option value="resolved" className="bg-[#0d1420] text-white">Resolved</option>
+                      <option value="closed" className="bg-[#0d1420] text-white">Closed</option>
+                    </select>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {/* Lightbox Overlay */}

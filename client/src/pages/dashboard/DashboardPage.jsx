@@ -20,7 +20,7 @@ const ActivePackageCard = ({ pkg }) => {
   const [timeLeft, setTimeLeft] = useState('');
   const [isReadyToClaim, setIsReadyToClaim] = useState(false);
   const [progressPercent, setProgressPercent] = useState(0);
-  const [loading, setLoading] = useState(false);
+
 
   const { balances, miningSettings } = useSelector((state) => state.dashboard);
 
@@ -61,21 +61,7 @@ const ActivePackageCard = ({ pkg }) => {
     return () => clearInterval(interval);
   }, [pkg]);
 
-  const handleClaim = async () => {
-    try {
-      setLoading(true);
-      const res = await dispatch(claimMiningPayout(pkg._id));
-      if (!res.error) {
-        toast.success('Mining reward claimed successfully!');
-      } else {
-        toast.error(res.payload?.error?.message || 'Failed to claim reward.');
-      }
-    } catch (err) {
-      toast.error('Failed to claim reward.');
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   const getEstTodayForCoins = () => {
     const coins = pkg.packageId?.coins || [];
@@ -102,7 +88,7 @@ const ActivePackageCard = ({ pkg }) => {
   return (
     <div className="space-y-4">
       {/* 1. Plan Details card */}
-      <div className="bg-white rounded-xl shadow-sm border border-outline-variant overflow-hidden flex flex-col md:flex-row">
+      <div className="bg-page-card backdrop-blur-xl border border-page-border rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row">
         <div className="md:w-1/4 bg-on-secondary-fixed p-5 flex flex-col justify-center gap-1.5 min-h-[120px] md:min-h-0">
           <p className="font-label-caps text-[10px] text-primary-fixed-dim uppercase tracking-wider">Active Track</p>
           <h3 className="font-heading text-2xl text-white font-extrabold leading-none tracking-tight truncate">
@@ -115,26 +101,26 @@ const ActivePackageCard = ({ pkg }) => {
         </div>
         <div className="flex-grow p-5 grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
           <div className="space-y-0.5">
-            <p className="font-label-caps text-[10px] text-on-surface-variant uppercase">Investment</p>
-            <p className="text-sm font-bold text-on-surface font-mono">
+            <p className="font-label-caps text-[10px] text-page-text-soft uppercase">Investment</p>
+            <p className="text-sm font-bold text-page-text font-mono">
               ${(pkg.purchaseAmount || 0).toFixed(2)}
             </p>
           </div>
           <div className="space-y-0.5">
-            <p className="font-label-caps text-[10px] text-on-surface-variant uppercase">ROI Rate</p>
-            <p className="text-sm font-bold text-primary font-mono">
+            <p className="font-label-caps text-[10px] text-page-text-soft uppercase">ROI Rate</p>
+            <p className="text-sm font-bold text-amber-500 font-mono">
               {pkg.dailyROISnapshot || '0.00'}%
             </p>
           </div>
           <div className="space-y-0.5">
-            <p className="font-label-caps text-[10px] text-on-surface-variant uppercase">Started On</p>
-            <p className="text-xs text-on-surface font-semibold">
+            <p className="font-label-caps text-[10px] text-page-text-soft uppercase">Started On</p>
+            <p className="text-xs text-page-text font-semibold">
               {new Date(pkg.cycleStartedAt || pkg.startDate).toLocaleDateString()}
             </p>
           </div>
           <div className="space-y-0.5">
-            <p className="font-label-caps text-[10px] text-on-surface-variant uppercase">Ends On</p>
-            <p className="text-xs text-on-surface font-semibold">
+            <p className="font-label-caps text-[10px] text-page-text-soft uppercase">Ends On</p>
+            <p className="text-xs text-page-text font-semibold">
               {pkg.cycleEndsAt ? new Date(pkg.cycleEndsAt).toLocaleDateString() : '-'}
             </p>
           </div>
@@ -142,89 +128,96 @@ const ActivePackageCard = ({ pkg }) => {
       </div>
 
       {/* 2. Live Mining Progress panel */}
-      <div className="bg-white rounded-xl shadow-sm border border-outline-variant overflow-hidden">
-        <div className="bg-on-secondary-fixed p-4 px-card-padding flex items-center gap-3">
+      <div className="bg-page-card border border-page-border rounded-2xl p-6 overflow-hidden">
+        <div className="bg-transparent pb-4 flex items-center gap-3 border-b border-page-border">
           <div className="bg-primary-container p-1.5 rounded shadow-[0_0_12px_rgba(62,205,190,0.5)] border border-brand-teal/40">
             <Cpu className="w-5 h-5 text-on-primary-fixed" />
           </div>
-          <h2 className="text-white font-headline-md text-headline-md">Live Mining Progress - {pkg.packageId?.name}</h2>
+          <h2 className="text-page-text font-headline-md text-headline-md">Live Mining Progress - {pkg.packageId?.name}</h2>
         </div>
         
-        <div className="p-card-padding space-y-8">
+        <div className="pt-6 space-y-8">
           {/* Progress Header */}
           <div className="flex justify-between items-end">
             <div className="flex items-center gap-3">
-              <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">Current Engine Status:</span>
+              <span className="font-label-caps text-label-caps text-page-text-soft uppercase">Current Engine Status:</span>
               {miningSettings?.isPaused ? (
                 <span className="text-amber-500 font-bold text-sm tracking-wide">PAUSED</span>
               ) : (
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-brand-teal animate-pulse"></span>
-                  <span className="text-[#1e786b] font-bold text-sm tracking-wide uppercase">Active</span>
+                  <span className="text-[#1e786b] dark:text-brand-teal font-bold text-sm tracking-wide uppercase">Active</span>
                 </div>
               )}
             </div>
-            <span className="bg-surface-container-high text-on-surface-variant px-3 py-1 rounded-lg text-xs font-bold">
+            <span className="bg-amber-400/10 text-amber-700 dark:text-amber-300 border border-amber-400/30 px-3 py-1 rounded-full text-xs font-mono font-bold shadow-[0_0_10px_rgba(251,191,36,0.15)] animate-pulse">
               {progressPercent}% Complete
             </span>
           </div>
 
           {/* Progress Bar */}
-          <div className="relative w-full h-4 bg-surface-container-low rounded-full overflow-hidden border border-outline-variant/30">
+          <div className="w-full h-3 bg-slate-900/80 border border-white/10 rounded-full overflow-hidden p-0.5 relative">
             <div 
-              className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-primary-container rounded-full transition-all duration-1000 ease-in-out" 
+              className={`h-full rounded-full bg-gradient-to-r from-amber-500 via-yellow-400 to-emerald-400 transition-all duration-700 ease-out relative ${
+                progressPercent >= 90 
+                  ? 'shadow-[0_0_15px_rgba(52,211,153,0.6)]' 
+                  : 'shadow-[0_0_15px_rgba(251,191,36,0.6)]'
+              }`}
               style={{ width: `${progressPercent}%` }}
             >
-              <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.15)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.15)_50%,rgba(255,255,255,0.15)_75%,transparent_75%,transparent)] bg-[length:1rem_1rem] animate-progress"></div>
+              {/* Sweeping Light Shimmer Effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer -skew-x-12" />
+              
+              {/* Leading Edge Orb */}
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-4 h-4 bg-yellow-300 rounded-full blur-[2px] shadow-[0_0_12px_#fbbf24] animate-pulse z-10" />
             </div>
           </div>
 
           {/* Mining Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-            <div className="bg-surface-container-lowest border border-outline-variant/30 p-6 rounded-xl text-center space-y-1 hover:border-primary/50 transition-colors">
-              <p className="font-data-lg text-data-lg text-on-surface font-mono">
+            <div className="bg-page-fill border border-page-border-soft p-6 rounded-xl text-center space-y-1 hover:border-primary/50 transition-colors">
+              <p className="font-data-lg text-data-lg text-page-text font-mono">
                 {getEstTodayForCoins()}
               </p>
-              <p className="font-label-caps text-[10px] text-on-surface-variant uppercase font-bold mt-1">Est. Today</p>
+              <p className="font-label-caps text-[10px] text-page-text-soft uppercase font-bold mt-1">Est. Today</p>
             </div>
-            <div className="bg-surface-container-lowest border border-outline-variant/30 p-6 rounded-xl text-center space-y-1 hover:border-primary/50 transition-colors">
-              <p className="font-data-lg text-data-lg text-on-surface font-mono">
+            <div className="bg-page-fill border border-page-border-soft p-6 rounded-xl text-center space-y-1 hover:border-primary/50 transition-colors">
+              <p className="font-data-lg text-data-lg text-page-text font-mono">
                 {getTotalMinedForCoins()}
               </p>
-              <p className="font-label-caps text-[10px] text-on-surface-variant uppercase font-bold mt-1">Total Mined</p>
+              <p className="font-label-caps text-[10px] text-page-text-soft uppercase font-bold mt-1">Total Mined</p>
             </div>
-            <div className="bg-surface-container-lowest border border-outline-variant/30 p-6 rounded-xl text-center space-y-1 hover:border-primary/50 transition-colors">
-              <p className="font-data-lg text-data-lg text-on-surface font-mono">
+            <div className="bg-page-fill border border-page-border-soft p-6 rounded-xl text-center space-y-1 hover:border-primary/50 transition-colors">
+              <p className="font-data-lg text-data-lg text-page-text font-mono">
                 {hashRate.toFixed(2)} MH/S
               </p>
-              <p className="font-label-caps text-[10px] text-on-surface-variant uppercase font-bold mt-1">Hash Rate</p>
+              <p className="font-label-caps text-[10px] text-page-text-soft uppercase font-bold mt-1">Hash Rate</p>
             </div>
           </div>
 
-          {/* Claim Action Row */}
-          <div className="bg-surface-container-low p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
+          {/* Automated Payout Info Row */}
+          <div className="bg-page-fill border border-page-border-soft p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex flex-col">
-              <h4 className="font-headline-md text-headline-md text-on-surface font-bold">Claim Daily Mining Payout</h4>
-              <p className="text-sm text-on-surface-variant">Claim your package profit once every 24 hours.</p>
+              <h4 className="font-headline-md text-headline-md text-page-text font-bold">Next Automated Payout In</h4>
+              <p className="text-sm text-page-text-soft">Your rewards are automatically distributed to your balance every 24 hours.</p>
             </div>
             <div className="flex items-center gap-4 w-full md:w-auto justify-end">
-              {timeLeft && !isReadyToClaim && (
-                <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-lg border border-outline-variant font-mono text-xs text-on-surface-variant font-bold shadow-sm">
-                  <Clock size={14} className="animate-pulse text-primary" />
-                  {timeLeft}
+              {timeLeft ? (
+                isReadyToClaim ? (
+                  <div className="bg-amber-400/10 text-amber-700 dark:text-amber-300 border border-amber-400/30 px-4 py-3 rounded-full text-xs font-mono font-bold shadow-sm animate-pulse">
+                    Processing Payout...
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 bg-page-card border border-page-border px-4 py-3 rounded-lg font-mono text-xs text-page-text-muted font-bold shadow-sm">
+                    <Clock size={14} className="animate-pulse text-primary" />
+                    {timeLeft}
+                  </div>
+                )
+              ) : (
+                <div className="bg-amber-400/10 text-amber-700 dark:text-amber-300 border border-amber-400/30 px-4 py-3 rounded-full text-xs font-mono font-bold shadow-sm animate-pulse">
+                  Processing Payout...
                 </div>
               )}
-              <button 
-                onClick={handleClaim}
-                disabled={!isReadyToClaim || loading || miningSettings?.isPaused}
-                className={`px-8 py-3 rounded-lg font-bold border transition-all text-sm w-full md:w-auto text-center cursor-pointer
-                  ${isReadyToClaim && !miningSettings?.isPaused
-                    ? 'bg-primary-container text-on-primary-fixed border-outline-variant/10 hover:brightness-110 shadow-sm'
-                    : 'bg-surface-dim text-on-surface-variant/40 border-outline-variant/20 cursor-not-allowed'
-                  }`}
-              >
-                {miningSettings?.isPaused ? 'Mining Paused' : 'Claim Reward'}
-              </button>
             </div>
           </div>
         </div>
@@ -356,38 +349,30 @@ const DashboardPage = () => {
 
   if (error && !balances.walletBalance && latestTransactions.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col bg-background font-sans antialiased text-on-surface">
-        <Header />
-        <main className="max-w-7xl w-full mx-auto px-6 py-10 flex-grow flex items-center justify-center">
-          <div className="bg-surface-container-lowest rounded-2xl shadow-md border border-outline-variant p-12 text-center max-w-md w-full">
-            <div className="bg-error-container w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-              <ShieldAlert className="w-8 h-8 text-error" />
-            </div>
-            <h2 className="text-lg font-bold text-on-surface mb-2 font-heading">Failed to Load Dashboard</h2>
-            <p className="text-sm text-on-surface-variant mb-6">
-              {error?.message || 'An unexpected error occurred while loading your dashboard.'}
-            </p>
-            <button
-              onClick={loadDashboard}
-              className="px-6 py-3 rounded-xl font-bold text-sm bg-primary-container text-on-primary-fixed hover:brightness-110 transition-all active:scale-95 cursor-pointer flex items-center gap-2 mx-auto"
-            >
-              <RefreshCw size={16} />
-              Retry
-            </button>
+      <div className="max-w-7xl w-full mx-auto px-6 py-10 flex-1 flex items-center justify-center">
+        <div className="bg-white/70 dark:bg-[#0d1420]/70 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-md p-12 text-center max-w-md w-full">
+          <div className="bg-error-container w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+            <ShieldAlert className="w-8 h-8 text-error" />
           </div>
-        </main>
+          <h2 className="text-lg font-bold text-on-surface mb-2 font-heading">Failed to Load Dashboard</h2>
+          <p className="text-sm text-on-surface-variant mb-6">
+            {error?.message || 'An unexpected error occurred while loading your dashboard.'}
+          </p>
+          <button
+            onClick={loadDashboard}
+            className="px-6 py-3 rounded-xl font-bold text-sm bg-primary-container text-on-primary-fixed hover:brightness-110 transition-all active:scale-95 cursor-pointer flex items-center gap-2 mx-auto"
+          >
+            <RefreshCw size={16} />
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background font-sans antialiased text-on-surface">
-      <Header />
-
-      {/* MAIN CONTAINER */}
-      <main className="max-w-container-max w-full mx-auto px-margin-mobile md:px-margin-desktop py-gutter flex-grow space-y-gutter">
-        
-        {miningSettings?.isPaused && (
+    <div className="max-w-container-max w-full mx-auto px-margin-mobile md:px-margin-desktop py-gutter flex-grow space-y-gutter">
+      {miningSettings?.isPaused && (
           <div className="bg-surface-container-high border border-outline-variant rounded-xl p-4 flex items-center gap-3 text-on-surface text-sm font-medium shadow-sm">
             <ShieldAlert size={18} className="text-primary flex-shrink-0" />
             <div>
@@ -499,15 +484,15 @@ const DashboardPage = () => {
               ))}
             </div>
           ) : (
-            <div className="bg-white border border-outline-variant rounded-xl p-8 text-center flex flex-col items-center justify-center gap-4">
-              <Cpu className="w-12 h-12 text-slate-300 animate-pulse" />
+            <div className="bg-page-card backdrop-blur-xl border border-page-border rounded-2xl p-8 text-center flex flex-col items-center justify-center gap-4">
+              <Cpu className="w-12 h-12 text-primary animate-pulse" />
               <div>
-                <p className="font-heading text-base font-bold text-on-surface">No Active Mining Plans</p>
-                <p className="text-xs text-on-surface-variant mt-1">Start cloud mining packages to earn high-yield payouts.</p>
+                <p className="font-heading text-base font-bold text-page-text">No Active Mining Plans</p>
+                <p className="text-xs text-page-text-soft mt-1">Start cloud mining packages to earn high-yield payouts.</p>
               </div>
               <button
                 onClick={() => navigate('/mining/plans')}
-                className="bg-primary-container text-on-primary-fixed hover:brightness-110 font-bold px-6 py-3 rounded-xl cursor-pointer text-xs"
+                className="bg-primary-container text-on-primary-fixed hover:brightness-110 font-bold px-6 py-3 rounded-xl cursor-pointer text-xs transition-all active:scale-95"
               >
                 Purchase Plan
               </button>
@@ -516,9 +501,9 @@ const DashboardPage = () => {
         </section>
 
         {/* Latest Transactions Table */}
-        <section className="bg-white rounded-xl shadow-sm border border-outline-variant overflow-hidden">
-          <div className="p-card-padding flex justify-between items-center border-b border-outline-variant">
-            <h2 className="font-headline-md text-headline-md uppercase">
+        <section className="bg-page-card backdrop-blur-xl border border-page-border rounded-2xl shadow-xl overflow-hidden">
+          <div className="p-card-padding flex justify-between items-center border-b border-page-border">
+            <h2 className="font-headline-md text-headline-md text-page-text uppercase">
               LATEST <span className="text-primary font-extrabold">TRANSACTIONS</span>
             </h2>
             <span 
@@ -533,17 +518,6 @@ const DashboardPage = () => {
           <TransactionsTable transactions={latestTransactions} loading={loading} />
         </section>
 
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-on-secondary-fixed dark:bg-on-background py-8 px-margin-desktop mt-auto flex flex-col items-center justify-center gap-4 text-center">
-        <div className="flex flex-col items-center gap-2">
-          <Logo size="sm" variant="dark" className="h-8" />
-          <p className="font-label-caps text-label-caps text-secondary-fixed-dim opacity-80 mt-1">
-            © 2026 AscendHash. All rights reserved.
-          </p>
-        </div>
-      </footer>
     </div>
   );
 };

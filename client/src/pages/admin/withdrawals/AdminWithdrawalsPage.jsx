@@ -112,8 +112,8 @@ const AdminWithdrawalsPage = () => {
       label: 'User',
       render: (_, row) => (
         <div>
-          <p className="font-medium text-slate-800">{row.userId?.fullName || 'N/A'}</p>
-          <p className="text-xs text-slate-500">@{row.userId?.username || 'Unknown'}</p>
+          <p className="font-semibold text-white">{row.userId?.fullName || 'N/A'}</p>
+          <p className="text-xs text-slate-400">@{row.userId?.username || 'Unknown'}</p>
         </div>
       ),
     },
@@ -122,7 +122,7 @@ const AdminWithdrawalsPage = () => {
       label: 'Amount & Coin',
       render: (_, row) => (
         <div>
-          <p className="font-medium text-slate-800">{row.amount} {row.coinSymbol}</p>
+          <p className="font-mono text-amber-400 font-semibold">{row.amount} {row.coinSymbol}</p>
         </div>
       ),
     },
@@ -134,7 +134,7 @@ const AdminWithdrawalsPage = () => {
     {
       key: 'requestedAt',
       label: 'Date',
-      render: (_, row) => <p className="text-sm text-slate-600">{formatDate(row.requestedAt || row.createdAt)}</p>,
+      render: (_, row) => <p className="text-sm text-slate-400">{formatDate(row.requestedAt || row.createdAt)}</p>,
     },
     {
       key: 'status',
@@ -179,15 +179,15 @@ const AdminWithdrawalsPage = () => {
   ], [loading]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-white">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Withdrawals</h1>
-          <p className="text-slate-500 text-sm">Review and process user withdrawal requests.</p>
+          <h1 className="text-xl font-bold text-white">Withdrawals</h1>
+          <p className="text-slate-400 text-sm">Review and process user withdrawal requests.</p>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+      <div className="bg-[#0d1420]/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6">
         <div className="flex flex-wrap gap-4 justify-between items-center mb-6">
           <FilterChips
             options={statusFilters}
@@ -221,22 +221,22 @@ const AdminWithdrawalsPage = () => {
         title="Reject Withdrawal"
       >
         <div className="space-y-4">
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-400">
             Please provide a reason for rejecting this withdrawal. The requested amount will be automatically refunded to the user's mining balance.
           </p>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
               Rejection Reason
             </label>
             <textarea
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition-all resize-none"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/30 focus:bg-white/10 transition-all resize-none"
               rows={3}
               placeholder="Enter rejection reason"
             />
           </div>
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
             <Button
               variant="secondary"
               onClick={() => setRejectModal({ open: false, withdrawalId: null })}

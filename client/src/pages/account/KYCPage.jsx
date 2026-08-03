@@ -7,7 +7,6 @@ import {
 import { submitKYC, clearKYCStatus } from '../../store/slices/kycSlice';
 import { checkAuth, updateUserKycStatus } from '../../store/slices/authSlice';
 import { connectDashboardSocket } from '../../services/dashboardSocket';
-import Header from '../../components/common/Header';
 import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
 
@@ -135,15 +134,12 @@ const KYCPage = () => {
   const status = user?.kycStatus || 'none';
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f0f2f5] font-sans antialiased text-slate-800">
-      <Header />
-
-      <main className="max-w-3xl w-full mx-auto px-6 py-10 flex-grow space-y-6">
+    <div className="max-w-3xl w-full mx-auto px-6 py-10 flex-1 space-y-6">
 
         {/* BACK ACTION */}
         <button
           onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 font-bold transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-on-surface-variant hover:text-slate-800 dark:hover:text-on-surface font-bold transition-colors cursor-pointer"
         >
           <ArrowLeft size={14} />
           Back to Dashboard
@@ -151,22 +147,22 @@ const KYCPage = () => {
 
         {/* PAGE HEADER */}
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-            <ShieldCheck className="text-[#185adb] w-7 h-7" />
+          <h1 className="text-2xl font-black text-slate-900 dark:text-on-surface tracking-tight flex items-center gap-2">
+            <ShieldCheck className="text-[#185adb] dark:text-primary w-7 h-7" />
             Identity Verification (KYC)
           </h1>
-          <p className="text-slate-500 text-xs mt-1">Verify your identity to unlock withdrawal operations and secure your account.</p>
+          <p className="text-slate-500 dark:text-on-surface-variant text-xs mt-1">Verify your identity to unlock withdrawal operations and secure your account.</p>
         </div>
 
         {/* STATUS VIEWS */}
         {status === 'approved' && (
-          <div className="bg-white rounded-2xl shadow-md border border-slate-200 p-8 text-center space-y-4">
-            <div className="bg-green-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto text-green-500">
+          <div className="bg-white dark:bg-surface-container-lowest rounded-2xl shadow-md border border-slate-200 dark:border-outline-variant p-8 text-center space-y-4">
+            <div className="bg-green-50 dark:bg-success/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto text-green-500 dark:text-success">
               <CheckCircle2 size={36} />
             </div>
             <div className="space-y-1">
-              <h2 className="text-xl font-bold text-slate-950">Identity Verified ✅</h2>
-              <p className="text-slate-500 text-xs max-w-md mx-auto leading-relaxed">
+              <h2 className="text-xl font-bold text-slate-950 dark:text-on-surface">Identity Verified ✅</h2>
+              <p className="text-slate-500 dark:text-on-surface-variant text-xs max-w-md mx-auto leading-relaxed">
                 Thank you! Your identity has been successfully verified. All platform restrictions and limits on your withdrawals have been unlocked.
               </p>
             </div>
@@ -179,13 +175,13 @@ const KYCPage = () => {
         )}
 
         {status === 'pending' && (
-          <div className="bg-white rounded-2xl shadow-md border border-slate-200 p-8 text-center space-y-4">
-            <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto text-blue-500 animate-pulse">
+          <div className="bg-white dark:bg-surface-container-lowest rounded-2xl shadow-md border border-slate-200 dark:border-outline-variant p-8 text-center space-y-4">
+            <div className="bg-blue-50 dark:bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto text-blue-500 dark:text-primary animate-pulse">
               <Clock size={36} />
             </div>
             <div className="space-y-1">
-              <h2 className="text-xl font-bold text-slate-950">Verification in Progress</h2>
-              <p className="text-slate-500 text-xs max-w-md mx-auto leading-relaxed">
+              <h2 className="text-xl font-bold text-slate-950 dark:text-on-surface">Verification in Progress</h2>
+              <p className="text-slate-500 dark:text-on-surface-variant text-xs max-w-md mx-auto leading-relaxed">
                 Your verification documents have been submitted and are currently pending review by our administrator. This process usually takes less than 24 hours. You will receive a notification when verification is complete.
               </p>
             </div>
@@ -199,8 +195,8 @@ const KYCPage = () => {
 
         {/* SUBMITTED DETAILS — shown when pending or approved */}
         {(status === 'pending' || status === 'approved') && user?.kycPersonalInfo && (
-          <div className="bg-white rounded-2xl shadow-md border border-slate-100 p-6 space-y-4">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-3">
+          <div className="bg-white dark:bg-surface-container-lowest rounded-2xl shadow-md border border-slate-100 dark:border-outline-variant p-6 space-y-4">
+            <h3 className="text-xs font-bold text-slate-400 dark:text-on-surface-variant uppercase tracking-widest border-b border-slate-100 dark:border-surface-container-highest pb-3">
               Your Submission Details
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -211,19 +207,19 @@ const KYCPage = () => {
                 { label: 'City', value: user.kycPersonalInfo.city },
               ].map(({ label, value }) => value ? (
                 <div key={label} className="space-y-0.5">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{label}</p>
-                  <p className="font-semibold text-slate-800">{value}</p>
+                  <p className="text-[10px] font-bold text-slate-400 dark:text-on-surface-variant uppercase tracking-wider">{label}</p>
+                  <p className="font-semibold text-slate-800 dark:text-on-surface">{value}</p>
                 </div>
               ) : null)}
               {user.kycPersonalInfo.address && (
                 <div className="col-span-full space-y-0.5">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Address</p>
-                  <p className="font-semibold text-slate-800">{user.kycPersonalInfo.address}</p>
+                  <p className="text-[10px] font-bold text-slate-400 dark:text-on-surface-variant uppercase tracking-wider">Address</p>
+                  <p className="font-semibold text-slate-800 dark:text-on-surface">{user.kycPersonalInfo.address}</p>
                 </div>
               )}
               <div className="col-span-full space-y-0.5">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Document Type</p>
-                <p className="font-semibold text-slate-800 capitalize">
+                <p className="text-[10px] font-bold text-slate-400 dark:text-on-surface-variant uppercase tracking-wider">Document Type</p>
+                <p className="font-semibold text-slate-800 dark:text-on-surface capitalize">
                   {user.kycDocumentType === 'cnic' ? 'National ID / CNIC'
                     : user.kycDocumentType === 'driver_license' ? 'Driver License'
                       : user.kycDocumentType === 'passport' ? 'Passport'
@@ -238,50 +234,50 @@ const KYCPage = () => {
           <div className="space-y-6">
 
             {status === 'rejected' && (
-              <div className="bg-red-50 border border-red-200 rounded-2xl p-5 flex gap-3 text-red-800 text-xs shadow-sm">
-                <ShieldAlert size={20} className="text-red-500 flex-shrink-0 mt-0.5" />
+              <div className="bg-red-50 dark:bg-danger/10 border border-red-200 dark:border-danger/30 rounded-2xl p-5 flex gap-3 text-red-800 dark:text-red-200 text-xs shadow-sm">
+                <ShieldAlert size={20} className="text-red-500 dark:text-danger flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-bold text-sm">KYC Verification Failed</p>
-                  <p className="text-red-600 mt-1 font-semibold">Reason: {user?.kycRejectionReason || 'No reason provided.'}</p>
+                  <p className="text-red-600 dark:text-red-400 mt-1 font-semibold">Reason: {user?.kycRejectionReason || 'No reason provided.'}</p>
                   <p className="text-red-500/80 mt-1">Please read the rejection reason carefully, update your document selection or photo quality, and re-submit below.</p>
                 </div>
               </div>
             )}
 
-            <div className="bg-white rounded-2xl shadow-md border border-slate-200 p-6 md:p-8 space-y-6">
-              <h2 className="text-base font-bold text-slate-950 border-b border-slate-100 pb-3">Submit Documents</h2>
+            <div className="bg-white dark:bg-surface-container-lowest rounded-2xl shadow-md border border-slate-200 dark:border-outline-variant p-6 md:p-8 space-y-6">
+              <h2 className="text-base font-bold text-slate-950 dark:text-on-surface border-b border-slate-100 dark:border-surface-container-highest pb-3">Submit Documents</h2>
 
               <form onSubmit={handleSubmit} className="space-y-6">
 
                 {/* PERSONAL INFORMATION */}
-                <div className="space-y-4 border-b border-slate-100 pb-6">
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Personal Information</h3>
+                <div className="space-y-4 border-b border-slate-100 dark:border-surface-container-highest pb-6">
+                  <h3 className="text-xs font-bold text-slate-500 dark:text-on-surface-variant uppercase tracking-wider">Personal Information</h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-semibold text-slate-600">Full Name*</label>
+                      <label className="block text-xs font-semibold text-slate-600 dark:text-on-surface-variant">Full Name*</label>
                       <input
                         type="text"
                         required
                         placeholder="As it appears on your document"
                         value={personalInfo.fullName}
                         onChange={(e) => setPersonalInfo(p => ({ ...p, fullName: e.target.value }))}
-                        className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-[#185adb] transition"
+                        className="w-full text-xs border border-slate-200 dark:border-surface-container-highest rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-input-bg dark:text-on-surface focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:focus:ring-primary/20 focus:border-[#185adb] dark:focus:border-primary transition"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-semibold text-slate-600">Date of Birth*</label>
+                      <label className="block text-xs font-semibold text-slate-600 dark:text-on-surface-variant">Date of Birth*</label>
                       <input
                         type="date"
                         required
                         max={todayStr}
                         value={personalInfo.dateOfBirth}
                         onChange={(e) => setPersonalInfo(p => ({ ...p, dateOfBirth: e.target.value }))}
-                        className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-[#185adb] transition"
+                        className="w-full text-xs border border-slate-200 dark:border-surface-container-highest rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-input-bg dark:text-on-surface focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:focus:ring-primary/20 focus:border-[#185adb] dark:focus:border-primary transition"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-semibold text-slate-600">
+                      <label className="block text-xs font-semibold text-slate-600 dark:text-on-surface-variant">
                         {documentType === 'cnic' ? 'National ID' : documentType === 'driver_license' ? 'License Number' : 'Passport Number'}*
                       </label>
                       <input
@@ -290,36 +286,36 @@ const KYCPage = () => {
                         placeholder="Enter document number"
                         value={personalInfo.documentNumber}
                         onChange={(e) => setPersonalInfo(p => ({ ...p, documentNumber: e.target.value }))}
-                        className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-[#185adb] transition"
+                        className="w-full text-xs border border-slate-200 dark:border-surface-container-highest rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-input-bg dark:text-on-surface focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:focus:ring-primary/20 focus:border-[#185adb] dark:focus:border-primary transition"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-semibold text-slate-600">City</label>
+                      <label className="block text-xs font-semibold text-slate-600 dark:text-on-surface-variant">City</label>
                       <input
                         type="text"
                         placeholder="London"
                         value={personalInfo.city}
                         onChange={(e) => setPersonalInfo(p => ({ ...p, city: e.target.value }))}
-                        className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-[#185adb] transition"
+                        className="w-full text-xs border border-slate-200 dark:border-surface-container-highest rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-input-bg dark:text-on-surface focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:focus:ring-primary/20 focus:border-[#185adb] dark:focus:border-primary transition"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-slate-600">Residential Address</label>
+                    <label className="block text-xs font-semibold text-slate-600 dark:text-on-surface-variant">Residential Address</label>
                     <textarea
                       placeholder="Street, area, district..."
                       rows={2}
                       value={personalInfo.address}
                       onChange={(e) => setPersonalInfo(p => ({ ...p, address: e.target.value }))}
-                      className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-[#185adb] transition resize-none"
+                      className="w-full text-xs border border-slate-200 dark:border-surface-container-highest rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-input-bg dark:text-on-surface focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:focus:ring-primary/20 focus:border-[#185adb] dark:focus:border-primary transition resize-none"
                     />
                   </div>
                 </div>
 
                 {/* DOCUMENT TYPE */}
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Document Type</label>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-on-surface-variant uppercase tracking-wider">Document Type</label>
                   <div className="grid grid-cols-3 gap-3">
                     {['cnic', 'driver_license', 'passport'].map((type) => (
                       <button
@@ -327,8 +323,8 @@ const KYCPage = () => {
                         type="button"
                         onClick={() => setDocumentType(type)}
                         className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer ${documentType === type
-                            ? 'border-[#185adb] bg-blue-50/20 text-[#185adb] font-bold'
-                            : 'border-slate-100 hover:border-slate-200 text-slate-500'
+                            ? 'border-[#185adb] dark:border-primary bg-blue-50/20 dark:bg-primary/10 text-[#185adb] dark:text-primary font-bold'
+                            : 'border-slate-100 dark:border-surface-container-highest hover:border-slate-200 dark:hover:border-outline-variant text-slate-500 dark:text-on-surface-variant'
                           }`}
                       >
                         <FileText size={20} className="mb-1" />
@@ -342,10 +338,10 @@ const KYCPage = () => {
 
                 {/* UPLOADER */}
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Upload Document Photo</label>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-on-surface-variant uppercase tracking-wider">Upload Document Photo</label>
 
                   {imagePreview ? (
-                    <div className="relative rounded-2xl overflow-hidden border border-slate-250 bg-slate-50 max-h-72 flex items-center justify-center group shadow-sm">
+                    <div className="relative rounded-2xl overflow-hidden border border-slate-250 dark:border-outline-variant bg-slate-50 dark:bg-surface-container-low max-h-72 flex items-center justify-center group shadow-sm">
                       <img src={imagePreview} alt="Document preview" className="object-contain max-h-72 w-full p-2" />
                       <button
                         type="button"
@@ -357,12 +353,12 @@ const KYCPage = () => {
                       </button>
                     </div>
                   ) : (
-                    <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-10 bg-slate-50 hover:bg-slate-100/50 hover:border-slate-300 transition-colors cursor-pointer">
-                      <div className="bg-slate-200/60 p-3 rounded-full text-slate-500 mb-3">
+                    <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-surface-container-highest rounded-2xl p-10 bg-slate-50 dark:bg-surface-container-low hover:bg-slate-100/50 dark:hover:bg-surface-container hover:border-slate-300 dark:hover:border-outline-variant transition-colors cursor-pointer">
+                      <div className="bg-slate-200/60 dark:bg-surface-container p-3 rounded-full text-slate-500 dark:text-on-surface-variant mb-3">
                         <Upload size={22} />
                       </div>
-                      <span className="text-xs font-bold text-slate-700">Choose file or drag & drop</span>
-                      <span className="text-[10px] text-slate-400 mt-1">PNG, JPG, or WEBP (Maximum size: 20MB)</span>
+                      <span className="text-xs font-bold text-slate-700 dark:text-on-surface">Choose file or drag & drop</span>
+                      <span className="text-[10px] text-slate-400 dark:text-on-surface-variant mt-1">PNG, JPG, or WEBP (Maximum size: 20MB)</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -374,7 +370,7 @@ const KYCPage = () => {
                 </div>
 
                 {/* SUBMIT BUTTON */}
-                <div className="pt-4 border-t border-slate-100 flex justify-end">
+                <div className="pt-4 border-t border-slate-100 dark:border-surface-container-highest flex justify-end">
                   <Button
                     type="submit"
                     loading={loading}
@@ -390,7 +386,6 @@ const KYCPage = () => {
           </div>
         )}
 
-      </main>
     </div>
   );
 };

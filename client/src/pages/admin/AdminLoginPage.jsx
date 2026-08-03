@@ -43,19 +43,19 @@ const AdminLoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-bg-light-alt flex items-center justify-center px-4 py-8">
+    <div className="dark min-h-screen bg-bg-void flex items-center justify-center px-4 py-8 text-white">
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-6">
-          <Logo size="md" />
+          <Logo size="md" variant="dark" />
         </div>
-        <div className="bg-white rounded-2xl shadow-lg border border-border-light p-8">
+        <div className="bg-[#0d1420]/40 backdrop-blur-2xl border border-white/10 p-8 shadow-2xl rounded-3xl">
           <div className="flex items-center justify-center gap-2 mb-1">
-            <ShieldCheck size={22} className="text-primary" />
-            <h1 className="text-xl font-heading font-semibold text-text-light-bg">
+            <ShieldCheck size={22} className="text-amber-400 drop-shadow-[0_0_8px_rgba(255,184,0,0.3)]" />
+            <h1 className="text-xl font-heading font-semibold text-white">
               Admin Portal
             </h1>
           </div>
-          <p className="text-sm text-text-secondary text-center mb-6">
+          <p className="text-sm text-slate-400 text-center mb-6">
             Sign in with your admin credentials
           </p>
 

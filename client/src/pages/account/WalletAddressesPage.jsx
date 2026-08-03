@@ -4,8 +4,6 @@ import toast from 'react-hot-toast';
 import { Cpu, Save } from 'lucide-react';
 import { fetchDashboardSummary } from '../../store/slices/dashboardSlice';
 import { updateWalletAddress, clearWithdrawalError } from '../../store/slices/withdrawalSlice';
-import Header from '../../components/common/Header';
-import Logo from '../../components/common/Logo';
 import PageSkeleton from '../../components/common/PageSkeleton';
 
 const WalletAddressesPage = () => {
@@ -62,38 +60,32 @@ const WalletAddressesPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f0f2f5] font-sans antialiased text-slate-800">
-      
-      {/* Shared Header — full nav with all dropdowns */}
-      <Header />
-
-      {/* MAIN CONTAINER */}
-      <main className="max-w-2xl w-full mx-auto px-6 py-12 flex-grow space-y-8">
+    <div className="max-w-2xl w-full mx-auto px-6 py-12 flex-1 space-y-8">
         
-        <div className="border-b border-slate-200 pb-4">
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight uppercase">
-            Wallet <span className="text-yellow-500">Addresses</span>
+        <div className="border-b border-slate-200 dark:border-surface-container-highest pb-4">
+          <h1 className="text-2xl font-black text-slate-900 dark:text-on-surface tracking-tight uppercase">
+            Wallet <span className="text-yellow-500 dark:text-primary">Addresses</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-1 font-medium">Configure your destination wallet payout addresses for your mined coins.</p>
+          <p className="text-xs text-slate-500 dark:text-on-surface-variant mt-1 font-medium">Configure your destination wallet payout addresses for your mined coins.</p>
         </div>
 
         {/* INPUT ADDRESS LIST CARDS */}
         <section className="space-y-6">
           {!coins || coins.length === 0 ? (
-            <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center text-slate-450 font-medium text-sm">
+            <div className="bg-white dark:bg-surface-container-lowest border border-slate-200 dark:border-outline-variant rounded-2xl p-10 text-center text-slate-450 dark:text-on-surface-variant font-medium text-sm">
               No active mining coins available.
             </div>
           ) : (
             coins.map((coin) => (
               <div 
                 key={coin._id} 
-                className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4"
+                className="bg-white dark:bg-surface-container-lowest border border-slate-200 dark:border-outline-variant rounded-2xl p-6 shadow-sm space-y-4"
               >
-                <div className="flex items-center space-x-3 text-[#083358]">
-                  <div className="bg-slate-100 p-2 rounded-lg border border-slate-200">
+                <div className="flex items-center space-x-3 text-[#083358] dark:text-primary">
+                  <div className="bg-slate-100 dark:bg-surface-container-low p-2 rounded-lg border border-slate-200 dark:border-outline-variant">
                     <Cpu className="w-5 h-5" />
                   </div>
-                  <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">{coin.name} ({coin.symbol}) Payout Address</h2>
+                  <h2 className="text-sm font-bold text-slate-800 dark:text-on-surface uppercase tracking-wider">{coin.name} ({coin.symbol}) Payout Address</h2>
                 </div>
 
                 <div className="flex gap-4">
@@ -104,7 +96,7 @@ const WalletAddressesPage = () => {
                       value={formAddresses[coin.symbol] || ''}
                       onChange={(e) => handleInputChange(coin.symbol, e.target.value)}
                       placeholder={`Paste your ${coin.symbol} payout wallet address here`}
-                      className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3.5 text-xs focus:outline-none focus:ring-2 focus:ring-yellow-400 font-semibold font-mono"
+                      className="w-full bg-[#f8fafc] dark:bg-input-bg border border-slate-200 dark:border-surface-container-highest rounded-xl px-4 py-3.5 text-xs focus:outline-none focus:ring-2 focus:ring-yellow-400 dark:focus:ring-primary font-semibold font-mono"
                     />
                   </div>
                   <button
@@ -120,18 +112,6 @@ const WalletAddressesPage = () => {
             ))
           )}
         </section>
-
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-on-secondary-fixed text-white/50 py-8 border-t border-outline-variant/20 mt-12">
-        <div className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop flex flex-col items-center gap-4">
-          <Logo variant="dark" size="sm" className="h-8 opacity-80" />
-          <p className="font-body-sm text-body-sm text-center">
-            &copy; 2026 <span className="font-semibold text-white">AscendHash</span>. All rights reserved.
-          </p>
-        </div>
-      </footer>
 
     </div>
   );

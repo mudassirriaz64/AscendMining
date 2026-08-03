@@ -4,10 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Wallet, Copy, Check, Upload, ArrowLeft } from 'lucide-react';
 import { fetchPaymentMethods, submitDeposit } from '../../store/slices/packageSlice';
-import Header from '../../components/common/Header';
 import Button from '../../components/common/Button';
 import PageSkeleton from '../../components/common/PageSkeleton';
-import Logo from '../../components/common/Logo';
 
 const DepositPage = () => {
   const dispatch = useDispatch();
@@ -118,10 +116,7 @@ const DepositPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-on-surface font-sans antialiased">
-      <Header />
-
-      <main className="max-w-xl w-full mx-auto px-margin-mobile md:px-margin-desktop py-gutter flex-grow space-y-gutter">
+    <div className="max-w-xl w-full mx-auto px-margin-mobile md:px-margin-desktop py-gutter flex-1 space-y-gutter">
 
         {/* BACK ACTION */}
         <button
@@ -157,7 +152,7 @@ const DepositPage = () => {
         </div>
 
         {/* DEPOSIT FORM */}
-        <div className="bg-white rounded-xl border border-outline-variant p-card-padding">
+        <div className="bg-white dark:bg-surface-container-lowest rounded-xl border border-outline-variant p-card-padding">
           <form onSubmit={handleSubmit} className="space-y-6">
 
             {/* Amount input */}
@@ -207,11 +202,11 @@ const DepositPage = () => {
                     onClick={() => handleCopy(currentMethod.instructions)}
                     className="text-on-surface-variant hover:text-tertiary transition-colors flex items-center gap-1.5 text-xs font-bold font-heading"
                   >
-                    {isCopied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
+                    {isCopied ? <Check size={14} className="text-green-600 dark:text-success" /> : <Copy size={14} />}
                     Copy Address
                   </button>
                 </div>
-                <pre className="text-xs font-mono font-semibold text-on-surface bg-white border border-outline-variant p-3 rounded-lg whitespace-pre-line leading-relaxed shadow-sm">
+                <pre className="text-xs font-mono font-semibold text-on-surface bg-white dark:bg-surface-container-low border border-outline-variant p-3 rounded-lg whitespace-pre-line leading-relaxed shadow-sm">
                   {currentMethod.instructions}
                 </pre>
               </div>
@@ -311,17 +306,6 @@ const DepositPage = () => {
           </form>
         </div>
 
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-on-secondary-fixed text-white/50 py-8 border-t border-outline-variant/20 mt-12">
-        <div className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop flex flex-col items-center gap-4">
-          <Logo variant="dark" size="sm" className="h-8 opacity-80" />
-          <p className="font-body-sm text-body-sm text-center">
-            &copy; 2026 <span className="font-semibold text-white">AscendHash</span>. All rights reserved.
-          </p>
-        </div>
-      </footer>
     </div>
   );
 };

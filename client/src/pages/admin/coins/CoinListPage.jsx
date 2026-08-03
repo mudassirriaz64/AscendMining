@@ -69,23 +69,23 @@ const CoinListPage = () => {
       key: 'logo',
       label: '',
       render: (_, coin) => (
-        <div className="w-8 h-8 rounded-full bg-bg-light-alt flex items-center justify-center text-xs font-bold text-text-secondary">
+        <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-xs font-bold text-slate-400">
           {coin.symbol?.charAt(0)}
         </div>
       ),
     },
     { key: 'name', label: 'Name' },
-    { key: 'symbol', label: 'Symbol', render: (_, coin) => <span className="font-mono text-sm font-semibold">{coin.symbol}</span> },
+    { key: 'symbol', label: 'Symbol', render: (_, coin) => <span className="font-mono text-sm font-semibold text-slate-300">{coin.symbol}</span> },
     {
       key: 'miningAvailable',
       label: 'Mining',
       render: (_, coin) => (
-        <span className={`text-xs font-medium ${coin.miningAvailable ? 'text-success' : 'text-text-secondary'}`}>
+        <span className={`text-xs font-semibold ${coin.miningAvailable ? 'text-emerald-400' : 'text-slate-400'}`}>
           {coin.miningAvailable ? 'Available' : 'Disabled'}
         </span>
       ),
     },
-    { key: 'usdRate', label: 'USD Rate', render: (_, coin) => <span className="font-mono text-sm">${coin.usdRate}</span> },
+    { key: 'usdRate', label: 'USD Rate', render: (_, coin) => <span className="font-mono text-sm text-slate-200 font-bold">${coin.usdRate}</span> },
     {
       key: 'isActive',
       label: 'Status',
@@ -95,19 +95,19 @@ const CoinListPage = () => {
       key: 'actions',
       label: '',
       render: (_, coin) => (
-        <div className="flex items-center gap-1">
-          <button onClick={() => handleEdit(coin)} className="p-1.5 hover:bg-bg-light-alt rounded-lg cursor-pointer" title="Edit">
-            <Pencil size={16} className="text-text-secondary" />
+        <div className="flex items-center gap-2">
+          <button onClick={() => handleEdit(coin)} className="p-2 hover:bg-white/5 border border-white/10 rounded-xl cursor-pointer text-slate-400 transition-colors" title="Edit">
+            <Pencil size={14} />
           </button>
-          <button onClick={() => handleToggle(coin._id)} className="p-1.5 hover:bg-bg-light-alt rounded-lg cursor-pointer" title="Toggle status">
+          <button onClick={() => handleToggle(coin._id)} className="p-2 hover:bg-white/5 border border-white/10 rounded-xl cursor-pointer transition-colors" title="Toggle status">
             {coin.isActive ? (
-              <ToggleRight size={18} className="text-success" />
+              <ToggleRight size={16} className="text-emerald-400" />
             ) : (
-              <ToggleLeft size={18} className="text-text-secondary" />
+              <ToggleLeft size={16} className="text-slate-400" />
             )}
           </button>
-          <button onClick={() => handleDelete(coin._id, coin.name)} className="p-1.5 hover:bg-danger/10 rounded-lg cursor-pointer" title="Delete">
-            <Trash2 size={16} className="text-danger" />
+          <button onClick={() => handleDelete(coin._id, coin.name)} className="p-2 hover:bg-red-500/10 border border-red-500/20 rounded-xl cursor-pointer text-red-400 transition-colors" title="Delete">
+            <Trash2 size={14} />
           </button>
         </div>
       ),
@@ -115,11 +115,11 @@ const CoinListPage = () => {
   ], [loading]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-white">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-heading font-semibold text-text-light-bg">Coins</h1>
-          <p className="text-sm text-text-secondary">{coinsTotal} coin{coinsTotal !== 1 ? 's' : ''} configured</p>
+          <h1 className="text-xl font-heading font-semibold text-white">Coins</h1>
+          <p className="text-sm text-slate-400">{coinsTotal} coin{coinsTotal !== 1 ? 's' : ''} configured</p>
         </div>
         <Button onClick={handleCreate} size="sm">
           <Plus size={16} className="mr-1.5" />
@@ -137,7 +137,7 @@ const CoinListPage = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-border-light overflow-hidden">
+      <div className="bg-[#0d1420]/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl overflow-hidden text-white">
         <DataTable columns={columns} data={coins} loading={loading} emptyTitle="No coins found" emptyDescription="Create your first coin to get started." />
       </div>
 

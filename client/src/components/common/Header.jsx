@@ -6,6 +6,7 @@ import { logoutUser, clearAuthState } from '../../store/slices/authSlice';
 import { fetchNotifications, markAsRead, markAllAsRead } from '../../store/slices/notificationSlice';
 import ConfirmModal from './ConfirmModal';
 import Logo from './Logo';
+import ThemeToggle from '../theme/ThemeToggle';
 
 const NavDropdown = ({ label, isActive, children }) => {
   const [open, setOpen] = useState(false);
@@ -42,10 +43,10 @@ const NavDropdown = ({ label, isActive, children }) => {
           top: '100%',
           marginTop: '8px',
           minWidth: '180px',
-          backgroundColor: 'white',
+          backgroundColor: 'var(--color-surface-container-lowest)',
           borderRadius: '8px',
           boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
-          border: '1px solid #f1f5f9',
+          border: '1px solid var(--color-outline-variant)',
           paddingTop: '8px',
           paddingBottom: '8px',
           zIndex: 9999,
@@ -191,7 +192,7 @@ const Header = () => {
             </span>
           </button>
           <div className="flex items-center cursor-pointer" onClick={() => navigate('/dashboard')}>
-            <Logo size="sm" variant="light" className="h-8" />
+            <Logo size="sm" className="h-8" />
           </div>
         </div>
 
@@ -262,7 +263,7 @@ const Header = () => {
                 e.preventDefault();
                 requestLogout();
               }}
-              className="block px-4 py-2 text-xs font-bold text-red-600 hover:bg-slate-50 hover:text-red-700 transition-colors border-t border-slate-100"
+              className="block px-4 py-2 text-xs font-bold text-red-600 hover:bg-slate-50 hover:text-red-700 transition-colors border-t border-slate-100 dark:text-red-400 dark:hover:bg-surface-container-low dark:border-surface-container-highest"
             >
               Logout
             </a>
@@ -270,6 +271,7 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center gap-4">
+          <ThemeToggle />
           <div className="relative" ref={notifRef}>
             <button
               onClick={() => setShowNotifications(!showNotifications)}
@@ -282,13 +284,13 @@ const Header = () => {
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-slate-100 overflow-hidden z-50 origin-top-right">
-                <div className="bg-slate-50 border-b border-slate-100 p-3 flex items-center justify-between">
-                  <h3 className="text-slate-800 font-bold text-sm">Notifications</h3>
+              <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-surface-container-high rounded-xl shadow-2xl border border-slate-100 dark:border-surface-container-highest overflow-hidden z-50 origin-top-right">
+                <div className="bg-slate-50 dark:bg-surface-container-high border-b border-slate-100 dark:border-surface-container-highest p-3 flex items-center justify-between">
+                  <h3 className="text-slate-800 dark:text-on-surface font-bold text-sm">Notifications</h3>
                   {unreadCount > 0 && (
                     <button
                       onClick={() => dispatch(markAllAsRead())}
-                      className="text-xs text-[#185adb] font-semibold hover:underline"
+                      className="text-xs text-[#185adb] font-semibold hover:underline dark:text-[#5ea2ff]"
                     >
                       Mark all read
                     </button>
@@ -296,22 +298,22 @@ const Header = () => {
                 </div>
                 <div className="max-h-80 overflow-y-auto">
                   {notifications.length === 0 ? (
-                    <div className="p-6 text-center text-slate-400 text-sm">
+                    <div className="p-6 text-center text-slate-400 dark:text-on-surface-variant text-sm">
                       No notifications yet
                     </div>
                   ) : (
-                    <div className="divide-y divide-slate-50">
+                    <div className="divide-y divide-slate-50 dark:divide-surface-container-highest">
                       {notifications.map((notif) => (
                         <div
                           key={notif._id}
                           onClick={() => handleNotificationClick(notif)}
-                          className={`p-3 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 ${!notif.isRead ? 'bg-blue-50/30' : ''}`}
+                          className={`p-3 hover:bg-slate-50 dark:hover:bg-surface-container-low transition-colors cursor-pointer flex gap-3 ${!notif.isRead ? 'bg-blue-50/30 dark:bg-blue-500/10' : ''}`}
                         >
-                          <div className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${!notif.isRead ? 'bg-[#185adb]' : 'bg-slate-300'}`} />
+                          <div className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${!notif.isRead ? 'bg-[#185adb] dark:bg-[#5ea2ff]' : 'bg-slate-300 dark:bg-surface-container-highest'}`} />
                           <div>
-                            <p className="text-slate-800 text-xs font-bold mb-0.5">{notif.title}</p>
-                            <p className="text-slate-500 text-[11px] leading-relaxed line-clamp-2">{notif.message}</p>
-                            <p className="text-slate-400 text-[9px] mt-1 uppercase font-semibold">
+                            <p className="text-slate-800 dark:text-on-surface text-xs font-bold mb-0.5">{notif.title}</p>
+                            <p className="text-slate-500 dark:text-on-surface-variant text-[11px] leading-relaxed line-clamp-2">{notif.message}</p>
+                            <p className="text-slate-400 dark:text-on-surface-variant text-[9px] mt-1 uppercase font-semibold">
                               {new Date(notif.createdAt).toLocaleDateString()}
                             </p>
                           </div>
@@ -356,7 +358,7 @@ const Header = () => {
             }`}
         >
           <div className="flex items-center justify-between px-4 py-4 border-b border-outline-variant">
-            <Logo size="sm" variant="light" className="h-8" />
+            <Logo size="sm" className="h-8" />
             <button
               onClick={closeMobileMenu}
               className="p-2 text-primary hover:bg-surface-container-low rounded-lg transition-colors focus:outline-none"
@@ -435,7 +437,7 @@ const Header = () => {
             </button>
             <button
               onClick={() => { requestLogout(); closeMobileMenu(); }}
-              className="flex items-center gap-3 w-full px-6 py-3 text-sm font-bold text-red-600 hover:bg-red-50 transition-colors rounded-lg"
+              className="flex items-center gap-3 w-full px-6 py-3 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors rounded-lg"
             >
               <LogOut size={18} />
               Sign Out

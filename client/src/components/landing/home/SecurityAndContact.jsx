@@ -55,12 +55,12 @@ const SecurityAndContact = () => {
               const Icon = point.icon;
               return (
                 <div key={point.title} className="glass-card rounded-2xl p-5 flex items-start gap-4 hover:border-emerald/25 transition-colors">
-                  <div className={`w-11 h-11 rounded-xl border border-white/10 bg-white/[0.04] flex items-center justify-center shrink-0 ${point.accent}`}>
+                  <div className={`w-11 h-11 rounded-xl border border-page-border bg-page-fill flex items-center justify-center shrink-0 ${point.accent}`}>
                     <Icon size={20} />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-white">{point.title}</h4>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">{point.desc}</p>
+                    <h4 className="text-sm font-semibold text-page-text">{point.title}</h4>
+                    <p className="text-xs text-page-text-soft mt-1 leading-relaxed">{point.desc}</p>
                   </div>
                 </div>
               );
@@ -76,7 +76,7 @@ const SecurityAndContact = () => {
           transition={{ duration: 0.6, ease: 'easeOut' }}
           className="glass-card rounded-3xl p-8 shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
         >
-          <h3 className="text-lg font-heading font-semibold text-white mb-6">Send Us A Message</h3>
+          <h3 className="text-lg font-heading font-semibold text-page-text mb-6">Send Us A Message</h3>
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <TextField

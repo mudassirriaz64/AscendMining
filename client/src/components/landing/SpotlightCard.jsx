@@ -21,8 +21,8 @@ const SpotlightCard = ({ children, className, spotlightColor = 'rgba(255,184,0,0
       ref={ref}
       onMouseMove={handleMouseMove}
       className={cn(
-        'spotlight-card relative overflow-hidden rounded-2xl border border-white/10',
-        'bg-slate-900/50 backdrop-blur-md transition duration-300',
+        'spotlight-card relative overflow-hidden rounded-2xl border border-page-border',
+        'bg-page-card backdrop-blur-md transition duration-300',
         'hover:-translate-y-1 hover:border-gold/25 hover:shadow-[0_12px_40px_rgba(0,0,0,0.45)]',
         className
       )}

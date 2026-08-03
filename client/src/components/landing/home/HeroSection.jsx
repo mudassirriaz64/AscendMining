@@ -82,17 +82,17 @@ const HeroSection = () => {
       />
 
       {/* Subtle grid overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:56px_56px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_40%,black,transparent)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(var(--color-page-grid)_1px,transparent_1px),linear-gradient(90deg,var(--color-page-grid)_1px,transparent_1px)] bg-[size:56px_56px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_40%,black,transparent)] pointer-events-none" />
 
       {/* Background Kinetic Beams (Aceternity style vertical grid columns) */}
-      <div className="absolute inset-y-0 left-[10%] w-[1px] bg-white/[0.01] hidden lg:block overflow-visible pointer-events-none z-0">
+      <div className="absolute inset-y-0 left-[10%] w-[1px] bg-page-fill hidden lg:block overflow-visible pointer-events-none z-0">
         <m.div 
           className="absolute top-0 left-[-1px] w-[3px] h-[150px] bg-gradient-to-b from-transparent via-gold/20 to-transparent"
           animate={{ y: ["-20%", "120%"] }}
           transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
         />
       </div>
-      <div className="absolute inset-y-0 right-[25%] w-[1px] bg-white/[0.01] hidden lg:block overflow-visible pointer-events-none z-0">
+      <div className="absolute inset-y-0 right-[25%] w-[1px] bg-page-fill hidden lg:block overflow-visible pointer-events-none z-0">
         <m.div 
           className="absolute top-0 left-[-1px] w-[3px] h-[180px] bg-gradient-to-b from-transparent via-electric-cyan/20 to-transparent"
           animate={{ y: ["120%", "-20%"] }}
@@ -103,7 +103,7 @@ const HeroSection = () => {
       {/* Kinetic light particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <m.div 
-          className="absolute w-1 h-1 rounded-full bg-white/20"
+          className="absolute w-1 h-1 rounded-full bg-gold/40"
           animate={{
             x: ["10vw", "90vw"],
             y: ["20vh", "35vh"],
@@ -116,7 +116,7 @@ const HeroSection = () => {
           }}
         />
         <m.div 
-          className="absolute w-1.5 h-1.5 rounded-full bg-slate-400/25"
+          className="absolute w-1.5 h-1.5 rounded-full bg-electric-cyan/40"
           animate={{
             x: ["80vw", "10vw"],
             y: ["60vh", "45vh"],
@@ -129,7 +129,7 @@ const HeroSection = () => {
           }}
         />
         <m.div 
-          className="absolute w-1 h-1 rounded-full bg-white/15"
+          className="absolute w-1 h-1 rounded-full bg-emerald/40"
           animate={{
             x: ["30vw", "70vw"],
             y: ["80vh", "65vh"],
@@ -167,12 +167,12 @@ const HeroSection = () => {
           {/* Border Beam Shimmer */}
           <div className="border-beam-wrapper"><div className="border-beam-line" /></div>
 
-          <span className="w-8 h-8 flex items-center justify-center rounded-xl bg-white/[0.03] border border-white/5 text-slate-300">
+          <span className="w-8 h-8 flex items-center justify-center rounded-xl bg-page-fill border border-page-border-soft text-page-text-muted">
             <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
               <path d="M23.638 14.904c-1.602 6.43-8.113 10.34-14.542 8.736C2.67 22.035-1.244 15.525.362 9.103 1.96 2.67 8.471-1.24 14.9-.364c6.43 1.602 10.34 8.113 8.738 14.542zm-7.496-4.958c.323-2.164-1.323-3.327-3.575-4.103l.73-2.928-1.782-.444-.712 2.855c-.468-.117-.95-.226-1.428-.335l.72-2.883-1.782-.444-.73 2.928c-.387-.088-.767-.175-1.137-.267l.002-.008-2.46-.613-.474 1.9.993.227c.542.124.8.453.78 1.054L7.15 11.23c.037.094.086.23.14.364l-.946 3.79c-.066.41-.337.74-.78.63l-.994-.247-.947 3.8 2.32.578c.433.11.857.22 1.277.324l-.738 2.957 1.783.444.73-2.928c.487.133.957.256 1.418.373l-.726 2.91 1.782.444.738-2.96c3.044.576 5.334.344 6.297-2.41.776-2.217-.038-3.497-1.644-4.332 1.17-.27 2.05-1.037 2.285-2.625zm-4.083 5.742c-.552 2.215-4.28.877-5.49.576l.98-3.926c1.21.3 5.074.894 4.51 3.35zm.55-5.772c-.503 2.02-3.61.994-4.618.743l.888-3.56c1.008.25 4.24.717 3.73 2.817z" />
             </svg>
           </span>
-          <span className="text-[9px] font-mono text-slate-500 font-bold uppercase tracking-wider mt-1.5">BTC ACTIVE</span>
+          <span className="text-[9px] font-mono text-page-text-faint font-bold uppercase tracking-wider mt-1.5">BTC ACTIVE</span>
         </m.div>
       </m.div>
 
@@ -199,7 +199,7 @@ const HeroSection = () => {
           {/* Border Beam Shimmer */}
           <div className="border-beam-wrapper"><div className="border-beam-line" /></div>
 
-          <svg className="w-5.5 h-5.5 text-slate-400 opacity-55" viewBox="0 0 24 24" fill="currentColor">
+          <svg className="w-5.5 h-5.5 text-page-text-soft opacity-55" viewBox="0 0 24 24" fill="currentColor">
             <path d="M4.6 15.3l3-3h11.8l-3 3zm14.8-6.6l-3 3H4.6l3-3zm-3-6.6l3 3H7.6l-3-3z"/>
           </svg>
         </m.div>
@@ -229,8 +229,8 @@ const HeroSection = () => {
           <div className="border-beam-wrapper"><div className="border-beam-line" /></div>
 
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-[10px] font-medium tracking-tight text-slate-400">Live Hashrate</span>
-          <span className="text-[11px] font-bold text-white font-mono tracking-tight">+142 GH/s</span>
+          <span className="text-[10px] font-medium tracking-tight text-page-text-soft">Live Hashrate</span>
+          <span className="text-[11px] font-bold text-page-text font-mono tracking-tight">+142 GH/s</span>
         </m.div>
       </m.div>
 
@@ -238,8 +238,8 @@ const HeroSection = () => {
         {/* Left copy */}
         <m.div initial="hidden" animate="visible" className="order-2 lg:order-1 space-y-6 text-center lg:text-left">
           <m.div variants={fadeUp} custom={0}>
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.02] border border-white/5 text-xs font-medium text-slate-400 tracking-tight backdrop-blur-md">
-              <span className="w-1.5 h-1.5 rounded-full bg-white/40 animate-pulse" /> Next-gen cloud mining
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-page-fill border border-page-border-soft text-xs font-medium text-page-text-soft tracking-tight backdrop-blur-md">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Next-gen cloud mining
             </span>
           </m.div>
 
@@ -248,7 +248,7 @@ const HeroSection = () => {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="text-4xl sm:text-6xl lg:text-7xl font-heading font-light leading-[1.15] md:leading-[1.2] tracking-tight text-white flex flex-wrap justify-center lg:justify-start gap-x-3 gap-y-1"
+            className="text-4xl sm:text-6xl lg:text-7xl font-heading font-light leading-[1.15] md:leading-[1.2] tracking-tight text-page-text flex flex-wrap justify-center lg:justify-start gap-x-3 gap-y-1"
           >
             {titleWords.map((word, idx) => {
               if (word.shimmer) {
@@ -256,7 +256,7 @@ const HeroSection = () => {
                   <m.span 
                     key={idx} 
                     variants={wordVariants}
-                    className="bg-gradient-to-r from-yellow-300 via-cyan-400 to-emerald-400 bg-[length:200%_auto] bg-clip-text text-transparent animate-shimmer-text font-semibold pb-3 pt-1 px-1"
+                    className="bg-gradient-to-r from-gold via-electric-cyan to-emerald dark:from-yellow-300 dark:via-cyan-400 dark:to-emerald-400 bg-[length:200%_auto] bg-clip-text text-transparent animate-shimmer-text font-semibold pb-3 pt-1 px-1"
                   >
                     {word.text}
                   </m.span>
@@ -267,7 +267,7 @@ const HeroSection = () => {
                   <m.span 
                     key={idx} 
                     variants={wordVariants} 
-                    className="font-semibold text-transparent bg-gradient-to-br from-white via-white to-slate-300 bg-clip-text"
+                    className="font-semibold text-transparent bg-gradient-to-br from-gold via-gold to-gold-soft dark:from-white dark:via-white dark:to-slate-300 bg-clip-text"
                   >
                     {word.text}
                   </m.span>
@@ -277,7 +277,7 @@ const HeroSection = () => {
                 <m.span 
                   key={idx} 
                   variants={wordVariants} 
-                  className="text-slate-200"
+                  className="text-page-text-muted"
                 >
                   {word.text}
                 </m.span>
@@ -288,7 +288,7 @@ const HeroSection = () => {
           <m.p 
             variants={fadeUp} 
             custom={2} 
-            className="text-base sm:text-lg text-slate-400 max-w-lg mx-auto lg:mx-0 leading-relaxed tracking-tight"
+            className="text-base sm:text-lg text-page-text-soft max-w-lg mx-auto lg:mx-0 leading-relaxed tracking-tight"
           >
             AscendHash bridges the gap between hardware complexity and passive profitability. Deploy dynamic high-hash mining power instantly from your wallet balance.
           </m.p>
@@ -305,20 +305,20 @@ const HeroSection = () => {
 
             {/* ETH Active badge — anchored inside the CTA wrapper, floating below the buttons */}
             <m.div
-              className="absolute -bottom-14 left-0 z-10 hidden sm:flex items-center gap-2 bg-slate-900/60 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.5)] cursor-pointer"
+              className="absolute -bottom-14 left-0 z-10 hidden sm:flex items-center gap-2 bg-page-card backdrop-blur-md border border-page-border px-3 py-1.5 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.5)] cursor-pointer"
               animate={{ y: [0, -6, 0] }}
               whileHover={{ scale: 1.04, y: -2 }}
               whileTap={{ scale: 0.96 }}
               transition={{ y: { repeat: Infinity, duration: 4, ease: 'easeInOut' } }}
             >
-              <span className="w-6 h-6 flex items-center justify-center rounded-lg bg-white/[0.03] border border-white/5 text-slate-400">
-                <svg className="w-3 h-4 text-slate-400 opacity-60" viewBox="0 0 784 1277" fill="currentColor">
+              <span className="w-6 h-6 flex items-center justify-center rounded-lg bg-page-fill border border-page-border-soft text-page-text-soft">
+                <svg className="w-3 h-4 text-page-text-soft opacity-60" viewBox="0 0 784 1277" fill="currentColor">
                   <path d="M392 0L383.5 28.5V870.5L392 879L784 647.5L392 0Z" />
                   <path d="M392 956L387 962V1271.5L392 1277L784 724.5L392 956Z" />
                   <path d="M392 879L784 647.5L392 522.5V879Z" />
                 </svg>
               </span>
-              <span className="text-[9px] font-mono text-slate-500 font-bold uppercase tracking-wider">ETH ACTIVE</span>
+              <span className="text-[9px] font-mono text-page-text-faint font-bold uppercase tracking-wider">ETH ACTIVE</span>
             </m.div>
           </m.div>
 
@@ -342,9 +342,9 @@ const HeroSection = () => {
                   <Star key={i} size={13} fill="currentColor" strokeWidth={0} />
                 ))}
               </div>
-              <p className="text-xs text-slate-300 relative z-20">
-                <span className="font-semibold text-white">4.9/5</span> on Trustpilot
-                <span className="text-slate-500 ml-1 hidden sm:inline">· 2,400+ reviews</span>
+              <p className="text-xs text-page-text-muted relative z-20">
+                <span className="font-semibold text-page-text">4.9/5</span> on Trustpilot
+                <span className="text-page-text-faint ml-1 hidden sm:inline">· 2,400+ reviews</span>
               </p>
             </m.div>
           </m.div>
@@ -361,7 +361,7 @@ const HeroSection = () => {
         </m.div>
       </div>
 
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-xs text-slate-600 hidden sm:flex items-center gap-2">
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-xs text-page-text-dimmer hidden sm:flex items-center gap-2">
         <Sparkles size={12} className="text-gold/60" />
         Institutional-grade infrastructure · 99.9% uptime SLA
         <Sparkles size={12} className="text-electric-cyan/60" />

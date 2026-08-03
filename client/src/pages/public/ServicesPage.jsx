@@ -66,9 +66,9 @@ const ServicesPage = () => {
           </div>
         ) : services.length === 0 ? (
           <div className="glass-card rounded-2xl p-12 text-center max-w-md mx-auto">
-            <Layers className="mx-auto text-slate-600 mb-4" size={48} />
-            <h3 className="text-lg font-heading font-semibold text-white mb-2">No Services Listed</h3>
-            <p className="text-xs text-slate-400">We are currently updating our cloud hardware specifications. Please check back shortly.</p>
+            <Layers className="mx-auto text-page-text-faint mb-4" size={48} />
+            <h3 className="text-lg font-heading font-semibold text-page-text mb-2">No Services Listed</h3>
+            <p className="text-xs text-page-text-soft">We are currently updating our cloud hardware specifications. Please check back shortly.</p>
           </div>
         ) : (
           <m.div
@@ -90,8 +90,8 @@ const ServicesPage = () => {
                     >
                       {getIcon(service.icon)}
                     </m.div>
-                    <h3 className="text-lg font-heading font-semibold text-white mb-3">{service.title}</h3>
-                    <p className="text-sm text-slate-400 leading-relaxed">{service.description}</p>
+                    <h3 className="text-lg font-heading font-semibold text-page-text mb-3">{service.title}</h3>
+                    <p className="text-sm text-page-text-soft leading-relaxed">{service.description}</p>
 
                     {/* Extended spec toggle */}
                     <div className="mt-auto pt-6">
@@ -122,12 +122,12 @@ const ServicesPage = () => {
                               {specRows.map((row) => {
                                 const Icon = row.icon;
                                 return (
-                                  <div key={row.label} className="flex items-center justify-between gap-3 text-xs border-b border-white/5 pb-2.5 last:border-0">
-                                    <span className="flex items-center gap-2 text-slate-400">
+                                  <div key={row.label} className="flex items-center justify-between gap-3 text-xs border-b border-page-border-soft pb-2.5 last:border-0">
+                                    <span className="flex items-center gap-2 text-page-text-soft">
                                       <Icon size={12} className="text-cyan-400" />
                                       {row.label}
                                     </span>
-                                    <span className="font-mono text-slate-200 text-right">{row.value}</span>
+                                    <span className="font-mono text-page-text-muted text-right">{row.value}</span>
                                   </div>
                                 );
                               })}

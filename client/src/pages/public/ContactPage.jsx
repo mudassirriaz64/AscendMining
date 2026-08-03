@@ -70,7 +70,7 @@ const ContactPage = () => {
 
           {/* Form Column */}
           <div className="glass-card rounded-3xl p-8 lg:col-span-2">
-            <h3 className="text-lg font-heading font-semibold text-white mb-6">Send A Message</h3>
+            <h3 className="text-lg font-heading font-semibold text-page-text mb-6">Send A Message</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <TextField

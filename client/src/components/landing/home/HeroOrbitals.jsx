@@ -256,38 +256,38 @@ const HeroOrbitals = () => {
 
         {/* Badge 1: BTC Pill */}
         <CardItem translateZ={60} className="absolute left-[20px] top-[45px] z-20">
-          <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-full bg-[#080c14]/80 backdrop-blur-md border border-white/12 shadow-[0_8px_30px_rgba(0,0,0,0.5)] transition duration-300 hover:scale-105">
+          <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-full bg-page-card-strong backdrop-blur-md border border-page-border shadow-[0_8px_30px_rgba(0,0,0,0.5)] transition duration-300 hover:scale-105">
             <span className="w-5 h-5 rounded-full bg-gold/10 flex items-center justify-center text-gold border border-gold/20 font-bold text-xs">
               ₿
             </span>
-            <span className="text-[9px] font-bold tracking-widest text-slate-300 font-mono">BTC MINING</span>
+            <span className="text-[9px] font-bold tracking-widest text-page-text-muted font-mono">BTC MINING</span>
           </div>
         </CardItem>
 
         {/* Badge 2: ETH Pill */}
         <CardItem translateZ={60} className="absolute right-[20px] top-[85px] z-20">
-          <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-full bg-[#080c14]/80 backdrop-blur-md border border-white/12 shadow-[0_8px_30px_rgba(0,0,0,0.5)] transition duration-300 hover:scale-105">
+          <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-full bg-page-card-strong backdrop-blur-md border border-page-border shadow-[0_8px_30px_rgba(0,0,0,0.5)] transition duration-300 hover:scale-105">
             <span className="w-5 h-5 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 text-xs">
               Ξ
             </span>
-            <span className="text-[9px] font-bold tracking-widest text-slate-300 font-mono">ETH ACTIVE</span>
+            <span className="text-[9px] font-bold tracking-widest text-page-text-muted font-mono">ETH ACTIVE</span>
           </div>
         </CardItem>
 
         {/* Interactive Earnings Widget */}
         <CardItem translateZ={50} className="absolute bottom-[20px] left-1/2 z-20 -ml-28">
-          <div className="relative w-56 p-4 rounded-2xl bg-[#080c14]/90 backdrop-blur-lg border border-white/12 shadow-[0_12px_45px_rgba(0,0,0,0.6)] flex flex-col gap-3 transition duration-300 hover:scale-[1.03]">
+          <div className="relative w-56 p-4 rounded-2xl bg-page-card-strong backdrop-blur-lg border border-page-border shadow-[0_12px_45px_rgba(0,0,0,0.6)] flex flex-col gap-3 transition duration-300 hover:scale-[1.03]">
             <BorderBeam size={260} duration={12} delay={9} colorFrom="#00F0FF" colorTo="#FFB800" />
             <div className="space-y-0.5">
-              <span className="text-[9px] text-slate-500 uppercase font-mono tracking-wider font-bold">Live Profit Balance</span>
+              <span className="text-[9px] text-page-text-faint uppercase font-mono tracking-wider font-bold">Live Profit Balance</span>
               <div className="text-lg font-bold text-emerald-400 font-mono tracking-tight flex items-baseline gap-0.5">
                 <span className="text-emerald-500 text-sm">$</span>
                 <LiveEarnings active={isMining} />
               </div>
             </div>
             
-            <div className="flex items-center justify-between border-t border-white/5 pt-2.5">
-              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider font-mono">Automine Status</span>
+            <div className="flex items-center justify-between border-t border-page-border-soft pt-2.5">
+              <span className="text-[9px] text-page-text-soft font-bold uppercase tracking-wider font-mono">Automine Status</span>
               {/* Mini toggle switch */}
               <button
                 type="button"

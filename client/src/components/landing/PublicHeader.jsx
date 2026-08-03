@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import Logo from '../common/Logo';
+import ThemeToggle from '../theme/ThemeToggle';
 import { cn } from '../../utils/cn';
 
 const navLinks = [
@@ -32,13 +33,13 @@ const PublicHeader = () => {
   return (
     <header
       className={cn(
-        'sticky top-0 z-50 w-full bg-[#050811]/40 backdrop-blur-md border-b border-white/5 transition-all duration-300',
-        scrolled && 'bg-[#050811]/60 border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]'
+        'sticky top-0 z-50 w-full bg-page-bg-40 backdrop-blur-md border-b border-page-border-soft transition-all duration-300',
+        scrolled && 'bg-page-bg-60 border-page-border shadow-[0_8px_32px_rgba(0,0,0,0.4)]'
       )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center transition duration-300">
         <div className="flex items-center cursor-pointer py-3" onClick={closeMenu}>
-          <Logo size="sm" variant="dark" className="h-9" />
+          <Logo size="sm" className="h-9" />
         </div>
 
         {/* Desktop Navbar */}
@@ -52,7 +53,7 @@ const PublicHeader = () => {
                 'relative py-2 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 rounded-md px-1',
                 isActive(link.path)
                   ? 'text-gold font-semibold'
-                  : 'text-slate-300 hover:text-white'
+                  : 'text-page-text-muted hover:text-page-text'
               )}
             >
               {link.name}
@@ -68,9 +69,10 @@ const PublicHeader = () => {
 
         {/* Action Buttons */}
         <div className="hidden lg:flex items-center gap-3">
+          <ThemeToggle />
           <Link
             to="/login"
-            className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 rounded-full"
+            className="px-4 py-2 text-sm font-medium text-page-text-muted hover:text-page-text transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 rounded-full"
           >
             Login
           </Link>
@@ -83,14 +85,15 @@ const PublicHeader = () => {
         </div>
 
         {/* Mobile Menu Button */}
-        <div className="lg:hidden flex items-center">
+        <div className="lg:hidden flex items-center gap-1">
+          <ThemeToggle />
           <button
             type="button"
             onClick={() => setMobileMenuOpen((open) => !open)}
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-nav"
             aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-            className="text-slate-300 hover:text-white p-2 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
+            className="text-page-text-muted hover:text-page-text p-2 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -99,7 +102,7 @@ const PublicHeader = () => {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen ? (
-        <nav id="mobile-nav" className="lg:hidden bg-[#050811]/90 backdrop-blur-xl border-t border-white/10 px-4 py-4 space-y-1" aria-label="Mobile navigation">
+        <nav id="mobile-nav" className="lg:hidden bg-page-bg-90 backdrop-blur-xl border-t border-page-border px-4 py-4 space-y-1" aria-label="Mobile navigation">
           {navLinks.map((link) => (
             <Link
               key={link.path}
@@ -108,17 +111,17 @@ const PublicHeader = () => {
               aria-current={isActive(link.path) ? 'page' : undefined}
               className={cn(
                 'block py-2 px-2 rounded-lg text-base font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60',
-                isActive(link.path) ? 'text-gold font-semibold' : 'text-slate-300 hover:text-white hover:bg-white/5'
+                isActive(link.path) ? 'text-gold font-semibold' : 'text-page-text-muted hover:text-page-text hover:bg-page-fill'
               )}
             >
               {link.name}
             </Link>
           ))}
-          <div className="border-t border-border-glass pt-4 mt-2 flex flex-col gap-2">
+          <div className="border-t border-page-border pt-4 mt-2 flex flex-col gap-2">
             <Link
               to="/login"
               onClick={closeMenu}
-              className="w-full text-center py-2.5 rounded-full text-slate-300 hover:text-white border border-border-glass transition-colors"
+              className="w-full text-center py-2.5 rounded-full text-page-text-muted hover:text-page-text border border-page-border transition-colors"
             >
               Login
             </Link>

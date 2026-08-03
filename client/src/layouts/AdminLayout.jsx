@@ -12,6 +12,7 @@ import { connectDashboardSocket } from '../services/dashboardSocket';
 import api from '../services/api';
 import Logo from '../components/common/Logo';
 import ConfirmModal from '../components/common/ConfirmModal';
+import Web3BackgroundCanvas from '../components/common/Web3BackgroundCanvas';
 
 const sidebarLinks = [
   { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -333,12 +334,13 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="h-screen bg-bg-light-alt flex overflow-hidden">
+    <div className="dark min-h-screen bg-bg-void text-white flex overflow-hidden relative">
+      <Web3BackgroundCanvas variant="light" />
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-bg-dark transform transition-transform duration-200 lg:translate-x-0 lg:sticky lg:top-0 h-screen flex flex-col shrink-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-bg-dark border-r border-white/5 transform transition-transform duration-200 lg:translate-x-0 lg:sticky lg:top-0 h-screen flex flex-col shrink-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center gap-2 px-5 py-4 border-b border-white/10">
           <Logo size="sm" variant="dark" className="py-1" />
           <button onClick={() => setSidebarOpen(false)} className="ml-auto lg:hidden text-white/50 cursor-pointer">
@@ -359,40 +361,40 @@ const AdminLayout = () => {
         </nav>
       </aside>
 
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-        <header className="h-16 bg-white border-b border-border-light flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden relative z-10">
+        <header className="h-16 bg-[#0d1420]/60 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30 text-white">
           <div className="flex items-center gap-4">
-            <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-text-secondary cursor-pointer">
+            <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-slate-400 hover:text-white cursor-pointer">
               <Menu size={22} />
             </button>
             <form onSubmit={handleSearchSubmit} className="relative hidden sm:block">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={globalSearch}
                 onChange={(e) => setGlobalSearch(e.target.value)}
                 placeholder="Search users..."
-                className="pl-9 pr-4 py-2 border border-border-light rounded-lg text-sm w-64 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="pl-9 pr-4 py-2 border border-white/10 bg-white/5 rounded-xl text-sm w-64 text-white placeholder-white/30 outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/30"
               />
             </form>
           </div>
 
           <div className="flex items-center gap-4">
             {waitingIds.size > 0 ? (
-              <div className="flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700" role="status">
+              <div className="flex items-center gap-1.5 rounded-full bg-red-500/10 border border-red-500/30 px-3 py-1.5 text-xs font-semibold text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.15)]" role="status">
                 <Volume2 size={14} aria-hidden="true" /> {waitingIds.size} waiting
-                <button type="button" onClick={() => setMuted((value) => !value)} className="ml-1 rounded-full p-1 hover:bg-red-100" aria-label={muted ? 'Unmute support alarm' : 'Mute support alarm for this session'}>
+                <button type="button" onClick={() => setMuted((value) => !value)} className="ml-1 rounded-full p-1 hover:bg-red-500/20 text-red-400" aria-label={muted ? 'Unmute support alarm' : 'Mute support alarm for this session'}>
                   {muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
                 </button>
               </div>
             ) : null}
             <button
               onClick={() => navigate('/admin/support')}
-              className="relative p-2 text-text-secondary hover:bg-bg-light-alt rounded-lg cursor-pointer"
+              className="relative p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl cursor-pointer transition-colors"
             >
               <Bell size={20} />
               {waitingIds.size > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold px-1">
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold px-1 shadow-[0_0_8px_rgba(239,68,68,0.5)]">
                   {waitingIds.size > 99 ? '99+' : waitingIds.size}
                 </span>
               )}
@@ -401,26 +403,26 @@ const AdminLayout = () => {
             <div className="relative">
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
-                className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-bg-light-alt cursor-pointer"
+                className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-white/5 text-slate-300 hover:text-white cursor-pointer transition-colors"
               >
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm font-semibold">
+                <div className="w-8 h-8 rounded-full bg-primary-container/20 flex items-center justify-center text-primary-fixed-dim text-sm font-semibold border border-primary-container/30">
                   {user?.fullName?.charAt(0) || 'A'}
                 </div>
-                <span className="text-sm text-text-light-bg hidden sm:block">{user?.fullName || 'Admin'}</span>
-                <ChevronDown size={14} className="text-text-secondary" />
+                <span className="text-sm font-medium hidden sm:block">{user?.fullName || 'Admin'}</span>
+                <ChevronDown size={14} className="text-slate-400" />
               </button>
 
               {profileOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
-                  <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-lg border border-border-light py-1 z-50">
-                    <div className="px-4 py-2 border-b border-border-light">
-                      <p className="text-sm font-medium text-text-light-bg">{user?.fullName}</p>
-                      <p className="text-xs text-text-secondary">{user?.email}</p>
+                  <div className="absolute right-0 top-full mt-1.5 w-48 bg-[#0d1420]/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 py-1.5 z-50 text-white animate-fade-in">
+                    <div className="px-4 py-2 border-b border-white/5">
+                      <p className="text-sm font-medium text-white">{user?.fullName}</p>
+                      <p className="text-xs text-slate-400 truncate">{user?.email}</p>
                     </div>
                     <button
                       onClick={requestLogout}
-                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-danger hover:bg-danger/5 cursor-pointer"
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 cursor-pointer transition-colors"
                     >
                       <LogOut size={16} />
                       Logout
@@ -433,9 +435,9 @@ const AdminLayout = () => {
         </header>
 
         {!audioUnlocked && (
-          <div className="bg-amber-50 border-b border-amber-200 px-4 py-2.5 flex items-center justify-between text-xs text-amber-900 sticky top-16 z-20 shadow-sm animate-fade-in">
+          <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-2.5 flex items-center justify-between text-xs text-amber-300 sticky top-16 z-20 shadow-[0_0_15px_rgba(245,197,24,0.08)] animate-fade-in">
             <div className="flex items-center gap-2">
-              <Volume2 size={16} className="text-amber-600 animate-pulse shrink-0" />
+              <Volume2 size={16} className="text-amber-400 animate-pulse shrink-0" />
               <span>
                 <strong>Sound alerts are muted by the browser.</strong> Click Enable to hear audible alarm cues and authorize desktop notifications for overdue SLA conversations.
               </span>
@@ -443,7 +445,7 @@ const AdminLayout = () => {
             <button
               type="button"
               onClick={handleEnableAlerts}
-              className="bg-amber-600 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-amber-700 active:scale-95 transition-all cursor-pointer shadow-sm ml-4 shrink-0"
+              className="bg-primary-container text-slate-950 px-3 py-1.5 rounded-xl font-bold hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow-sm ml-4 shrink-0"
             >
               Enable Alerts
             </button>

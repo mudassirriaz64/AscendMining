@@ -15,7 +15,7 @@ const TestimonialsSection = () => {
         <SectionHeading
           as="h2"
           eyebrow="Testimonials"
-          title={<>What Our <span className="bg-gradient-to-r from-yellow-300 via-cyan-400 to-emerald-400 bg-[length:200%_auto] bg-clip-text text-transparent animate-shimmer-text">Miners Say</span></>}
+          title={<>What Our <span className="bg-gradient-to-r from-gold via-electric-cyan to-emerald dark:from-yellow-300 dark:via-cyan-400 dark:to-emerald-400 bg-[length:200%_auto] bg-clip-text text-transparent animate-shimmer-text">Miners Say</span></>}
           subtitle="Real reviews from real miners worldwide"
           className="mb-14"
         />
@@ -28,7 +28,7 @@ const TestimonialsSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-80px' }}
               transition={{ duration: 0.6, delay: idx * 0.12, ease: 'easeOut' }}
-              className="flex flex-col justify-between h-full bg-slate-900/40 backdrop-blur-md border border-white/10 p-6 rounded-2xl hover:border-gold/25 hover:shadow-[0_16px_50px_rgba(255,184,0,0.08)] transition-all duration-300"
+              className="flex flex-col justify-between h-full bg-page-card backdrop-blur-md border border-page-border p-6 rounded-2xl hover:border-gold/25 hover:shadow-[0_16px_50px_rgba(255,184,0,0.08)] transition-all duration-300"
             >
               <div>
                 <div className="flex items-center gap-1 mb-5 text-gold drop-shadow-[0_0_8px_rgba(255,184,0,0.4)]">
@@ -36,11 +36,11 @@ const TestimonialsSection = () => {
                     <Star key={i} size={16} fill="currentColor" strokeWidth={0} />
                   ))}
                 </div>
-                <p className="text-sm text-slate-300 italic mb-6 leading-relaxed">&ldquo;{item.quote}&rdquo;</p>
+                <p className="text-sm text-page-text-muted italic mb-6 leading-relaxed">&ldquo;{item.quote}&rdquo;</p>
               </div>
 
-              <div className="border-t border-white/10 pt-4">
-                <p className="text-sm font-semibold text-white">{item.name}</p>
+              <div className="border-t border-page-border pt-4">
+                <p className="text-sm font-semibold text-page-text">{item.name}</p>
                 <p className="text-xs text-cyan-400 font-mono mt-1">{item.tenure}</p>
               </div>
             </m.div>

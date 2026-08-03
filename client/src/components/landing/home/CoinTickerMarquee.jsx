@@ -72,11 +72,11 @@ const CoinTickerMarquee = () => {
     <div className="flex items-center">
       {marqueeCoins.map((coin, idx) => (
         <div key={`${prefix}-${idx}`} className="flex items-center gap-3 mx-12">
-          <span className={`flex items-center justify-center w-6 h-6 rounded-full bg-white/5 border border-white/10 ${coin.color}`}>
+          <span className={`flex items-center justify-center w-6 h-6 rounded-full bg-page-fill border border-page-border ${coin.color}`}>
             {coin.icon}
           </span>
-          <span className="text-xs font-medium text-slate-400 tracking-wider">{coin.symbol}</span>
-          <span className="text-[10px] text-slate-500 font-medium tracking-wide uppercase">{coin.name}</span>
+          <span className="text-xs font-medium text-page-text-soft tracking-wider">{coin.symbol}</span>
+          <span className="text-[10px] text-page-text-faint font-medium tracking-wide uppercase">{coin.name}</span>
         </div>
       ))}
     </div>

@@ -22,6 +22,7 @@ const PaymentsLogPage = lazy(() => import('./pages/account/PaymentsLogPage'));
 const TransactionsPage = lazy(() => import('./pages/account/TransactionsPage'));
 const KYCPage = lazy(() => import('./pages/account/KYCPage'));
 const DepositPage = lazy(() => import('./pages/account/DepositPage'));
+const UserLayout = lazy(() => import('./layouts/UserLayout'));
 const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
 const UserListPage = lazy(() => import('./pages/admin/users/UserListPage'));
 const UserDetailPage = lazy(() => import('./pages/admin/users/UserDetailPage'));
@@ -178,20 +179,22 @@ const App = () => {
           <Route path="/reset-password" element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
           <Route path="/admin/login" element={<AdminPublicRoute><AdminLoginPage /></AdminPublicRoute>} />
 
-          <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-          <Route path="/withdraw" element={<ProtectedRoute><WithdrawNowPage /></ProtectedRoute>} />
-          <Route path="/withdraw/history" element={<ProtectedRoute><MyWithdrawalsPage /></ProtectedRoute>} />
-          <Route path="/wallets" element={<ProtectedRoute><WalletAddressesPage /></ProtectedRoute>} />
-          <Route path="/mining/plans" element={<ProtectedRoute><StartMiningPage /></ProtectedRoute>} />
-          <Route path="/mining/tracks" element={<ProtectedRoute><MiningTracksPage /></ProtectedRoute>} />
-          <Route path="/support/chat" element={<InvestorRoute><SupportChatPage /></InvestorRoute>} />
-          <Route path="/support/tickets" element={<InvestorRoute><SupportTicketsPage /></InvestorRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-          <Route path="/profile/password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
-          <Route path="/deposit" element={<ProtectedRoute><DepositPage /></ProtectedRoute>} />
-          <Route path="/deposits" element={<ProtectedRoute><PaymentsLogPage /></ProtectedRoute>} />
-          <Route path="/transactions" element={<ProtectedRoute><TransactionsPage /></ProtectedRoute>} />
-          <Route path="/kyc" element={<ProtectedRoute><KYCPage /></ProtectedRoute>} />
+          <Route element={<UserLayout />}>
+            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+            <Route path="/withdraw" element={<ProtectedRoute><WithdrawNowPage /></ProtectedRoute>} />
+            <Route path="/withdraw/history" element={<ProtectedRoute><MyWithdrawalsPage /></ProtectedRoute>} />
+            <Route path="/wallets" element={<ProtectedRoute><WalletAddressesPage /></ProtectedRoute>} />
+            <Route path="/mining/plans" element={<ProtectedRoute><StartMiningPage /></ProtectedRoute>} />
+            <Route path="/mining/tracks" element={<ProtectedRoute><MiningTracksPage /></ProtectedRoute>} />
+            <Route path="/support/chat" element={<InvestorRoute><SupportChatPage /></InvestorRoute>} />
+            <Route path="/support/tickets" element={<InvestorRoute><SupportTicketsPage /></InvestorRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/profile/password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
+            <Route path="/deposit" element={<ProtectedRoute><DepositPage /></ProtectedRoute>} />
+            <Route path="/deposits" element={<ProtectedRoute><PaymentsLogPage /></ProtectedRoute>} />
+            <Route path="/transactions" element={<ProtectedRoute><TransactionsPage /></ProtectedRoute>} />
+            <Route path="/kyc" element={<ProtectedRoute><KYCPage /></ProtectedRoute>} />
+          </Route>
 
           <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
             <Route index element={<Navigate to="/admin/dashboard" replace />} />

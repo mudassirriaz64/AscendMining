@@ -75,9 +75,9 @@ api.interceptors.response.use(
         }
       }
     } else {
-      // A mutation succeeded — drop any cached list for that resource so
-      // subsequent reads reflect the change immediately.
-      invalidateCache(resourcePrefix(url));
+      // A mutation succeeded — clear the entire cache so that
+      // subsequent reads reflect the changes immediately.
+      cache.clear();
     }
     return response;
   },

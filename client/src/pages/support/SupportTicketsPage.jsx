@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Inbox, Ticket } from 'lucide-react';
-import Header from '../../components/common/Header';
 import DataTable from '../../components/common/DataTable';
 import StatusBadge from '../../components/common/StatusBadge';
 import api from '../../services/api';
@@ -31,25 +30,22 @@ const SupportTicketsPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-bg-light-alt">
-      <Header />
-      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
-        <div className="mb-6 flex items-start gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/20 text-bg-dark"><Ticket size={20} /></span>
-          <div><h1 className="text-2xl font-semibold text-text-light-bg">Support Tickets</h1><p className="mt-1 text-sm text-text-secondary">Escalations you created from live support.</p></div>
-        </div>
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 flex-1 sm:px-6">
+      <div className="mb-6 flex items-start gap-3">
+        <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/20 text-on-surface-variant"><Ticket size={20} /></span>
+        <div><h1 className="text-2xl font-semibold text-on-surface">Support Tickets</h1><p className="mt-1 text-sm text-on-surface-variant">Escalations you created from live support.</p></div>
+      </div>
 
-        <div className="mb-4 flex border-b border-border-light" role="tablist" aria-label="Ticket filters">
-          {[['all', 'All Tickets'], ['open', 'Open Tickets']].map(([key, label]) => (
-            <button key={key} type="button" role="tab" aria-selected={tab === key} onClick={() => setTab(key)} className={`border-b-2 px-4 py-3 text-sm font-medium ${tab === key ? 'border-primary text-text-light-bg' : 'border-transparent text-text-secondary hover:text-text-light-bg'}`}>{label}</button>
-          ))}
-        </div>
+      <div className="mb-4 flex border-b border-outline-variant" role="tablist" aria-label="Ticket filters">
+        {[['all', 'All Tickets'], ['open', 'Open Tickets']].map(([key, label]) => (
+          <button key={key} type="button" role="tab" aria-selected={tab === key} onClick={() => setTab(key)} className={`border-b-2 px-4 py-3 text-sm font-medium ${tab === key ? 'border-primary text-on-surface' : 'border-transparent text-on-surface-variant hover:text-on-surface'}`}>{label}</button>
+        ))}
+      </div>
 
-        <div className="overflow-hidden rounded-xl bg-white ring-1 ring-border-light">
-          <DataTable columns={columns} data={tickets} loading={loading} emptyTitle="No support tickets" emptyDescription="If a live-chat response passes the SLA, you can create a ticket from the Talk to Agent panel." />
-          {!loading && tickets.length === 0 ? <Inbox className="sr-only" /> : null}
-        </div>
-      </main>
+      <div className="overflow-hidden rounded-xl bg-white/70 dark:bg-[#0d1420]/70 backdrop-blur-xl ring-1 ring-slate-200 dark:ring-white/10">
+        <DataTable columns={columns} data={tickets} loading={loading} emptyTitle="No support tickets" emptyDescription="If a live-chat response passes the SLA, you can create a ticket from the Talk to Agent panel." />
+        {!loading && tickets.length === 0 ? <Inbox className="sr-only" /> : null}
+      </div>
     </div>
   );
 };

@@ -23,7 +23,7 @@ const ShimmerButton = ({
     '[background:var(--shimmer-bg)] [border-radius:var(--radius)]',
     'transition duration-300 will-change-transform active:translate-y-px',
     'hover:shadow-[0_0_36px_rgba(255,184,0,0.45)]',
-    'focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-void',
+    'focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-page-bg',
     'disabled:opacity-50 disabled:pointer-events-none',
     className
   );

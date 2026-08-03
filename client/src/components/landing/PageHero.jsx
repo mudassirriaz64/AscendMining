@@ -45,14 +45,14 @@ const PageHero = ({ eyebrow, title, subtitle, align = 'center', className }) => 
           ) : null}
           <m.h1
             variants={titleVariants}
-            className="text-4xl md:text-5xl font-heading font-semibold text-white tracking-tight drop-shadow-[0_2px_20px_rgba(0,0,0,0.6)]"
+            className="text-4xl md:text-5xl font-heading font-semibold text-page-text tracking-tight drop-shadow-[0_2px_20px_rgba(0,0,0,0.6)]"
           >
             {title}
           </m.h1>
           {subtitle ? (
             <m.p
               variants={subtitleVariants}
-              className="text-sm md:text-base text-slate-400 leading-relaxed max-w-2xl"
+              className="text-sm md:text-base text-page-text-soft leading-relaxed max-w-2xl"
             >
               {subtitle}
             </m.p>

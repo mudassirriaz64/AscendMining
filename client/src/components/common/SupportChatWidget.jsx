@@ -436,7 +436,7 @@ const SupportChatWidget = () => {
     <div className="fixed bottom-5 right-5 z-50 sm:bottom-6 sm:right-6">
       {open ? (
         <>
-          <section aria-label="Talk to Agent" className="flex h-[min(640px,calc(100vh-2.5rem))] w-[min(390px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl bg-white shadow-xl relative">
+          <section aria-label="Talk to Agent" className="flex h-[min(640px,calc(100vh-2.5rem))] w-[min(390px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl bg-surface-container-lowest shadow-xl relative">
           <header className="flex items-center justify-between bg-bg-dark px-4 py-3 text-white">
             <div className="flex items-center gap-3">
               <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-bg-dark"><Headphones size={18} /></span>
@@ -497,12 +497,12 @@ const SupportChatWidget = () => {
                 return (
                   <div
                     key={session._id}
-                    className={`flex items-center gap-2 px-4 py-2 border-b border-border-light last:border-0 cursor-pointer hover:bg-bg-light-alt ${session._id === activeSessionId ? 'bg-blue-50' : ''}`}
+                    className={`flex items-center gap-2 px-4 py-2 border-b border-border-light last:border-0 cursor-pointer hover:bg-bg-light-alt ${session._id === activeSessionId ? 'bg-primary/10' : ''}`}
                     onClick={() => !isClosed && loadSession(session._id)}
                   >
                     <div className="flex-1 min-w-0">
-                      <p className={`text-xs font-medium truncate ${isClosed ? 'text-slate-400 line-through' : 'text-text-light-bg'}`}>{session.title}</p>
-                      {isClosed && <p className="text-[10px] text-slate-400">Closed</p>}
+                      <p className={`text-xs font-medium truncate ${isClosed ? 'text-on-surface-variant line-through' : 'text-text-light-bg'}`}>{session.title}</p>
+                      {isClosed && <p className="text-[10px] text-on-surface-variant">Closed</p>}
                     </div>
                     <button
                       type="button"
@@ -519,7 +519,7 @@ const SupportChatWidget = () => {
           )}
 
           {conversation?.escalationAvailable ? (
-            <div className="m-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-950 ring-1 ring-amber-200" role="status">
+            <div className="m-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 p-3 text-sm text-amber-950 dark:text-amber-200 ring-1 ring-amber-200 dark:ring-amber-500/30" role="status">
               <div className="flex gap-2"><AlertCircle className="mt-0.5 shrink-0" size={17} /><p>Our team hasn't replied yet — create a support ticket and we'll follow up.</p></div>
               <button type="button" disabled={escalating} onClick={escalate} className="mt-3 rounded-lg bg-bg-dark px-3 py-2 text-xs font-semibold text-white hover:bg-surface-dark disabled:opacity-50 cursor-pointer">{escalating ? 'Creating...' : 'Create support ticket'}</button>
             </div>
@@ -529,8 +529,8 @@ const SupportChatWidget = () => {
             {loadError ? (
               <div className="mx-auto mt-12 max-w-[28ch] text-center">
                 <AlertCircle className="mx-auto text-red-400" size={32} />
-                <p className="mt-3 text-sm font-medium text-slate-700">Unable to load chat</p>
-                <p className="mt-1 text-xs text-slate-500">Check your connection and try again.</p>
+                <p className="mt-3 text-sm font-medium text-slate-700 dark:text-on-surface">Unable to load chat</p>
+                <p className="mt-1 text-xs text-slate-500 dark:text-on-surface-variant">Check your connection and try again.</p>
                 <button type="button" onClick={handleRetry} className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-bg-dark px-3 py-2 text-xs font-semibold text-white hover:bg-surface-dark cursor-pointer">
                   <RefreshCw size={13} /> Retry
                 </button>
@@ -542,7 +542,7 @@ const SupportChatWidget = () => {
                    type="button"
                    disabled={loadingMore}
                    onClick={loadMore}
-                   className="text-[10px] bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200 px-2 py-1 rounded-md font-semibold transition-all cursor-pointer disabled:opacity-50"
+                    className="text-[10px] bg-surface-container-low text-on-surface-variant hover:bg-surface-container border border-outline-variant px-2 py-1 rounded-md font-semibold transition-all cursor-pointer disabled:opacity-50"
                  >
                    {loadingMore ? 'Loading...' : 'Load older messages'}
                  </button>
@@ -561,7 +561,7 @@ const SupportChatWidget = () => {
               if (isSystem) {
                 return (
                   <div key={message._id} className="flex justify-center my-2.5 w-full animate-fade-in shrink-0">
-                    <span className="text-[10px] text-slate-400 bg-slate-100 px-2.5 py-1.5 rounded-full font-medium shadow-sm border border-slate-200/50">
+                    <span className="text-[10px] text-on-surface-variant bg-surface-container-low px-2.5 py-1.5 rounded-full font-medium shadow-sm border border-outline-variant">
                       {message.body.replace('[SYSTEM] ', '')}
                     </span>
                   </div>
@@ -571,19 +571,19 @@ const SupportChatWidget = () => {
               return (
                 <div key={message._id} className={`flex flex-col ${consecutive ? 'mb-1.5' : 'mb-4'} ${mine ? 'items-end' : 'items-start'}`}>
                   {!consecutive && (
-                    <span className={`text-[10px] font-semibold mb-1 px-1 ${mine ? 'text-right text-slate-500' : 'text-left text-slate-500'}`}>
+                    <span className={`text-[10px] font-semibold mb-1 px-1 ${mine ? 'text-right text-on-surface-variant' : 'text-left text-on-surface-variant'}`}>
                       {senderLabel}
                     </span>
                   )}
                   <div className={`w-full flex ${mine ? 'justify-end' : 'justify-start'}`}>
                     <div
                       title={formatFullTimestamp(message.sentAt || message.createdAt)}
-                      className={`max-w-[82%] rounded-2xl px-3 py-2 text-sm cursor-help ${mine ? 'rounded-br-sm bg-gradient-to-br from-[#001f3f] to-[#083358] text-white' : 'rounded-bl-sm bg-white text-text-light-bg ring-1 ring-slate-200'}`}
+                      className={`max-w-[82%] rounded-2xl px-3 py-2 text-sm cursor-help ${mine ? 'rounded-br-sm bg-gradient-to-br from-[#001f3f] to-[#083358] text-white' : 'rounded-bl-sm bg-surface-container-lowest text-on-surface ring-1 ring-outline-variant'}`}
                     >
                       {message.body && <p className="whitespace-pre-wrap break-words w-fit max-w-full">{typeof message.body === 'string' ? message.body : String(message.body ?? '')}</p>}
                       
                       {message.attachmentUrl && message.attachmentType === 'image' && (
-                        <div className={`max-w-xs rounded-lg overflow-hidden border border-slate-200 shadow-sm cursor-zoom-in ${message.body ? 'mt-2' : ''}`}>
+                        <div className={`max-w-xs rounded-lg overflow-hidden border border-outline-variant shadow-sm cursor-zoom-in ${message.body ? 'mt-2' : ''}`}>
                           <img
                             src={message.attachmentUrl}
                             alt={message.attachmentFileName || 'Attachment'}
@@ -601,7 +601,7 @@ const SupportChatWidget = () => {
                           className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-semibold transition-all hover:bg-slate-50/50 ${message.body ? 'mt-2' : ''} ${
                             mine
                               ? 'bg-[#083358]/20 border-white/20 text-white hover:text-[#e2b007]'
-                              : 'bg-slate-50 border-slate-200 text-[#001f3f] hover:text-[#e2b007]'
+                              : 'bg-surface-container-low border-outline-variant text-on-surface hover:text-primary'
                           }`}
                         >
                           <FileText size={14} />
@@ -611,7 +611,7 @@ const SupportChatWidget = () => {
                       )}
 
                       {message.attachmentUrl && message.attachmentType === 'video' && (
-                        <div className={`max-w-xs rounded-lg overflow-hidden border border-slate-200 shadow-sm ${message.body ? 'mt-2' : ''}`}>
+                        <div className={`max-w-xs rounded-lg overflow-hidden border border-outline-variant shadow-sm ${message.body ? 'mt-2' : ''}`}>
                           <video
                             src={message.attachmentUrl}
                             controls
@@ -638,10 +638,10 @@ const SupportChatWidget = () => {
               );
             })}
             {isTyping && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-slate-400 animate-pulse shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+              <div className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-on-surface-variant animate-pulse shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-on-surface-variant animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-on-surface-variant animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-on-surface-variant animate-bounce" style={{ animationDelay: '300ms' }} />
                 <span className="ml-1 font-medium">Support is typing...</span>
               </div>
             )}
@@ -661,9 +661,9 @@ const SupportChatWidget = () => {
             </button>
           )}
 
-          <div className="flex flex-col border-t border-border-light bg-white p-3 relative">
+          <div className="flex flex-col border-t border-border-light bg-surface-container-lowest p-3 relative">
             {pendingAttachment && (
-              <div className="flex items-center justify-between bg-slate-50 border border-slate-200 px-2 py-1 rounded-md text-[11px] text-slate-600 mb-2 w-full animate-fade-in">
+              <div className="flex items-center justify-between bg-surface-container-low border border-outline-variant px-2 py-1 rounded-md text-[11px] text-on-surface-variant mb-2 w-full animate-fade-in">
                 <div className="flex items-center gap-1 truncate">
                   {pendingAttachment.attachmentType === 'image' ? <ImageIcon size={12} /> : (pendingAttachment.attachmentType === 'video' ? <Video size={12} /> : <FileText size={12} />)}
                   <span className="truncate font-medium">{pendingAttachment.attachmentFileName}</span>
@@ -671,7 +671,7 @@ const SupportChatWidget = () => {
                 <button
                   type="button"
                   onClick={() => setPendingAttachment(null)}
-                  className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                  className="text-on-surface-variant hover:text-on-surface p-0.5 cursor-pointer"
                 >
                   <X size={12} />
                 </button>
@@ -690,7 +690,7 @@ const SupportChatWidget = () => {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading || sending}
-                className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 disabled:opacity-50 transition-all cursor-pointer shrink-0 mb-0.5"
+                className="grid h-10 w-10 place-items-center rounded-xl bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface disabled:opacity-50 transition-all cursor-pointer shrink-0 mb-0.5"
                 title="Attach JPG, PNG, PDF, or Video file (up to 200MB)"
               >
                 {uploading ? (
@@ -709,13 +709,13 @@ const SupportChatWidget = () => {
                 maxLength={500}
                 placeholder="Type a message..."
                 aria-label="Message"
-                className="min-h-10 flex-1 resize-none rounded-xl border border-border-light px-3 py-2 text-sm outline-none placeholder:text-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/25 max-h-24 overflow-y-auto cursor-text"
+                className="min-h-10 flex-1 resize-none rounded-xl border border-border-light px-3 py-2 text-sm outline-none placeholder:text-on-surface-variant focus:border-primary focus:ring-2 focus:ring-primary/25 max-h-24 overflow-y-auto cursor-text"
                 style={{ height: 'auto' }}
               />
               <button type="button" aria-label="Send message" disabled={(!body.trim() && !pendingAttachment) || sending || uploading} onClick={send} className="grid h-10 w-10 place-items-center rounded-xl bg-primary-container text-on-primary-fixed hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primary-container/20 disabled:opacity-50 cursor-pointer shrink-0 mb-0.5"><Send size={17} /></button>
             </div>
             {body.length > 400 && (
-              <span className="text-[10px] text-slate-400 self-end px-1 absolute bottom-0.5 right-14">
+              <span className="text-[10px] text-on-surface-variant self-end px-1 absolute bottom-0.5 right-14">
                 {body.length}/500
               </span>
             )}

@@ -65,22 +65,22 @@ const PackageListPage = () => {
   };
 
   const columns = useMemo(() => [
-    { key: 'name', label: 'Name', render: (_, pkg) => <span className="font-medium text-text-light-bg">{pkg.name}</span> },
-    { key: 'price', label: 'Price', render: (_, pkg) => <span className="font-mono text-sm">${pkg.price}</span> },
-    { key: 'dailyROI', label: 'Daily ROI', render: (_, pkg) => <span className="font-mono text-sm text-success">{pkg.dailyROI}%</span> },
-    { key: 'duration', label: 'Duration', render: (_, pkg) => <span className="font-mono text-sm">{pkg.duration}d</span> },
+    { key: 'name', label: 'Name', render: (_, pkg) => <span className="font-semibold text-white">{pkg.name}</span> },
+    { key: 'price', label: 'Price', render: (_, pkg) => <span className="font-mono text-sm text-slate-200 font-bold">${pkg.price}</span> },
+    { key: 'dailyROI', label: 'Daily ROI', render: (_, pkg) => <span className="font-mono text-sm text-emerald-405 font-bold">{pkg.dailyROI}%</span> },
+    { key: 'duration', label: 'Duration', render: (_, pkg) => <span className="font-mono text-sm text-slate-350">{pkg.duration}d</span> },
     {
       key: 'coins',
       label: 'Coins',
       render: (_, pkg) => (
         <div className="flex flex-wrap gap-1">
           {pkg.coins?.map((coin) => (
-            <span key={coin._id || coin} className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-bg-light-alt text-text-secondary border border-border-light">
+            <span key={coin._id || coin} className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-white/5 text-slate-400 border border-white/10">
               {coin.symbol || coin}
             </span>
           ))}
           {(!pkg.coins || pkg.coins.length === 0) && (
-            <span className="text-xs text-text-secondary">No coins</span>
+            <span className="text-xs text-slate-400">No coins</span>
           )}
         </div>
       ),
@@ -94,19 +94,19 @@ const PackageListPage = () => {
       key: 'actions',
       label: '',
       render: (_, pkg) => (
-        <div className="flex items-center gap-1">
-          <button onClick={() => handleEdit(pkg)} className="p-1.5 hover:bg-bg-light-alt rounded-lg cursor-pointer" title="Edit">
-            <Pencil size={16} className="text-text-secondary" />
+        <div className="flex items-center gap-2">
+          <button onClick={() => handleEdit(pkg)} className="p-2 hover:bg-white/5 border border-white/10 rounded-xl cursor-pointer text-slate-400 transition-colors" title="Edit">
+            <Pencil size={14} />
           </button>
-          <button onClick={() => handleToggle(pkg._id)} className="p-1.5 hover:bg-bg-light-alt rounded-lg cursor-pointer" title="Toggle status">
+          <button onClick={() => handleToggle(pkg._id)} className="p-2 hover:bg-white/5 border border-white/10 rounded-xl cursor-pointer transition-colors" title="Toggle status">
             {pkg.status === 'active' ? (
-              <ToggleRight size={18} className="text-success" />
+              <ToggleRight size={16} className="text-emerald-400" />
             ) : (
-              <ToggleLeft size={18} className="text-text-secondary" />
+              <ToggleLeft size={16} className="text-slate-400" />
             )}
           </button>
-          <button onClick={() => handleDelete(pkg._id)} className="p-1.5 hover:bg-bg-light-alt rounded-lg cursor-pointer text-red-500 hover:text-red-700" title="Delete">
-            <Trash2 size={16} />
+          <button onClick={() => handleDelete(pkg._id)} className="p-2 hover:bg-red-500/10 border border-red-500/20 rounded-xl cursor-pointer text-red-400 transition-colors" title="Delete">
+            <Trash2 size={14} />
           </button>
         </div>
       ),
@@ -114,11 +114,11 @@ const PackageListPage = () => {
   ], [loading]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-white">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-heading font-semibold text-text-light-bg">Packages</h1>
-          <p className="text-sm text-text-secondary">{packagesTotal} package{packagesTotal !== 1 ? 's' : ''} configured</p>
+          <h1 className="text-xl font-heading font-semibold text-white">Packages</h1>
+          <p className="text-sm text-slate-400">{packagesTotal} package{packagesTotal !== 1 ? 's' : ''} configured</p>
         </div>
         <Button onClick={handleCreate} size="sm">
           <Plus size={16} className="mr-1.5" />
@@ -136,7 +136,7 @@ const PackageListPage = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-border-light overflow-hidden">
+      <div className="bg-[#0d1420]/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl overflow-hidden text-white">
         <DataTable columns={columns} data={packages} loading={loading} emptyTitle="No packages found" emptyDescription="Create your first package to get started." />
       </div>
 

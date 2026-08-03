@@ -6,12 +6,10 @@ import { Clock, CheckCircle, AlertCircle, XCircle, LogOut } from 'lucide-react';
 import { fetchWithdrawals, updateWithdrawalStatus, addWithdrawal } from '../../store/slices/withdrawalSlice';
 import { logoutUser } from '../../store/slices/authSlice';
 import { connectDashboardSocket, getDashboardSocket } from '../../services/dashboardSocket';
-import Logo from '../../components/common/Logo';
 import StatusBadge from '../../components/common/StatusBadge';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import PageSkeleton from '../../components/common/PageSkeleton';
 import WalletAddressCell from '../../components/common/WalletAddressCell';
-import Header from '../../components/common/Header';
 
 const MyWithdrawalsPage = () => {
   const dispatch = useDispatch();
@@ -84,14 +82,9 @@ const MyWithdrawalsPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-on-surface font-sans antialiased">
-      
-      <Header />
+    <div className="max-w-6xl w-full mx-auto px-margin-mobile md:px-margin-desktop py-gutter flex-1 space-y-gutter">
 
-      {/* MAIN CONTAINER */}
-      <main className="max-w-6xl w-full mx-auto px-margin-mobile md:px-margin-desktop py-gutter flex-grow space-y-gutter">
-        
-        <div className="border-b border-outline-variant pb-4">
+      <div className="border-b border-outline-variant pb-4">
           <h1 className="text-2xl font-extrabold text-primary tracking-tight uppercase">
             My <span className="text-primary font-extrabold">Withdrawals</span>
           </h1>
@@ -99,7 +92,7 @@ const MyWithdrawalsPage = () => {
         </div>
 
         {/* LOG HISTORY LIST */}
-        <section className="bg-white rounded-xl border border-outline-variant overflow-hidden">
+        <section className="bg-white dark:bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
           <div className="overflow-x-auto">
             {!withdrawals || withdrawals.length === 0 ? (
               <div className="p-12 text-center text-on-surface-variant text-sm font-medium">
@@ -151,18 +144,6 @@ const MyWithdrawalsPage = () => {
             )}
           </div>
         </section>
-
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-on-secondary-fixed text-white/50 py-8 border-t border-outline-variant/20 mt-12">
-        <div className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop flex flex-col items-center gap-4">
-          <Logo variant="dark" size="sm" className="h-8 opacity-80" />
-          <p className="font-body-sm text-body-sm text-center">
-            &copy; 2026 <span className="font-semibold text-white">AscendHash</span>. All rights reserved.
-          </p>
-        </div>
-      </footer>
 
     </div>
   );

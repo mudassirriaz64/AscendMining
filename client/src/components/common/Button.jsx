@@ -13,11 +13,11 @@ const Button = ({
   const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer';
 
   const variants = {
-    primary: 'bg-primary-container text-white hover:brightness-95 focus-visible:ring-primary-container/20 shadow-sm font-bold',
-    secondary: 'border border-secondary text-secondary bg-transparent hover:bg-secondary/5 focus-visible:ring-secondary',
+    primary: 'bg-primary-container text-slate-950 font-semibold shadow-sm focus-visible:ring-primary-container/20 hover:brightness-105 hover:shadow-[0_0_20px_rgba(255,184,0,0.35)] transition-all duration-300',
+    secondary: 'border border-white/20 text-slate-350 bg-transparent hover:bg-white/5 focus-visible:ring-white/20',
     danger: 'bg-danger text-white hover:bg-danger/90 focus-visible:ring-danger',
-    ghost: 'text-text-secondary hover:bg-bg-light-alt focus-visible:ring-text-secondary',
-    outline: 'border border-secondary text-text-light-bg bg-white hover:bg-bg-light-alt focus-visible:ring-primary shadow-sm',
+    ghost: 'text-slate-400 hover:bg-white/5 focus-visible:ring-slate-400',
+    outline: 'border border-white/10 text-white bg-white/5 hover:bg-white/10 focus-visible:ring-primary shadow-sm',
     success: 'bg-success text-white hover:brightness-95 focus-visible:ring-success shadow-sm',
     hero: 'bg-gradient-to-r from-secondary to-secondary-end text-white hover:opacity-90 focus-visible:ring-secondary shadow-lg',
   };

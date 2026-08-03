@@ -90,26 +90,26 @@ const AdminServicesPage = () => {
     {
       key: 'order',
       label: 'Order',
-      render: (val) => <p className="font-medium text-slate-800">{val}</p>
+      render: (val) => <p className="font-semibold text-slate-200">{val}</p>
     },
     {
       key: 'icon',
       label: 'Icon',
       render: (val) => (
-        <div className="bg-blue-50 text-blue-500 w-10 h-10 rounded-lg flex items-center justify-center">
-          <Cpu size={20} />
+        <div className="bg-white/5 border border-white/10 text-amber-400 w-10 h-10 rounded-xl flex items-center justify-center">
+          <Cpu size={16} />
         </div>
       )
     },
     {
       key: 'title',
       label: 'Title',
-      render: (val) => <p className="font-medium text-slate-800">{val}</p>
+      render: (val) => <p className="font-semibold text-white">{val}</p>
     },
     {
       key: 'description',
       label: 'Description',
-      render: (val) => <p className="text-sm text-slate-500 max-w-sm truncate" title={val}>{val}</p>
+      render: (val) => <p className="text-sm text-slate-400 max-w-sm truncate" title={val}>{val}</p>
     },
     {
       key: 'isActive',
@@ -133,11 +133,11 @@ const AdminServicesPage = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-white">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Services</h1>
-          <p className="text-slate-500 text-sm">Manage the services displayed on the platform.</p>
+          <h1 className="text-xl font-bold text-white">Services</h1>
+          <p className="text-slate-400 text-sm">Manage the services displayed on the platform.</p>
         </div>
         <Button onClick={() => handleOpenModal()} className="flex items-center gap-2">
           <Plus size={18} />
@@ -145,7 +145,7 @@ const AdminServicesPage = () => {
         </Button>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+      <div className="bg-[#0d1420]/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6">
         <DataTable
           columns={columns}
           data={services}
@@ -161,22 +161,22 @@ const AdminServicesPage = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
+            <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Title</label>
             <input
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#083358]"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/30 focus:bg-white/10 transition"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+            <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Description</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#083358] resize-none"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/30 focus:bg-white/10 transition-all resize-none"
               rows={4}
               required
             />
@@ -184,13 +184,13 @@ const AdminServicesPage = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Display Order</label>
+              <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Display Order</label>
               <input
                 type="number"
                 min="0"
                 value={formData.order}
                 onChange={(e) => setFormData({ ...formData, order: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#083358]"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/30 focus:bg-white/10 transition"
                 required
               />
             </div>
@@ -200,14 +200,14 @@ const AdminServicesPage = () => {
                   type="checkbox"
                   checked={formData.isActive}
                   onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                  className="w-5 h-5 text-[#083358] rounded focus:ring-[#083358]"
+                  className="w-4 h-4 rounded accent-amber-400 bg-white/5 border border-white/10"
                 />
-                <span className="text-sm font-medium text-slate-700">Is Active</span>
+                <span className="text-sm font-semibold text-slate-400">Is Active</span>
               </label>
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
             <Button variant="secondary" type="button" onClick={() => setModalOpen(false)}>
               Cancel
             </Button>

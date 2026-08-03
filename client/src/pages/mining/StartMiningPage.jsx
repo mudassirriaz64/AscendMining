@@ -5,7 +5,6 @@ import toast from 'react-hot-toast';
 import { Shield, Sparkles, X, Wallet, AlertTriangle } from 'lucide-react';
 import { fetchPackages, purchasePlan } from '../../store/slices/packageSlice';
 import { checkAuth } from '../../store/slices/authSlice';
-import Header from '../../components/common/Header';
 import PageSkeleton from '../../components/common/PageSkeleton';
 
 const StartMiningPage = () => {
@@ -59,26 +58,23 @@ const StartMiningPage = () => {
   const hasSufficientBalance = selectedPlan && (user?.walletBalance || 0) >= selectedPlan.price;
 
   return (
-    <div className="min-h-screen bg-[#f0f2f5] flex flex-col font-sans antialiased text-slate-800 pb-12">
-      <Header />
-
-      <main className="max-w-7xl w-full mx-auto px-6 py-12 flex-grow space-y-12">
-        <div className="text-center max-w-2xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-1.5 bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+    <div className="max-w-7xl w-full mx-auto px-6 py-12 flex-1 space-y-12">
+      <div className="text-center max-w-2xl mx-auto space-y-3">
+          <div className="inline-flex items-center gap-1.5 bg-yellow-100 dark:bg-yellow-500/15 text-yellow-800 dark:text-yellow-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
             <Sparkles size={12} className="animate-spin" /> Mining Hardware Nodes
           </div>
-          <h1 className="text-3xl font-black text-[#001f3f] tracking-tight uppercase">
+          <h1 className="text-3xl font-black text-[#001f3f] dark:text-on-surface tracking-tight uppercase">
             Start Mining Crypto
           </h1>
-          <p className="text-slate-500 text-sm">
+          <p className="text-slate-500 dark:text-on-surface-variant text-sm">
             Choose a hardware lease plan below. Purchases are made instantly from your USD wallet balance.
           </p>
 
           {/* Current balance card */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 max-w-xs mx-auto flex items-center justify-between mt-4">
+          <div className="bg-white dark:bg-surface-container-lowest rounded-xl shadow-sm border border-slate-200 dark:border-outline-variant p-4 max-w-xs mx-auto flex items-center justify-between mt-4">
             <div className="text-left">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Your Balance</p>
-              <h3 className="text-lg font-black text-slate-800">${(user?.walletBalance || 0).toFixed(2)}</h3>
+              <p className="text-[10px] font-bold text-slate-400 dark:text-on-surface-variant uppercase tracking-wider">Your Balance</p>
+              <h3 className="text-lg font-black text-slate-800 dark:text-on-surface">${(user?.walletBalance || 0).toFixed(2)}</h3>
             </div>
             <button
               onClick={() => navigate('/deposit')}
@@ -142,12 +138,11 @@ const StartMiningPage = () => {
             </div>
           ))}
         </div>
-      </main>
 
       {/* Checkout Modal */}
       {selectedPlan && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white dark:bg-surface-container-lowest rounded-2xl shadow-2xl border border-slate-100 dark:border-outline-variant w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header */}
             <div className="bg-[#001f3f] text-white px-6 py-4 flex justify-between items-center">
               <div>
@@ -163,20 +158,20 @@ const StartMiningPage = () => {
             <div className="p-6 space-y-4">
               
               {/* Balance & Price Details */}
-              <div className="bg-slate-50 border border-slate-150 rounded-2xl p-4 space-y-3">
+              <div className="bg-slate-50 dark:bg-surface-container-low border border-slate-150 dark:border-outline-variant rounded-2xl p-4 space-y-3">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="font-semibold text-slate-500">Plan Lease Price</span>
-                  <span className="font-bold text-slate-800">${selectedPlan.price.toFixed(2)}</span>
+                  <span className="font-semibold text-slate-500 dark:text-on-surface-variant">Plan Lease Price</span>
+                  <span className="font-bold text-slate-800 dark:text-on-surface">${selectedPlan.price.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between items-center text-xs border-t border-slate-200/60 pt-3">
-                  <span className="font-semibold text-slate-500">Your Current Balance</span>
-                  <span className="font-bold text-slate-800">${(user?.walletBalance || 0).toFixed(2)}</span>
+                <div className="flex justify-between items-center text-xs border-t border-slate-200/60 dark:border-outline-variant pt-3">
+                  <span className="font-semibold text-slate-500 dark:text-on-surface-variant">Your Current Balance</span>
+                  <span className="font-bold text-slate-800 dark:text-on-surface">${(user?.walletBalance || 0).toFixed(2)}</span>
                 </div>
               </div>
 
               {/* Conditional warning or confirmation message */}
               {hasSufficientBalance ? (
-                <div className="bg-blue-50/50 border border-blue-150 rounded-2xl p-4 flex gap-3 text-xs text-blue-800">
+                <div className="bg-blue-50/50 dark:bg-primary/10 border border-blue-150 dark:border-primary/30 rounded-2xl p-4 flex gap-3 text-xs text-blue-800 dark:text-blue-200">
                   <Wallet className="text-[#185adb] w-5 h-5 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="font-bold">Instant Activation</p>
@@ -186,7 +181,7 @@ const StartMiningPage = () => {
                   </div>
                 </div>
               ) : (
-                <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex gap-3 text-xs text-red-800">
+                <div className="bg-red-50 dark:bg-danger/10 border border-red-200 dark:border-danger/30 rounded-2xl p-4 flex gap-3 text-xs text-red-800 dark:text-red-200">
                   <AlertTriangle className="text-red-500 w-5 h-5 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="font-bold">Insufficient Wallet Balance</p>
@@ -199,10 +194,10 @@ const StartMiningPage = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="bg-slate-50 px-6 py-4 flex justify-end gap-3 border-t border-slate-100">
+            <div className="bg-slate-50 dark:bg-surface-container-low px-6 py-4 flex justify-end gap-3 border-t border-slate-100 dark:border-outline-variant">
               <button 
                 onClick={closeModal}
-                className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold px-5 py-2.5 rounded-xl text-xs uppercase cursor-pointer"
+                className="bg-white dark:bg-surface-container-lowest border border-slate-200 dark:border-outline-variant hover:bg-slate-50 dark:hover:bg-surface-container text-slate-600 dark:text-on-surface-variant font-bold px-5 py-2.5 rounded-xl text-xs uppercase cursor-pointer"
               >
                 Cancel
               </button>

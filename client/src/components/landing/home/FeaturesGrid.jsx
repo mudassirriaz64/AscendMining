@@ -35,8 +35,8 @@ const FeaturesGrid = () => {
                 <div className={`w-12 h-12 rounded-xl border flex items-center justify-center mb-6 group-hover:scale-110 transition-transform ${feat.tint}`}>
                   <Icon size={24} className={feat.accent} />
                 </div>
-                <h3 className="text-lg font-heading font-semibold text-white mb-3">{feat.title}</h3>
-                <p className="text-sm text-slate-400 leading-relaxed">{feat.desc}</p>
+                <h3 className="text-lg font-heading font-semibold text-page-text mb-3">{feat.title}</h3>
+                <p className="text-sm text-page-text-soft leading-relaxed">{feat.desc}</p>
               </SpotlightCard>
             </m.div>
           );

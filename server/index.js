@@ -8,6 +8,7 @@ const deduplicateConversations = require('./utils/deduplicateConversations');
 const initSupportChatSocket = require('./sockets/supportChat');
 const initDashboardSocket = require('./sockets/dashboard');
 const { startSlaCron } = require('./jobs/supportSlaCheck.cron');
+const { startMiningPayoutCron } = require('./jobs/miningPayout.cron');
 
 const PORT = process.env.PORT || 5000;
 
@@ -45,6 +46,9 @@ const startServer = async () => {
 
   // Start SLA cron (checks every 60s for conversations unanswered > 30 min)
   startSlaCron();
+
+  // Start automated 24-hour mining reward payout cron
+  startMiningPayoutCron(app);
 
   server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

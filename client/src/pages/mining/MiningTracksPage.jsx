@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Monitor, X, Clock, HelpCircle } from 'lucide-react';
 import { fetchUserMiningTracks } from '../../store/slices/packageSlice';
-import Header from '../../components/common/Header';
 import PageSkeleton from '../../components/common/PageSkeleton';
 
 const MiningTracksPage = () => {
@@ -71,27 +70,24 @@ const MiningTracksPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f0f2f5] flex flex-col font-sans antialiased text-slate-800 pb-12">
-      <Header />
+    <div className="max-w-7xl w-full mx-auto px-6 py-12 flex-1 space-y-8">
 
-      <main className="max-w-7xl w-full mx-auto px-6 py-12 flex-grow space-y-8">
-        
-        <div className="border-b border-slate-200 pb-4">
-          <h1 className="text-2xl font-black text-[#001f3f] tracking-tight uppercase">
+      <div className="border-b border-slate-200 dark:border-surface-container-highest pb-4">
+          <h1 className="text-2xl font-black text-[#001f3f] dark:text-on-surface tracking-tight uppercase">
             Active Mining Tracks
           </h1>
-          <p className="text-xs text-slate-400 font-bold mt-1">
+          <p className="text-xs text-slate-400 dark:text-on-surface-variant font-bold mt-1">
             Monitor lease nodes progress, daily yields, and activation states.
           </p>
         </div>
 
         {tracks.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center shadow-sm max-w-lg mx-auto space-y-4">
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400">
+          <div className="bg-white dark:bg-surface-container-lowest border border-slate-200 dark:border-outline-variant rounded-2xl p-12 text-center shadow-sm max-w-lg mx-auto space-y-4">
+            <div className="w-16 h-16 bg-slate-100 dark:bg-surface-container-low rounded-full flex items-center justify-center mx-auto text-slate-400 dark:text-on-surface-variant">
               <Clock size={28} />
             </div>
-            <h3 className="text-lg font-black text-[#001f3f] uppercase">No Active Tracks Found</h3>
-            <p className="text-slate-500 text-xs leading-relaxed">
+            <h3 className="text-lg font-black text-[#001f3f] dark:text-on-surface uppercase">No Active Tracks Found</h3>
+            <p className="text-slate-500 dark:text-on-surface-variant text-xs leading-relaxed">
               You haven't leased any hardware package yet. Go to "Start Mining" in the menu to lease a high-yield mining plan.
             </p>
             <a 
@@ -102,7 +98,7 @@ const MiningTracksPage = () => {
             </a>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-surface-container-lowest rounded-2xl border border-slate-200 dark:border-outline-variant shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
@@ -115,32 +111,32 @@ const MiningTracksPage = () => {
                     <th className="px-6 py-4 text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-xs">
+                <tbody className="divide-y divide-slate-100 dark:divide-surface-container-highest text-xs">
                   {tracks.map((track) => {
                     const progress = calculateProgress(track);
                     const earnings = calculateEarnings(track);
                     
                     return (
-                      <tr key={track._id} className="hover:bg-slate-50/50 transition-colors">
+                      <tr key={track._id} className="hover:bg-slate-50/50 dark:hover:bg-surface-container-low transition-colors">
                         {/* Plan Specs */}
                         <td className="px-6 py-5">
-                          <p className="font-extrabold text-slate-900 text-sm">{track.packageId?.name || 'Starter Plan'}</p>
+                          <p className="font-extrabold text-slate-900 dark:text-on-surface text-sm">{track.packageId?.name || 'Starter Plan'}</p>
                           <div className="flex flex-wrap gap-1 mt-0.5">
                             {earnings.perCoin.map((pc) => (
-                              <span key={pc.symbol} className="text-[10px] font-bold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded uppercase">{pc.symbol}</span>
+                              <span key={pc.symbol} className="text-[10px] font-bold bg-slate-100 dark:bg-surface-container-low text-slate-600 dark:text-on-surface-variant px-1.5 py-0.5 rounded uppercase">{pc.symbol}</span>
                             ))}
                           </div>
-                          <p className="text-slate-500 text-[10px] font-medium mt-1">Speed: {track.hashRateSnapshot} Mhash/s</p>
+                          <p className="text-slate-500 dark:text-on-surface-variant text-[10px] font-medium mt-1">Speed: {track.hashRateSnapshot} Mhash/s</p>
                         </td>
 
                         {/* Price */}
-                        <td className="px-6 py-5 font-black text-slate-800 text-sm">
+                        <td className="px-6 py-5 font-black text-slate-800 dark:text-on-surface text-sm">
                           {track.purchaseAmount.toFixed(2)} USD
                         </td>
 
                         {/* Progress Bar matching screenshot */}
                         <td className="px-6 py-5 max-w-[280px]">
-                          <div className="w-full bg-slate-200 rounded-full h-5 overflow-hidden relative shadow-inner">
+                          <div className="w-full bg-slate-200 dark:bg-surface-container rounded-full h-5 overflow-hidden relative shadow-inner">
                             {progress.percent > 0 ? (
                               <div 
                                 className="bg-[#4caf50] h-full flex items-center justify-center text-[10px] text-white font-black"
@@ -149,10 +145,10 @@ const MiningTracksPage = () => {
                                 {progress.percent.toFixed(2)}%
                               </div>
                             ) : (
-                              <div className="h-full w-full bg-slate-200"></div>
+                              <div className="h-full w-full bg-slate-200 dark:bg-surface-container"></div>
                             )}
                           </div>
-                          <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 mt-2">
+                          <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 dark:text-on-surface-variant mt-2">
                             <span>{progress.completed} / {track.durationSnapshot} days</span>
                             <span>{progress.remaining} days remaining</span>
                           </div>
@@ -163,7 +159,7 @@ const MiningTracksPage = () => {
                           {earnings.perCoin.map((pc) => (
                             <div key={pc.symbol} className="mb-1 last:mb-0">
                               <p className="text-[#4caf50] font-extrabold text-sm">{pc.totalEarned.toFixed(2)} {pc.symbol}</p>
-                              <p className="text-slate-400 font-bold text-[10px]">{pc.dailyProfitCoin.toFixed(2)} {pc.symbol} / day</p>
+                              <p className="text-slate-400 dark:text-on-surface-variant font-bold text-[10px]">{pc.dailyProfitCoin.toFixed(2)} {pc.symbol} / day</p>
                             </div>
                           ))}
                         </td>
@@ -175,7 +171,7 @@ const MiningTracksPage = () => {
                               Approved
                             </span>
                           ) : (
-                            <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                            <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-surface-container-low text-slate-600 dark:text-on-surface-variant border border-slate-200 dark:border-outline-variant">
                               Unpaid
                             </span>
                           )}
@@ -198,7 +194,6 @@ const MiningTracksPage = () => {
             </div>
           </div>
         )}
-      </main>
 
       {/* Track Details Modal matching Screenshot 3 */}
       {activeTrack && (() => {
@@ -207,7 +202,7 @@ const MiningTracksPage = () => {
         
         return (
           <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-white dark:bg-surface-container-lowest rounded-2xl shadow-2xl border border-slate-100 dark:border-outline-variant w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               
               {/* Modal Header */}
               <div className="bg-[#001f3f] text-white px-6 py-4 flex justify-between items-center border-b border-white/10">
@@ -221,44 +216,44 @@ const MiningTracksPage = () => {
               </div>
 
               {/* Modal Grid content */}
-              <div className="p-6 bg-[#eaeaea] text-xs font-semibold text-slate-700">
-                <div className="grid grid-cols-2 gap-y-4 gap-x-8 border-b border-slate-300 pb-5">
+              <div className="p-6 bg-[#eaeaea] dark:bg-surface-container text-xs font-semibold text-slate-700 dark:text-on-surface-variant">
+                <div className="grid grid-cols-2 gap-y-4 gap-x-8 border-b border-slate-300 dark:border-outline-variant pb-5">
                   
                   {/* Row 1 */}
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500 font-bold">Created At</span>
-                    <span className="text-slate-800 font-black">{formatDate(activeTrack.createdAt)}</span>
+                    <span className="text-slate-500 dark:text-on-surface-variant font-bold">Created At</span>
+                    <span className="text-slate-800 dark:text-on-surface font-black">{formatDate(activeTrack.createdAt)}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500 font-bold">Total Days</span>
-                    <span className="text-slate-800 font-black">{activeTrack.durationSnapshot}</span>
+                    <span className="text-slate-500 dark:text-on-surface-variant font-bold">Total Days</span>
+                    <span className="text-slate-800 dark:text-on-surface font-black">{activeTrack.durationSnapshot}</span>
                   </div>
 
                   {/* Row 2 */}
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500 font-bold">Plan Title</span>
+                    <span className="text-slate-500 dark:text-on-surface-variant font-bold">Plan Title</span>
                     <span className="bg-[#e2b007] text-[#001f3f] px-2 py-0.5 rounded font-black uppercase">
                       {activeTrack.packageId?.name || 'Starter Plan'}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500 font-bold">Days Completed</span>
-                    <span className="text-slate-800 font-black">{progress.completed}</span>
+                    <span className="text-slate-500 dark:text-on-surface-variant font-bold">Days Completed</span>
+                    <span className="text-slate-800 dark:text-on-surface font-black">{progress.completed}</span>
                   </div>
 
                   {/* Row 3 */}
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500 font-bold">Plan Price</span>
-                    <span className="text-slate-800 font-black">{activeTrack.purchaseAmount.toFixed(2)} USD</span>
+                    <span className="text-slate-500 dark:text-on-surface-variant font-bold">Plan Price</span>
+                    <span className="text-slate-800 dark:text-on-surface font-black">{activeTrack.purchaseAmount.toFixed(2)} USD</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500 font-bold">Remaining Days</span>
-                    <span className="text-slate-800 font-black">{progress.remaining}</span>
+                    <span className="text-slate-500 dark:text-on-surface-variant font-bold">Remaining Days</span>
+                    <span className="text-slate-800 dark:text-on-surface font-black">{progress.remaining}</span>
                   </div>
 
                   {/* Row 4 */}
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500 font-bold">Miner</span>
+                    <span className="text-slate-500 dark:text-on-surface-variant font-bold">Miner</span>
                     <div className="flex flex-wrap gap-1">
                       {earnings.perCoin.map((pc) => (
                         <span key={pc.symbol} className="bg-[#e2b007] text-[#001f3f] px-2 py-0.5 rounded font-black uppercase text-[10px]">{pc.symbol}</span>
@@ -266,7 +261,7 @@ const MiningTracksPage = () => {
                     </div>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500 font-bold">Total Earned</span>
+                    <span className="text-slate-500 dark:text-on-surface-variant font-bold">Total Earned</span>
                     <div className="text-right">
                       {earnings.perCoin.map((pc) => (
                         <p key={pc.symbol} className="text-[#4caf50] font-black">{pc.totalEarned.toFixed(2)} {pc.symbol}</p>
@@ -276,28 +271,28 @@ const MiningTracksPage = () => {
 
                   {/* Row 5 */}
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500 font-bold">Speed</span>
-                    <span className="text-slate-800 font-black">{activeTrack.hashRateSnapshot} Mhash/s</span>
+                    <span className="text-slate-500 dark:text-on-surface-variant font-bold">Speed</span>
+                    <span className="text-slate-800 dark:text-on-surface font-black">{activeTrack.hashRateSnapshot} Mhash/s</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500 font-bold">Total Potential</span>
-                    <span className="text-[#001f3f] font-black">{earnings.totalPotential.toFixed(2)} {earnings.symbol}</span>
+                    <span className="text-slate-500 dark:text-on-surface-variant font-bold">Total Potential</span>
+                    <span className="text-[#001f3f] dark:text-primary font-black">{earnings.totalPotential.toFixed(2)} {earnings.symbol}</span>
                   </div>
 
                   {/* Row 6 */}
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500 font-bold">Return / Day</span>
+                    <span className="text-slate-500 dark:text-on-surface-variant font-bold">Return / Day</span>
                     <div className="text-right">
                       {earnings.perCoin.map((pc) => (
-                        <p key={pc.symbol} className="text-slate-800 font-black">{pc.dailyProfitCoin.toFixed(2)} {pc.symbol}</p>
+                        <p key={pc.symbol} className="text-slate-800 dark:text-on-surface font-black">{pc.dailyProfitCoin.toFixed(2)} {pc.symbol}</p>
                       ))}
                     </div>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500 font-bold">Remaining Potential</span>
+                    <span className="text-slate-500 dark:text-on-surface-variant font-bold">Remaining Potential</span>
                     <div className="text-right">
                       {earnings.perCoin.map((pc) => (
-                        <p key={pc.symbol} className="text-slate-600 font-black">{pc.remainingPotential.toFixed(2)} {pc.symbol}</p>
+                        <p key={pc.symbol} className="text-slate-600 dark:text-on-surface-variant font-black">{pc.remainingPotential.toFixed(2)} {pc.symbol}</p>
                       ))}
                     </div>
                   </div>

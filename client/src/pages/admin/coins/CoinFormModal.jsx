@@ -125,26 +125,26 @@ const CoinFormModal = ({ isOpen, onClose, coin }) => {
 
       {!isEditing && (
         <div className="mb-4">
-          <label className="block text-[13px] text-text-secondary mb-2 font-medium">Quick Select Coin</label>
-          <div className="grid grid-cols-5 sm:grid-cols-8 gap-2 max-h-40 overflow-y-auto p-2 bg-bg-light-alt rounded-lg">
+          <label className="block text-[13px] text-slate-400 mb-2 font-medium">Quick Select Coin</label>
+          <div className="grid grid-cols-5 sm:grid-cols-8 gap-2 max-h-40 overflow-y-auto p-2 bg-[#050811] border border-white/5 rounded-xl">
             {COIN_ICONS.map((icon) => (
               <button
                 key={icon.symbol}
                 type="button"
                 onClick={() => handleIconSelect(icon)}
-                className={`flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all cursor-pointer ${
+                className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all cursor-pointer ${
                   selectedIcon?.symbol === icon.symbol
-                    ? 'border-primary bg-primary/10'
-                    : 'border-transparent hover:bg-white hover:border-border-light'
+                    ? 'border-primary-container bg-primary-container/10 text-white'
+                    : 'border-transparent hover:bg-white/5 hover:border-white/10 text-slate-400'
                 }`}
               >
                 <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-md"
                   style={{ backgroundColor: icon.color }}
                 >
                   {icon.symbol.substring(0, 2)}
                 </div>
-                <span className="text-[10px] text-text-secondary truncate w-full text-center">{icon.symbol}</span>
+                <span className="text-[10px] text-slate-400 truncate w-full text-center">{icon.symbol}</span>
               </button>
             ))}
           </div>
@@ -163,8 +163,8 @@ const CoinFormModal = ({ isOpen, onClose, coin }) => {
           <InputField label="USD Rate*" name="usdRate" type="number" step="any" error={errors.usdRate?.message} {...register('usdRate')} />
           <div className="flex items-center gap-3 pt-7">
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" {...register('miningAvailable')} className="w-4 h-4 rounded accent-primary" />
-              <span className="text-sm text-text-secondary">Mining Available</span>
+              <input type="checkbox" {...register('miningAvailable')} className="w-4 h-4 rounded accent-amber-400 bg-white/5 border border-white/10" />
+              <span className="text-sm text-slate-400">Mining Available</span>
             </label>
           </div>
         </div>
@@ -176,12 +176,12 @@ const CoinFormModal = ({ isOpen, onClose, coin }) => {
 
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" {...register('isActive')} className="w-4 h-4 rounded accent-primary" />
-            <span className="text-sm text-text-secondary">Active (visible to users)</span>
+            <input type="checkbox" {...register('isActive')} className="w-4 h-4 rounded accent-amber-400 bg-white/5 border border-white/10" />
+            <span className="text-sm text-slate-400">Active (visible to users)</span>
           </label>
         </div>
 
-        <div className="flex justify-end gap-3 pt-2">
+        <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
           <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
           <Button type="submit">{isEditing ? 'Update Coin' : 'Create Coin'}</Button>
         </div>

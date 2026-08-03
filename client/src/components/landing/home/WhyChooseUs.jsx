@@ -29,14 +29,14 @@ const FeatureCard = ({ icon: Icon, title, desc }) => {
       onMouseMove={handleMouseMove}
       whileHover={{ y: -6, scale: 1.02 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="spotlight-card group relative h-full overflow-hidden rounded-2xl bg-[#080c14]/60 backdrop-blur-md border border-white/10 p-6 hover:border-cyan-400/30 hover:shadow-[0_16px_50px_rgba(0,240,255,0.12)]"
+      className="spotlight-card group relative h-full overflow-hidden rounded-2xl bg-page-card backdrop-blur-md border border-page-border p-6 hover:border-cyan-400/30 hover:shadow-[0_16px_50px_rgba(0,240,255,0.12)]"
       style={{ ['--spotlight-color']: 'rgba(0,240,255,0.14)' }}
     >
       <div className="w-fit mb-4 p-4 rounded-xl bg-cyan-500/10 text-cyan-400 transition-transform duration-300 group-hover:scale-110">
         <Icon size={24} />
       </div>
-      <h3 className="text-lg font-heading font-semibold text-white mb-3">{title}</h3>
-      <p className="text-sm text-slate-400 leading-relaxed">{desc}</p>
+      <h3 className="text-lg font-heading font-semibold text-page-text mb-3">{title}</h3>
+      <p className="text-sm text-page-text-soft leading-relaxed">{desc}</p>
     </m.div>
   );
 };
