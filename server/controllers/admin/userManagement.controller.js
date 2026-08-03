@@ -61,18 +61,6 @@ const getUserWithdrawals = async (req, res, next) => {
   }
 };
 
-const getUserReferrals = async (req, res, next) => {
-  try {
-    const result = await userManagementService.getUserReferrals(req.params.id, req.query);
-    res.status(200).json({
-      success: true,
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
 const getUserScreenshots = async (req, res, next) => {
   try {
     const result = await userManagementService.getUserScreenshots(req.params.id, req.query);
@@ -167,7 +155,6 @@ module.exports = {
   getUserPackages,
   getUserDeposits,
   getUserWithdrawals,
-  getUserReferrals,
   getUserScreenshots,
   suspendUser,
   reactivateUser,

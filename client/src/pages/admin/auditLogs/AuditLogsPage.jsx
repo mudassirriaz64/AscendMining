@@ -224,7 +224,6 @@ const AuditLogsPage = () => {
     'package_cancelled',
     'package_deleted',
     'wallet_adjustment',
-    'referral_blocked',
     'cms_content_updated',
     'coin_created',
     'coin_updated',

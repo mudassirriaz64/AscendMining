@@ -12,7 +12,6 @@ const Notification = require('../models/Notification');
 const UserPackage = require('../models/UserPackage');
 const Package = require('../models/Package');
 const AppError = require('../utils/AppError');
-const referralService = require('./referral.service');
 
 // Helper to calculate SHA-256 hash of a buffer
 const calculateBufferHash = (buffer) => {
@@ -163,11 +162,6 @@ const approveDeposit = async (id, adminId, ip) => {
     referenceId: deposit._id,
     balanceAfter: newWalletBalance,
   });
-
-  // Process referral bonus if user was referred by someone and is active
-  if (user.referredBy && user.status === 'active') {
-    await referralService.checkAndReleaseReferralRewards(user._id);
-  }
 
   // Notify user
   await Notification.create({

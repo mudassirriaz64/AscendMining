@@ -22,7 +22,6 @@ const registerSchema = z.object({
   confirmPassword: z.string().optional(),
   country: z.string().optional(),
   phone: z.string().optional(),
-  referralCode: z.string().optional(),
 }).refine((data) => !data.confirmPassword || data.password === data.confirmPassword, {
   message: 'Passwords do not match.',
   path: ['confirmPassword'],

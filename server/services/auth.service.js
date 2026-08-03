@@ -1,4 +1,3 @@
-const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
 const userRepository = require('../repositories/user.repository');
 const refreshTokenRepository = require('../repositories/refreshToken.repository');
@@ -6,12 +5,11 @@ const { generateAccessToken, generateRefreshToken } = require('../utils/tokenUti
 const AppError = require('../utils/AppError');
 const { PASSWORD_RESET_EXPIRY_MINUTES } = require('../config/constants');
 const Admin = require('../models/Admin');
-const Referral = require('../models/Referral');
 const emailService = require('./email.service');
 
 // No cookie setup functions are needed for sessionStorage auth
 
-const register = async ({ fullName, username, email, password, country, phone, referralCode }) => {
+const register = async ({ fullName, username, email, password, country, phone }) => {
   const emailExists = await userRepository.existsByEmail(email);
   if (emailExists) {
     throw new AppError('EMAIL_EXISTS', 'This email is already registered.', 409);
@@ -22,14 +20,6 @@ const register = async ({ fullName, username, email, password, country, phone, r
     throw new AppError('USERNAME_EXISTS', 'This username is already taken.', 409);
   }
 
-  let referredBy = null;
-  if (referralCode) {
-    const referrer = await userRepository.findByReferralCode(referralCode);
-    if (referrer) {
-      referredBy = referrer._id;
-    }
-  }
-
   const user = await userRepository.create({
     fullName,
     username,
@@ -37,17 +27,7 @@ const register = async ({ fullName, username, email, password, country, phone, r
     passwordHash: password,
     country: country || null,
     phone: phone || null,
-    referralCode: uuidv4().slice(0, 8).toUpperCase(),
-    referredBy,
   });
-
-  if (referredBy) {
-    await Referral.create({
-      referrer: referredBy,
-      referredUser: user._id,
-      status: 'pending',
-    });
-  }
 
   // Auto-login: issue session tokens so registration is instant
   const accessToken = generateAccessToken(user);

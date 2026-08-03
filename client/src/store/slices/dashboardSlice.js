@@ -50,29 +50,15 @@ export const fetchMyTransactions = createAsyncThunk(
   }
 );
 
-export const fetchMyReferrals = createAsyncThunk(
-  'dashboard/fetchMyReferrals',
-  async (params, { rejectWithValue }) => {
-    try {
-      const response = await dashboardService.getMyReferrals(params);
-      return response.data.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || { message: 'Failed to fetch referrals.' });
-    }
-  }
-);
-
 const dashboardSlice = createSlice({
   name: 'dashboard',
   initialState: {
     balances: {
       walletBalance: 0,
-      referralBalance: 0,
       miningBalances: {},
     },
     walletAddresses: {},
     coins: [],
-    referralLink: '',
     miningStatus: {
       status: 'inactive',
       progressPercent: 0,
@@ -89,7 +75,6 @@ const dashboardSlice = createSlice({
     history: {
       deposits: { data: [], total: 0, page: 1, limit: 20, loading: false, error: null },
       transactions: { data: [], total: 0, page: 1, limit: 20, loading: false, error: null },
-      referrals: { data: [], total: 0, page: 1, limit: 20, loading: false, error: null },
     },
     loading: false,
     error: null,
@@ -99,9 +84,8 @@ const dashboardSlice = createSlice({
       state.error = null;
     },
     updateBalance: (state, action) => {
-      const { walletBalance, referralBalance, miningBalances } = action.payload;
+      const { walletBalance, miningBalances } = action.payload;
       if (walletBalance !== undefined) state.balances.walletBalance = walletBalance;
-      if (referralBalance !== undefined) state.balances.referralBalance = referralBalance;
       if (miningBalances) state.balances.miningBalances = { ...state.balances.miningBalances, ...miningBalances };
     },
     updateMiningStatus: (state, action) => {
@@ -135,7 +119,6 @@ const dashboardSlice = createSlice({
         state.balances = action.payload.balances;
         state.walletAddresses = action.payload.walletAddresses;
         state.coins = action.payload.coins;
-        state.referralLink = action.payload.referralLink;
         state.miningStatus = action.payload.miningStatus;
         state.activePackages = action.payload.activePackages || [];
         state.latestTransactions = action.payload.latestTransactions;
@@ -185,21 +168,6 @@ const dashboardSlice = createSlice({
       .addCase(fetchMyTransactions.rejected, (state, action) => {
         state.history.transactions.loading = false;
         state.history.transactions.error = action.payload;
-      })
-      .addCase(fetchMyReferrals.pending, (state) => {
-        state.history.referrals.loading = true;
-        state.history.referrals.error = null;
-      })
-      .addCase(fetchMyReferrals.fulfilled, (state, action) => {
-        state.history.referrals.loading = false;
-        state.history.referrals.data = action.payload.referrals;
-        state.history.referrals.total = action.payload.total;
-        state.history.referrals.page = action.payload.page;
-        state.history.referrals.limit = action.payload.limit;
-      })
-      .addCase(fetchMyReferrals.rejected, (state, action) => {
-        state.history.referrals.loading = false;
-        state.history.referrals.error = action.payload;
       });
   },
 });

@@ -3,8 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { 
-  Wallet, Gift, Cpu, Copy, Clock, LogOut, 
-  ShieldAlert, RefreshCw, ArrowRight, Check,
+  Wallet, Cpu, Clock, LogOut, 
+  ShieldAlert, RefreshCw, ArrowRight,
   ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { fetchDashboardSummary, claimMiningPayout, updateBalance, updateMiningStatus, addTransaction } from '../../store/slices/dashboardSlice';
@@ -237,11 +237,9 @@ const DashboardPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
-  const [copied, setCopied] = useState(false);
   const { user } = useSelector((state) => state.auth);
   const { 
     balances, 
-    referralLink, 
     miningStatus, 
     coins,
     activePackages,
@@ -323,15 +321,6 @@ const DashboardPage = () => {
       toast.success('Mining reward claimed successfully!');
     } else {
       toast.error(res.payload?.error?.message || 'Failed to claim reward.');
-    }
-  };
-
-  const handleCopyLink = () => {
-    if (referralLink) {
-      navigator.clipboard.writeText(referralLink);
-      toast.success('Referral link copied to clipboard!');
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -434,22 +423,6 @@ const DashboardPage = () => {
             </div>
           </div>
 
-          {/* Referral Bonus Card */}
-          <div className="bg-on-secondary-fixed rounded-xl p-card-padding shadow-sm relative overflow-hidden group">
-            <div className="flex flex-col gap-4">
-              <div className="bg-primary-container/20 w-12 h-12 rounded-lg flex items-center justify-center">
-                <Gift className="w-6 h-6 text-primary-fixed-dim" />
-              </div>
-              <div>
-                <p className="font-label-caps text-label-caps text-secondary-fixed-dim/70 uppercase">Referral Bonus</p>
-                <p className="font-headline-lg text-headline-lg text-white font-mono mt-1">
-                  {(balances.referralBalance || 0).toFixed(2)}{' '}
-                  <span className="text-primary-fixed-dim text-lg">USD</span>
-                </p>
-              </div>
-            </div>
-          </div>
-
           {/* Coin Wallet Card */}
           <div className="bg-on-secondary-fixed rounded-xl p-card-padding shadow-sm relative overflow-hidden group">
             {hasActivePlan ? (
@@ -504,34 +477,6 @@ const DashboardPage = () => {
                 </p>
               </div>
             )}
-          </div>
-        </section>
-
-        {/* Referral Link Banner */}
-        <section className="bg-gradient-to-r from-brand-teal to-tertiary rounded-xl p-card-padding text-white relative overflow-hidden shadow-sm">
-          <div className="absolute inset-0 opacity-10 pointer-events-none">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -mr-20 -mt-20 blur-3xl"></div>
-          </div>
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <svg className="w-6 h-6 text-primary-container" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
-                </svg>
-                <h2 className="font-headline-md text-headline-md">Your Referral Link</h2>
-              </div>
-              <p className="font-body-md text-body-md opacity-90 max-w-xl">Share this link with your network to earn exclusive referral bonuses on every successful deposit they make.</p>
-            </div>
-            <div className="flex items-center bg-white/10 rounded-lg p-1 pl-4 border border-white/20 backdrop-blur-sm w-full md:w-auto min-w-[320px]">
-              <span className="font-mono text-xs truncate flex-grow select-all">{referralLink || ''}</span>
-              <button 
-                onClick={handleCopyLink}
-                className="bg-on-secondary-fixed text-primary-container px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-black transition-colors ml-4 cursor-pointer"
-              >
-                <Copy size={14} />
-                Copy
-              </button>
-            </div>
           </div>
         </section>
 

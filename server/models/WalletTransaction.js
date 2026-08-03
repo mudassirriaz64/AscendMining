@@ -13,7 +13,6 @@ const walletTransactionSchema = new mongoose.Schema(
         'deposit',
         'withdrawal',
         'mining_payout',
-        'referral_reward',
         'package_purchase',
         'cancellation_refund',
         'admin_adjustment',
@@ -26,7 +25,7 @@ const walletTransactionSchema = new mongoose.Schema(
     },
     referenceType: {
       type: String,
-      enum: ['Deposit', 'Withdrawal', 'UserPackage', 'Referral', 'AdminLog'],
+      enum: ['Deposit', 'Withdrawal', 'UserPackage', 'AdminLog'],
       required: true,
     },
     referenceId: {

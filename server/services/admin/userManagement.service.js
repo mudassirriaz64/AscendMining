@@ -70,20 +70,6 @@ const getUserWithdrawals = async (userId, { page = 1, limit = 20, status }) => {
   return { withdrawals, total, page, limit };
 };
 
-const getUserReferrals = async (userId, { page = 1, limit = 20 }) => {
-  const Referral = require('../../models/Referral');
-  const skip = (page - 1) * limit;
-  const [referrals, total] = await Promise.all([
-    Referral.find({ referrer: userId })
-      .populate('referredUser', 'username email fullName')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit),
-    Referral.countDocuments({ referrer: userId }),
-  ]);
-  return { referrals, total, page, limit };
-};
-
 const getUserScreenshots = async (userId, { page = 1, limit = 20 }) => {
   const Deposit = require('../../models/Deposit');
   const skip = (page - 1) * limit;
@@ -231,7 +217,6 @@ module.exports = {
   getUserPackages,
   getUserDeposits,
   getUserWithdrawals,
-  getUserReferrals,
   getUserScreenshots,
   suspendUser,
   reactivateUser,

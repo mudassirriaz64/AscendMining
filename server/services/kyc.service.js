@@ -4,7 +4,6 @@ const adminLogRepository = require('../repositories/adminLog.repository');
 const cloudinary = require('../config/cloudinary');
 const Notification = require('../models/Notification');
 const AppError = require('../utils/AppError');
-const referralService = require('./referral.service');
 
 // Helper to upload a buffer/base64 to Cloudinary
 const uploadKycToCloudinary = (imageStr, userId) => {
@@ -92,9 +91,6 @@ const approveKYC = async (userId, adminId, ip) => {
   }
   user.kycRejectionReason = null;
   await user.save();
-
-  // Process any pending referral rewards that this user qualified for
-  await referralService.checkAndReleaseReferralRewards(userId);
 
   // Log admin action
   await adminLogRepository.create({

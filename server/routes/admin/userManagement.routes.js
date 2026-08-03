@@ -73,15 +73,6 @@ router.get(
 );
 
 router.get(
-  '/:id/referrals',
-  authMiddleware,
-  requireRole('admin', 'support_agent'),
-  validateParams(userIdParamSchema),
-  validate(paginationSchema),
-  userManagementController.getUserReferrals
-);
-
-router.get(
   '/:id/screenshots',
   authMiddleware,
   requireRole('admin', 'support_agent'),

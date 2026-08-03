@@ -234,7 +234,7 @@ const Header = () => {
             </DropdownLink>
           </NavDropdown>
 
-          <NavDropdown label="My Account" isActive={isDropdownActive(['/wallets', '/profile', '/deposit', '/deposits', '/transactions', '/referrals', '/kyc'])}>
+          <NavDropdown label="My Account" isActive={isDropdownActive(['/wallets', '/profile', '/deposit', '/deposits', '/transactions', '/kyc'])}>
             <DropdownLink to="/profile" currentPath={location.pathname} onClick={navigate}>
               Profile Setting
             </DropdownLink>
@@ -255,12 +255,6 @@ const Header = () => {
             </DropdownLink>
             <DropdownLink to="/transactions" currentPath={location.pathname} onClick={navigate}>
               Transactions
-            </DropdownLink>
-            <DropdownLink to="/referrals" currentPath={location.pathname} onClick={navigate}>
-              My Referral
-            </DropdownLink>
-            <DropdownLink to="/referrals/bonus" currentPath={location.pathname} onClick={navigate}>
-              Referral Bonus Logs
             </DropdownLink>
             <a
               href="#"
@@ -426,12 +420,6 @@ const Header = () => {
             </MobileDrawerLink>
             <MobileDrawerLink to="/transactions" currentPath={location.pathname} onClick={(to) => { navigate(to); closeMobileMenu(); }}>
               Transactions
-            </MobileDrawerLink>
-            <MobileDrawerLink to="/referrals" currentPath={location.pathname} onClick={(to) => { navigate(to); closeMobileMenu(); }}>
-              My Referral
-            </MobileDrawerLink>
-            <MobileDrawerLink to="/referrals/bonus" currentPath={location.pathname} onClick={(to) => { navigate(to); closeMobileMenu(); }}>
-              Referral Bonus Logs
             </MobileDrawerLink>
           </MobileMenuGroup>
 

@@ -115,11 +115,9 @@ const getDashboardSummary = async (req, res, next) => {
       data: {
         balances: {
           walletBalance: user.walletBalance || 0,
-          referralBalance: user.referralBalance || 0,
           miningBalances,
         },
         walletAddresses,
-        referralLink: `${process.env.CLIENT_URL || 'http://localhost:5173'}/register?ref=${user.referralCode}`,
         miningStatus: {
           status: isMiningActive ? 'active' : 'inactive',
           progressPercent,
@@ -172,25 +170,8 @@ const getMyTransactions = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
-const getMyReferrals = async (req, res, next) => {
-  try {
-    const { page = 1, limit = 20 } = req.query;
-    const skip = (Number(page) - 1) * Number(limit);
-    const [referrals, total] = await Promise.all([
-      User.find({ referredBy: req.user.id })
-        .select('fullName username createdAt status')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(Number(limit)),
-      User.countDocuments({ referredBy: req.user.id })
-    ]);
-    res.status(200).json({ success: true, data: { referrals, total, page: Number(page), limit: Number(limit) } });
-  } catch (error) { next(error); }
-};
-
 module.exports = {
   getDashboardSummary,
   getMyDeposits,
   getMyTransactions,
-  getMyReferrals,
 };

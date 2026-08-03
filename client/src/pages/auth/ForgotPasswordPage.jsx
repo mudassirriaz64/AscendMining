@@ -4,10 +4,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
-import Logo from '../../components/common/Logo';
-import InputField from '../../components/common/InputField';
-import Button from '../../components/common/Button';
-import ErrorMessage from '../../components/common/ErrorMessage';
+import AuthShell from '../../components/auth/AuthShell';
+import AuthField from '../../components/auth/AuthField';
+import AuthButton from '../../components/auth/AuthButton';
+import AuthMessage from '../../components/auth/AuthMessage';
 import authService from '../../services/authService';
 
 const emailSchema = z.object({
@@ -22,10 +22,8 @@ const ForgotPasswordPage = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState('email');
   const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
   const otpRefs = useRef([]);
 
   const emailForm = useForm({
@@ -43,8 +41,7 @@ const ForgotPasswordPage = () => {
       setLoading(true);
       setError(null);
       setEmail(data.email);
-      const res = await authService.forgotPassword(data.email);
-      if (res.data?.data?.otp) setOtp(res.data.data.otp);
+      await authService.forgotPassword(data.email);
       setStep('otp');
     } catch (err) {
       setError(err.response?.data?.error?.message || err.response?.data?.message || 'Failed to request reset.');
@@ -116,120 +113,117 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-bg-light-alt flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md">
-        <div className="flex justify-center mb-6">
-          <Logo size="md" />
-        </div>
-        <div className="bg-white rounded-2xl shadow-lg border border-border-light p-8">
-          {step === 'email' ? (
-            <>
-              <h1 className="text-xl font-heading font-semibold text-text-light-bg text-center mb-1">
-                Forgot Your Password?
-              </h1>
-              <p className="text-sm text-text-secondary text-center mb-6">
-                Enter your email below and we'll send a reset code and link.
-              </p>
+    <AuthShell
+      title="Recover Your AscendHash Account"
+      subtitle="Enter your registered email and we'll send a secure reset code to get you back into your mining dashboard."
+    >
+      {step === 'email' ? (
+        <>
+          <h1 className="text-2xl font-heading font-semibold text-white mb-1">
+            Forgot Your Password?
+          </h1>
+          <p className="text-sm text-slate-400 mb-6">
+            Enter your email below and we'll send a reset code and link.
+          </p>
 
-              <ErrorMessage message={error} className="mb-4" />
+          <AuthMessage message={error} className="mb-4" />
 
-              <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-4">
-                <InputField
-                  label="Email Address*"
-                  name="email"
-                  type="email"
-                  icon={Mail}
-                  placeholder="Enter your email address"
-                  error={emailForm.formState.errors.email?.message}
-                  {...emailForm.register('email')}
+          <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-4">
+            <AuthField
+              label="Email Address*"
+              name="email"
+              type="email"
+              icon={Mail}
+              placeholder="Enter your email address"
+              error={emailForm.formState.errors.email?.message}
+              {...emailForm.register('email')}
+            />
+
+            <AuthButton type="submit" fullWidth size="lg" loading={loading}>
+              Send Reset Code
+            </AuthButton>
+          </form>
+
+          <div className="mt-6 text-center">
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300 hover:underline font-medium no-underline"
+            >
+              <ArrowLeft size={16} /> Back to Login
+            </Link>
+          </div>
+        </>
+      ) : step === 'otp' ? (
+        <>
+          <h1 className="text-2xl font-heading font-semibold text-white mb-1">
+            Enter Reset Code
+          </h1>
+          <p className="text-sm text-slate-400 mb-6">
+            Enter the 6-digit code sent to{' '}
+            <span className="font-medium text-amber-300">{email}</span>
+          </p>
+          <AuthMessage message={error} className="mb-4" />
+
+          <form onSubmit={otpForm.handleSubmit(onOTPSubmit)} className="space-y-6">
+            <div className="flex gap-2 justify-center">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <input
+                  key={i}
+                  ref={(el) => (otpRefs.current[i] = el)}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  autoFocus={i === 0}
+                  className="w-12 h-14 text-center text-xl font-bold rounded-xl border border-slate-700/60 bg-slate-900/60 text-white focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition-all"
+                  onChange={(e) => handleOtpChange(e, i)}
+                  onKeyDown={(e) => handleOtpKeyDown(e, i)}
+                  onPaste={i === 0 ? handleOtpPaste : undefined}
                 />
-
-                <Button type="submit" fullWidth size="lg" loading={loading}>
-                  Send Reset Code
-                </Button>
-              </form>
-
-              <div className="mt-6 text-center">
-                <Link
-                  to="/login"
-                  className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary-hover font-medium no-underline"
-                >
-                  <ArrowLeft size={16} /> Back to Login
-                </Link>
-              </div>
-            </>
-          ) : step === 'otp' && !success ? (
-            <>
-              <h1 className="text-xl font-heading font-semibold text-text-light-bg text-center mb-1">
-                Enter Reset Code
-              </h1>
-              <p className="text-sm text-text-secondary text-center mb-6">
-                Enter the 6-digit code sent to <span className="font-medium text-text-light-bg">{email}</span>
-              </p>
-              <ErrorMessage message={error} className="mb-4" />
-
-              <form onSubmit={otpForm.handleSubmit(onOTPSubmit)} className="space-y-6">
-                <div className="flex gap-2 justify-center">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <input
-                      key={i}
-                      ref={(el) => (otpRefs.current[i] = el)}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={6}
-                      autoFocus={i === 0}
-                      className="w-12 h-14 text-center text-xl font-bold rounded-lg border border-outline-variant bg-white text-on-surface focus:border-primary-container focus:ring-2 focus:ring-primary-container/30 outline-none transition-colors"
-                      onChange={(e) => handleOtpChange(e, i)}
-                      onKeyDown={(e) => handleOtpKeyDown(e, i)}
-                      onPaste={i === 0 ? handleOtpPaste : undefined}
-                    />
-                  ))}
-                </div>
-
-                <input type="hidden" {...otpForm.register('otp')} />
-
-                {otpForm.formState.errors.otp && (
-                  <p className="text-sm text-error text-center">{otpForm.formState.errors.otp.message}</p>
-                )}
-
-                <Button type="submit" fullWidth size="lg" loading={loading}>
-                  Verify Code
-                </Button>
-              </form>
-
-              <div className="mt-4 text-center">
-                <button
-                  type="button"
-                  onClick={() => { setStep('email'); setError(null); }}
-                  className="text-sm text-primary hover:text-primary-hover font-medium bg-transparent border-none cursor-pointer"
-                >
-                  <ArrowLeft size={16} className="inline mr-1" /> Use a different email
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="text-center py-4 space-y-4">
-              <div className="flex justify-center text-success">
-                <CheckCircle size={48} className="animate-bounce" />
-              </div>
-              <h2 className="text-xl font-heading font-semibold text-text-light-bg">
-                Reset Link Sent
-              </h2>
-              <p className="text-sm text-text-secondary leading-relaxed">
-                If an account exists for that email, we have sent a secure link and reset code. Please check your inbox and spam folders.
-              </p>
-              <div className="pt-2">
-                <Link to="/login" className="no-underline">
-                  <Button fullWidth size="lg">
-                    Back to Login
-                  </Button>
-                </Link>
-              </div>
+              ))}
             </div>
-          )}
+
+            <input type="hidden" {...otpForm.register('otp')} />
+
+            {otpForm.formState.errors.otp && (
+              <p className="text-sm text-red-400 text-center">{otpForm.formState.errors.otp.message}</p>
+            )}
+
+            <AuthButton type="submit" fullWidth size="lg" loading={loading}>
+              Verify Code
+            </AuthButton>
+          </form>
+
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={() => { setStep('email'); setError(null); }}
+              className="text-sm text-amber-400 hover:text-amber-300 hover:underline font-medium bg-transparent border-none cursor-pointer"
+            >
+              <ArrowLeft size={16} className="inline mr-1" /> Use a different email
+            </button>
+          </div>
+        </>
+      ) : (
+        <div className="text-center py-4 space-y-4">
+          <div className="flex justify-center text-emerald-400">
+            <CheckCircle size={48} className="animate-bounce" />
+          </div>
+          <h2 className="text-2xl font-heading font-semibold text-white">
+            Reset Link Sent
+          </h2>
+          <p className="text-sm text-slate-400 leading-relaxed">
+            If an account exists for that email, we have sent a secure link and reset code. Please check your inbox and spam folders.
+          </p>
+          <div className="pt-2">
+            <Link to="/login" className="no-underline block">
+              <AuthButton fullWidth size="lg">
+                Back to Login
+              </AuthButton>
+            </Link>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </AuthShell>
   );
 };
 

@@ -14,7 +14,6 @@ const adminPaymentMethodRoutes = require('./routes/admin/paymentMethodManagement
 const adminFaqRoutes = require('./routes/admin/faq.routes');
 const adminServiceRoutes = require('./routes/admin/service.routes');
 const adminContactMessageRoutes = require('./routes/admin/contactMessage.routes');
-const adminReferralRoutes = require('./routes/admin/referralManagement.routes');
 const adminDashboardRoutes = require('./routes/admin/dashboardManagement.routes');
 const adminMiningSettingsRoutes = require('./routes/admin/miningSettings.routes');
 const adminUserPackageRoutes = require('./routes/admin/userPackageManagement.routes');
@@ -66,7 +65,6 @@ app.use('/api/admin/payment-methods', adminPaymentMethodRoutes);
 app.use('/api/admin/faqs', adminFaqRoutes);
 app.use('/api/admin/services', adminServiceRoutes);
 app.use('/api/admin/contact-messages', adminContactMessageRoutes);
-app.use('/api/admin/referrals', adminReferralRoutes);
 app.use('/api/admin/dashboard', adminDashboardRoutes);
 app.use('/api/admin/mining-settings', adminMiningSettingsRoutes);
 app.use('/api/admin/user-packages', adminUserPackageRoutes);

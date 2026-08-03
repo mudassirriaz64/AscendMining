@@ -42,14 +42,6 @@ const ProfileTab = ({ user }) => {
             <p className="text-lg font-mono font-semibold text-text-light-bg">${(user.walletBalance || 0).toLocaleString()}</p>
           </div>
           <div>
-            <p className="text-xs text-text-secondary">Referral Code</p>
-            <p className="text-sm text-text-light-bg font-mono font-medium">{user.referralCode}</p>
-          </div>
-          <div>
-            <p className="text-xs text-text-secondary">Referred By</p>
-            <p className="text-sm text-text-light-bg font-medium">{user.referredBy || 'None'}</p>
-          </div>
-          <div>
             <p className="text-xs text-text-secondary">Registered</p>
             <p className="text-sm text-text-light-bg font-medium">{new Date(user.createdAt).toLocaleString()}</p>
           </div>

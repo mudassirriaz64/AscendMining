@@ -57,7 +57,7 @@ const TransactionsTable = ({ transactions = [], loading = false }) => {
         </thead>
         <tbody className="divide-y divide-outline-variant/30">
           {transactions.map((tx) => {
-            const isCredit = tx.type === 'mining_payout' || tx.type === 'deposit' || tx.type === 'referral_reward' || tx.type === 'cancellation_refund';
+            const isCredit = tx.type === 'mining_payout' || tx.type === 'deposit' || tx.type === 'cancellation_refund';
             const isCoin = tx.type === 'mining_payout' || tx.type === 'withdrawal';
             const unit = isCoin ? (tx.coinSymbol || 'TX') : 'USD';
 

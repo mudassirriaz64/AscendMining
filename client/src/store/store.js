@@ -13,7 +13,6 @@ import adminPaymentMethodReducer from './slices/adminPaymentMethodSlice';
 import adminFaqReducer from './slices/adminFaqSlice';
 import adminServiceReducer from './slices/adminServiceSlice';
 import adminContactMessageReducer from './slices/adminContactMessageSlice';
-import adminReferralReducer from './slices/adminReferralSlice';
 import adminDashboardStatsReducer from './slices/adminDashboardSlice';
 import notificationReducer from './slices/notificationSlice';
 import adminMiningSettingsReducer from './slices/adminMiningSettingsSlice';
@@ -38,7 +37,6 @@ const store = configureStore({
     adminFAQs: adminFaqReducer,
     adminServices: adminServiceReducer,
     adminContactMessages: adminContactMessageReducer,
-    adminReferrals: adminReferralReducer,
     adminDashboardStats: adminDashboardStatsReducer,
   },
 });

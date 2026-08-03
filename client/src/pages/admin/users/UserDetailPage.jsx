@@ -1,11 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { ArrowLeft, Mail, Phone, Calendar, Users, Ban, RotateCcw, KeyRound, DollarSign } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, Calendar, Ban, RotateCcw, KeyRound, DollarSign } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
   fetchUserDetail, fetchUserPackages, fetchUserDeposits,
-  fetchUserWithdrawals, fetchUserReferrals, fetchUserScreenshots,
+  fetchUserWithdrawals, fetchUserScreenshots,
   suspendUser, reactivateUser, triggerPasswordReset,
   clearActionSuccess, clearAdminError, resetUserDetail, adjustUserBalance,
 } from '../../../store/slices/adminUserSlice';
@@ -17,7 +17,6 @@ import LoadingSpinner from '../../../components/common/LoadingSpinner';
 import ActivePackagesTab from './tabs/ActivePackagesTab';
 import DepositHistoryTab from './tabs/DepositHistoryTab';
 import WithdrawalHistoryTab from './tabs/WithdrawalHistoryTab';
-import ReferralHistoryTab from './tabs/ReferralHistoryTab';
 import PaymentScreenshotsTab from './tabs/PaymentScreenshotsTab';
 import KYCHistoryTab from './tabs/KYCHistoryTab';
 
@@ -27,7 +26,7 @@ const UserDetailPage = () => {
   const dispatch = useDispatch();
   const {
     userDetail, loading, error, actionSuccess,
-    userPackages, userDeposits, userWithdrawals, userReferrals, userScreenshots, tabLoading,
+    userPackages, userDeposits, userWithdrawals, userScreenshots, tabLoading,
   } = useSelector((s) => s.adminUsers);
 
   const [suspendModal, setSuspendModal] = useState(false);
@@ -65,7 +64,6 @@ const UserDetailPage = () => {
       case 'packages': dispatch(fetchUserPackages(params)); break;
       case 'deposits': dispatch(fetchUserDeposits(params)); break;
       case 'withdrawals': dispatch(fetchUserWithdrawals(params)); break;
-      case 'referrals': dispatch(fetchUserReferrals(params)); break;
       case 'screenshots': dispatch(fetchUserScreenshots(params)); break;
       default: break;
     }
@@ -128,11 +126,6 @@ const UserDetailPage = () => {
       content: <WithdrawalHistoryTab data={userWithdrawals} loading={tabLoading} onLoad={loadTab} />,
     },
     {
-      key: 'referrals',
-      label: 'Referral History',
-      content: <ReferralHistoryTab data={userReferrals} loading={tabLoading} onLoad={loadTab} />,
-    },
-    {
       key: 'screenshots',
       label: 'Payment Screenshots',
       content: <PaymentScreenshotsTab data={userScreenshots} loading={tabLoading} onLoad={loadTab} />,
@@ -171,7 +164,6 @@ const UserDetailPage = () => {
                   <span className="flex items-center gap-1"><Mail size={14} /> {userDetail.email}</span>
                   {userDetail.phone && <span className="flex items-center gap-1"><Phone size={14} /> {userDetail.phone}</span>}
                   <span className="flex items-center gap-1"><Calendar size={14} /> Joined {new Date(userDetail.createdAt).toLocaleDateString()}</span>
-                  {userDetail.referredBy && <span className="flex items-center gap-1"><Users size={14} /> Referred by someone</span>}
                 </div>
               </div>
             </div>

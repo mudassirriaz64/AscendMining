@@ -3,7 +3,7 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   LayoutDashboard, Users, Package, Coins, ArrowDownToLine, ArrowUpFromLine,
-  UsersRound, FileText, MessageCircle, ShieldCheck, Bell, Search,
+  FileText, MessageCircle, ShieldCheck, Bell, Search,
   Menu, X, LogOut, ChevronDown, Volume2, VolumeX, ChevronRight, Globe, Settings, History
 } from 'lucide-react';
 import { logoutUser } from '../store/slices/authSlice';
@@ -23,7 +23,6 @@ const sidebarLinks = [
   { to: '/admin/deposits', icon: ArrowDownToLine, label: 'Deposits', badge: 'deposits' },
   { to: '/admin/withdrawals', icon: ArrowUpFromLine, label: 'Withdrawals', badge: 'withdrawals' },
   { to: '/admin/payment-methods', icon: FileText, label: 'Payment Methods' },
-  { to: '/admin/referrals', icon: UsersRound, label: 'Referrals' },
   { to: '/admin/audit-logs', icon: History, label: 'Audit Logs', badge: 'auditLogs' },
   { 
     label: 'Website CMS', 

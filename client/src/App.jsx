@@ -21,8 +21,6 @@ const ChangePasswordPage = lazy(() => import('./pages/account/ChangePasswordPage
 const PaymentsLogPage = lazy(() => import('./pages/account/PaymentsLogPage'));
 const TransactionsPage = lazy(() => import('./pages/account/TransactionsPage'));
 const KYCPage = lazy(() => import('./pages/account/KYCPage'));
-const MyReferralPage = lazy(() => import('./pages/account/MyReferralPage'));
-const ReferralBonusLogsPage = lazy(() => import('./pages/account/ReferralBonusLogsPage'));
 const DepositPage = lazy(() => import('./pages/account/DepositPage'));
 const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
 const UserListPage = lazy(() => import('./pages/admin/users/UserListPage'));
@@ -36,7 +34,6 @@ const AdminPaymentMethodsPage = lazy(() => import('./pages/admin/paymentMethods/
 const AdminFAQsPage = lazy(() => import('./pages/admin/faqs/AdminFAQsPage'));
 const AdminServicesPage = lazy(() => import('./pages/admin/services/AdminServicesPage'));
 const AdminContactMessagesPage = lazy(() => import('./pages/admin/contactMessages/AdminContactMessagesPage'));
-const AdminReferralsPage = lazy(() => import('./pages/admin/referrals/AdminReferralsPage'));
 const AdminDashboardPage = lazy(() => import('./pages/admin/dashboard/AdminDashboardPage'));
 const AdminMiningSettingsPage = lazy(() => import('./pages/admin/mining/MiningSettingsPage'));
 const AdminKYCPage = lazy(() => import('./pages/admin/kyc/AdminKYCPage'));
@@ -195,8 +192,6 @@ const App = () => {
           <Route path="/deposits" element={<ProtectedRoute><PaymentsLogPage /></ProtectedRoute>} />
           <Route path="/transactions" element={<ProtectedRoute><TransactionsPage /></ProtectedRoute>} />
           <Route path="/kyc" element={<ProtectedRoute><KYCPage /></ProtectedRoute>} />
-          <Route path="/referrals" element={<ProtectedRoute><MyReferralPage /></ProtectedRoute>} />
-          <Route path="/referrals/bonus" element={<ProtectedRoute><ReferralBonusLogsPage /></ProtectedRoute>} />
 
           <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
             <Route index element={<Navigate to="/admin/dashboard" replace />} />
@@ -211,7 +206,6 @@ const App = () => {
             <Route path="faqs" element={<AdminFAQsPage />} />
             <Route path="services" element={<AdminServicesPage />} />
             <Route path="contact-messages" element={<AdminContactMessagesPage />} />
-            <Route path="referrals" element={<AdminReferralsPage />} />
             <Route path="mining-settings" element={<AdminMiningSettingsPage />} />
             <Route path="kyc" element={<AdminKYCPage />} />
             <Route path="audit-logs" element={<AdminAuditLogsPage />} />

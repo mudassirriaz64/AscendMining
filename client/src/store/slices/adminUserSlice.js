@@ -61,18 +61,6 @@ export const fetchUserWithdrawals = createAsyncThunk(
   }
 );
 
-export const fetchUserReferrals = createAsyncThunk(
-  'admin/fetchUserReferrals',
-  async ({ id, params }, { rejectWithValue }) => {
-    try {
-      const response = await adminService.getUserReferrals(id, params);
-      return response.data.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || { message: 'Failed to fetch referrals.' });
-    }
-  }
-);
-
 export const fetchUserScreenshots = createAsyncThunk(
   'admin/fetchUserScreenshots',
   async ({ id, params }, { rejectWithValue }) => {
@@ -144,7 +132,6 @@ const adminUserSlice = createSlice({
     userPackages: { packages: [], total: 0 },
     userDeposits: { deposits: [], total: 0 },
     userWithdrawals: { withdrawals: [], total: 0 },
-    userReferrals: { referrals: [], total: 0 },
     userScreenshots: { screenshots: [], total: 0 },
     loading: false,
     tabLoading: false,
@@ -159,7 +146,6 @@ const adminUserSlice = createSlice({
       state.userPackages = { packages: [], total: 0 };
       state.userDeposits = { deposits: [], total: 0 };
       state.userWithdrawals = { withdrawals: [], total: 0 };
-      state.userReferrals = { referrals: [], total: 0 };
       state.userScreenshots = { screenshots: [], total: 0 };
     },
   },
@@ -190,10 +176,6 @@ const adminUserSlice = createSlice({
       .addCase(fetchUserWithdrawals.pending, (s) => { s.tabLoading = true; })
       .addCase(fetchUserWithdrawals.fulfilled, (s, a) => { s.tabLoading = false; s.userWithdrawals = a.payload; })
       .addCase(fetchUserWithdrawals.rejected, (s) => { s.tabLoading = false; })
-
-      .addCase(fetchUserReferrals.pending, (s) => { s.tabLoading = true; })
-      .addCase(fetchUserReferrals.fulfilled, (s, a) => { s.tabLoading = false; s.userReferrals = a.payload; })
-      .addCase(fetchUserReferrals.rejected, (s) => { s.tabLoading = false; })
 
       .addCase(fetchUserScreenshots.pending, (s) => { s.tabLoading = true; })
       .addCase(fetchUserScreenshots.fulfilled, (s, a) => { s.tabLoading = false; s.userScreenshots = a.payload; })

@@ -16,10 +16,6 @@ const findByUsernameWithPassword = async (username) => {
   return User.findOne({ username }).select('+passwordHash');
 };
 
-const findByReferralCode = async (referralCode) => {
-  return User.findOne({ referralCode: referralCode.toUpperCase() });
-};
-
 const findById = async (id) => {
   return User.findById(id);
 };
@@ -55,7 +51,6 @@ module.exports = {
   findByEmailWithPassword,
   findByUsername,
   findByUsernameWithPassword,
-  findByReferralCode,
   findById,
   create,
   updateById,

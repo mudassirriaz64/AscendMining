@@ -66,23 +66,6 @@ const userSchema = new mongoose.Schema(
       of: String,
       default: {},
     },
-    referralBalance: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-    referralCode: {
-      type: String,
-      required: true,
-      unique: true,
-      uppercase: true,
-    },
-    referredBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      default: null,
-      immutable: true,
-    },
     kycStatus: {
       type: String,
       enum: ['none', 'pending', 'approved', 'rejected'],
@@ -142,7 +125,6 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.index({ role: 1, status: 1 });
-userSchema.index({ referredBy: 1 });
 
 userSchema.pre('save', async function () {
   if (!this.isModified('passwordHash')) return;
