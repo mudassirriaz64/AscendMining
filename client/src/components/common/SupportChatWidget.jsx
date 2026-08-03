@@ -84,11 +84,29 @@ const SupportChatWidget = () => {
   }, []);
 
   const loadSession = useCallback(async (sessionId) => {
-    const response = await api.get(`/support/conversations/sessions/${sessionId}/messages`);
-    setActiveSessionId(sessionId);
-    setMessages(response.data.data.messages || []);
-    setShowSessions(false);
-  }, []);
+    if (sessionId === activeSessionId) {
+      setShowSessions(false);
+      return;
+    }
+
+    try {
+      setLoadError(false);
+      const response = await api.get(`/support/conversations/sessions/${sessionId}/messages`);
+      setActiveSessionId(sessionId);
+      setMessages(response.data.data.messages || []);
+      setShowSessions(false);
+
+      // Re-join socket room if connected
+      const socket = getSocket();
+      if (socket?.connected && conversation?._id) {
+        socket.emit('conversation:join', { conversationId: conversation._id });
+        socket.emit('conversation:read', { conversationId: conversation._id });
+      }
+    } catch (error) {
+      console.error('Failed to load session messages:', error);
+      toast.error('Could not load session messages.');
+    }
+  }, [activeSessionId, conversation?._id]);
 
   useEffect(() => {
     loadConversation(false).catch(() => {});
@@ -181,12 +199,13 @@ const SupportChatWidget = () => {
       socket.off('typing:stop', onTypingStop);
       socket.off('agents:status', onAgentsStatus);
     };
-  }, [loadConversation, activeSessionId]);
+  }, [loadConversation]);
 
   // Read message emitter when widget opens or session changes
   useEffect(() => {
     const socket = getSocket();
     if (socket?.connected && conversation?._id && open) {
+      socket.emit('conversation:join', { conversationId: conversation._id });
       socket.emit('conversation:read', { conversationId: conversation._id });
     }
   }, [conversation?._id, activeSessionId, open]);
@@ -491,14 +510,21 @@ const SupportChatWidget = () => {
 
           {/* Session list dropdown */}
           {showSessions && (
-            <div className="border-b border-border-light bg-bg-light-alt max-h-40 overflow-y-auto">
+            <div className="absolute top-[56px] left-0 right-0 z-50 border-b border-border-light bg-bg-light-alt max-h-40 overflow-y-auto shadow-2xl animate-fade-in py-1">
               {sessions.map((session) => {
                 const isClosed = Boolean(session.closedAt);
+                const isActive = session._id === activeSessionId;
                 return (
                   <div
                     key={session._id}
-                    className={`flex items-center gap-2 px-4 py-2 border-b border-border-light last:border-0 cursor-pointer hover:bg-bg-light-alt ${session._id === activeSessionId ? 'bg-primary/10' : ''}`}
-                    onClick={() => !isClosed && loadSession(session._id)}
+                    className={`w-full flex items-center justify-between px-4 py-3 border-b border-border-light last:border-0 cursor-pointer select-none transition-colors ${
+                      isActive
+                        ? 'bg-primary/10 text-primary font-semibold'
+                        : 'text-text-light-bg hover:bg-white/5 hover:text-white'
+                    }`}
+                    onClick={() => {
+                      loadSession(session._id);
+                    }}
                   >
                     <div className="flex-1 min-w-0">
                       <p className={`text-xs font-medium truncate ${isClosed ? 'text-on-surface-variant line-through' : 'text-text-light-bg'}`}>{session.title}</p>
@@ -506,8 +532,11 @@ const SupportChatWidget = () => {
                     </div>
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); deleteSession(session._id); }}
-                      className="text-text-secondary hover:text-red-500 transition-colors cursor-pointer p-1"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevents triggering parent onClick
+                        deleteSession(session._id);
+                      }}
+                      className="text-text-secondary hover:text-red-500 transition-colors cursor-pointer p-1.5 hover:bg-white/5 rounded-lg"
                       aria-label="Delete session"
                     >
                       <Trash2 size={12} />

@@ -13,6 +13,8 @@ import api from '../services/api';
 import Logo from '../components/common/Logo';
 import ConfirmModal from '../components/common/ConfirmModal';
 import Web3BackgroundCanvas from '../components/common/Web3BackgroundCanvas';
+import ThemeToggle from '../components/theme/ThemeToggle';
+import { useTheme } from '../theme/ThemeContext';
 
 const sidebarLinks = [
   { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -45,7 +47,7 @@ const SidebarItem = ({ link, setSidebarOpen, badgeCount, badgeTone }) => {
       <div className="flex flex-col">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors text-white/60 hover:bg-white/5 hover:text-white/80 w-full"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors text-page-text-muted hover:bg-page-fill hover:text-page-text w-full"
         >
           <link.icon size={18} />
           <span className="flex-grow text-left">{link.label}</span>
@@ -60,9 +62,9 @@ const SidebarItem = ({ link, setSidebarOpen, badgeCount, badgeTone }) => {
                 onClick={() => setSidebarOpen(false)}
                 className={({ isActive }) =>
                   `block px-3 py-2 rounded-lg text-xs transition-colors ${
-                    isActive
-                      ? 'bg-primary/10 text-primary font-semibold'
-                      : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+                      isActive
+                        ? 'bg-primary/10 text-primary font-semibold'
+                        : 'text-page-text-soft hover:text-page-text hover:bg-page-fill'
                   }`
                 }
               >
@@ -84,7 +86,7 @@ const SidebarItem = ({ link, setSidebarOpen, badgeCount, badgeTone }) => {
         `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
           isActive
             ? 'bg-primary/10 text-primary border-l-2 border-primary'
-            : 'text-white/60 hover:bg-white/5 hover:text-white/80'
+            : 'text-page-text-muted hover:bg-page-fill hover:text-page-text'
         }`
       }
     >
@@ -106,6 +108,7 @@ const SidebarItem = ({ link, setSidebarOpen, badgeCount, badgeTone }) => {
 };
 
 const AdminLayout = () => {
+  const { theme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -334,16 +337,16 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="dark min-h-screen bg-bg-void text-white flex overflow-hidden relative">
-      <Web3BackgroundCanvas variant="light" />
+    <div className={`${theme} min-h-screen bg-page-bg text-page-text flex overflow-hidden relative transition-colors duration-200`}>
+      <Web3BackgroundCanvas />
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-bg-dark border-r border-white/5 transform transition-transform duration-200 lg:translate-x-0 lg:sticky lg:top-0 h-screen flex flex-col shrink-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex items-center gap-2 px-5 py-4 border-b border-white/10">
-          <Logo size="sm" variant="dark" className="py-1" />
-          <button onClick={() => setSidebarOpen(false)} className="ml-auto lg:hidden text-white/50 cursor-pointer">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-page-card border-r border-page-border transform transition-transform duration-200 lg:translate-x-0 lg:sticky lg:top-0 h-screen flex flex-col shrink-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex items-center gap-2 px-5 py-4 border-b border-page-border">
+          <Logo size="sm" variant={theme === 'dark' ? 'dark' : 'light'} className="py-1" />
+          <button onClick={() => setSidebarOpen(false)} className="ml-auto lg:hidden text-page-text-soft cursor-pointer">
             <X size={20} />
           </button>
         </div>
@@ -361,20 +364,20 @@ const AdminLayout = () => {
         </nav>
       </aside>
 
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden relative z-10">
-        <header className="h-16 bg-[#0d1420]/60 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30 text-white">
+      <div className="flex-grow flex flex-col min-w-0 h-screen overflow-hidden relative z-10">
+        <header className="h-16 bg-page-card/80 backdrop-blur-md border-b border-page-border flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30 text-page-text animate-fade-in">
           <div className="flex items-center gap-4">
-            <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-slate-400 hover:text-white cursor-pointer">
+            <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-page-text-muted hover:text-page-text cursor-pointer">
               <Menu size={22} />
             </button>
             <form onSubmit={handleSearchSubmit} className="relative hidden sm:block">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-page-text-soft" />
               <input
                 type="text"
                 value={globalSearch}
                 onChange={(e) => setGlobalSearch(e.target.value)}
                 placeholder="Search users..."
-                className="pl-9 pr-4 py-2 border border-white/10 bg-white/5 rounded-xl text-sm w-64 text-white placeholder-white/30 outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/30"
+                className="pl-9 pr-4 py-2 border border-page-border bg-page-fill rounded-xl text-sm w-64 text-page-text placeholder-page-text-dimmer outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/30"
               />
             </form>
           </div>
@@ -390,39 +393,41 @@ const AdminLayout = () => {
             ) : null}
             <button
               onClick={() => navigate('/admin/support')}
-              className="relative p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl cursor-pointer transition-colors"
+              className="relative p-2 text-page-text-muted hover:text-page-text hover:bg-page-fill rounded-xl cursor-pointer transition-colors"
             >
               <Bell size={20} />
               {waitingIds.size > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold px-1 shadow-[0_0_8px_rgba(239,68,68,0.5)]">
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-danger rounded-full flex items-center justify-center text-[10px] text-white font-bold px-1 shadow-[0_0_8px_rgba(220,38,38,0.5)]">
                   {waitingIds.size > 99 ? '99+' : waitingIds.size}
                 </span>
               )}
             </button>
 
+            <ThemeToggle className="text-page-text-muted hover:text-page-text hover:bg-page-fill" />
+
             <div className="relative">
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
-                className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-white/5 text-slate-300 hover:text-white cursor-pointer transition-colors"
+                className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-page-fill text-page-text-muted hover:text-page-text cursor-pointer transition-colors"
               >
                 <div className="w-8 h-8 rounded-full bg-primary-container/20 flex items-center justify-center text-primary-fixed-dim text-sm font-semibold border border-primary-container/30">
                   {user?.fullName?.charAt(0) || 'A'}
                 </div>
                 <span className="text-sm font-medium hidden sm:block">{user?.fullName || 'Admin'}</span>
-                <ChevronDown size={14} className="text-slate-400" />
+                <ChevronDown size={14} className="text-page-text-soft" />
               </button>
 
               {profileOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
-                  <div className="absolute right-0 top-full mt-1.5 w-48 bg-[#0d1420]/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 py-1.5 z-50 text-white animate-fade-in">
-                    <div className="px-4 py-2 border-b border-white/5">
-                      <p className="text-sm font-medium text-white">{user?.fullName}</p>
-                      <p className="text-xs text-slate-400 truncate">{user?.email}</p>
+                  <div className="absolute right-0 top-full mt-1.5 w-48 bg-page-card-strong backdrop-blur-2xl rounded-2xl shadow-2xl border border-page-border py-1.5 z-50 text-page-text animate-fade-in">
+                    <div className="px-4 py-2 border-b border-page-border-soft">
+                      <p className="text-sm font-medium text-page-text">{user?.fullName}</p>
+                      <p className="text-xs text-page-text-soft truncate">{user?.email}</p>
                     </div>
                     <button
                       onClick={requestLogout}
-                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 cursor-pointer transition-colors"
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-danger hover:bg-danger/10 cursor-pointer transition-colors"
                     >
                       <LogOut size={16} />
                       Logout

@@ -10,6 +10,7 @@ import InputField from '../../components/common/InputField';
 import Button from '../../components/common/Button';
 import Logo from '../../components/common/Logo';
 import ErrorMessage from '../../components/common/ErrorMessage';
+import Web3BackgroundCanvas from '../../components/common/Web3BackgroundCanvas';
 
 const adminLoginSchema = z.object({
   email: z.string().min(1, 'Email is required.').email('Enter a valid email address.'),
@@ -43,19 +44,25 @@ const AdminLoginPage = () => {
   };
 
   return (
-    <div className="dark min-h-screen bg-bg-void flex items-center justify-center px-4 py-8 text-white">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-page-bg flex items-center justify-center px-4 py-8 text-page-text relative z-10 overflow-hidden">
+      <Web3BackgroundCanvas variant="auto" />
+      
+      {/* Ambient background glows */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-[120px] pointer-events-none z-0 animate-pulse duration-[6000ms]" />
+      <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-80 h-80 bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none z-0 animate-pulse duration-[8000ms]" />
+
+      <div className="w-full max-w-md relative z-10">
         <div className="flex justify-center mb-6">
-          <Logo size="md" variant="dark" />
+          <Logo size="md" />
         </div>
-        <div className="bg-[#0d1420]/40 backdrop-blur-2xl border border-white/10 p-8 shadow-2xl rounded-3xl">
+        <div className="bg-page-card backdrop-blur-2xl border border-page-border p-8 shadow-2xl rounded-3xl">
           <div className="flex items-center justify-center gap-2 mb-1">
-            <ShieldCheck size={22} className="text-amber-400 drop-shadow-[0_0_8px_rgba(255,184,0,0.3)]" />
-            <h1 className="text-xl font-heading font-semibold text-white">
+            <ShieldCheck size={22} className="text-amber-550 drop-shadow-[0_0_8px_rgba(245,197,24,0.3)]" />
+            <h1 className="text-xl font-heading font-semibold text-page-text">
               Admin Portal
             </h1>
           </div>
-          <p className="text-sm text-slate-400 text-center mb-6">
+          <p className="text-sm text-page-text-muted text-center mb-6">
             Sign in with your admin credentials
           </p>
 
