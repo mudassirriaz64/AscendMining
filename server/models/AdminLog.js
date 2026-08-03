@@ -21,6 +21,7 @@ const adminLogSchema = new mongoose.Schema(
         'package_updated',
         'package_cancelled',
         'package_deleted',
+        'user_package_updated',
         'wallet_adjustment',
         'cms_content_updated',
         'coin_created',
