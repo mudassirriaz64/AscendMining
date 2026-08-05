@@ -61,29 +61,29 @@ const TitleHandler = () => {
     const siteName = 'AscendHash';
 
     if (path.startsWith('/admin')) {
-      document.title = `Admin Panel | ${siteName}`;
+      document.title = `${siteName} | Admin Panel`;
       return;
     }
 
     const titleMap = {
-      '/': `Home | ${siteName}`,
-      '/about': `About Us | ${siteName}`,
-      '/services': `Our Services | ${siteName}`,
-      '/packages': `Investment Packages | ${siteName}`,
-      '/faqs': `FAQs | ${siteName}`,
-      '/support': `Customer Support | ${siteName}`,
-      '/contact': `Contact Us | ${siteName}`,
-      '/login': siteName,
-      '/register': siteName,
-      '/forgot-password': `Forgot Password | ${siteName}`,
-      '/reset-password': `Reset Password | ${siteName}`,
-      '/admin/login': siteName,
+      '/': `${siteName} | Home`,
+      '/about': `${siteName} | About Us`,
+      '/services': `${siteName} | Our Services`,
+      '/packages': `${siteName} | Investment Packages`,
+      '/faqs': `${siteName} | FAQs`,
+      '/support': `${siteName} | Customer Support`,
+      '/contact': `${siteName} | Contact Us`,
+      '/login': `${siteName} | Login`,
+      '/register': `${siteName} | Register`,
+      '/forgot-password': `${siteName} | Forgot Password`,
+      '/reset-password': `${siteName} | Reset Password`,
+      '/admin/login': `${siteName} | Admin Login`,
     };
 
     if (titleMap[path]) {
       document.title = titleMap[path];
     } else {
-      document.title = `Client Dashboard | ${siteName}`;
+      document.title = 'AscendMining | Dashboard';
     }
 
     // Reset window scroll position to top on navigation
